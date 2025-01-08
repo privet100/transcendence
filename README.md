@@ -259,7 +259,7 @@
 ### My questions
 * settings.py SECRET_KEY
 
-### to to
+### to do
 * pop-up windows : login, chat, profile
 * страница comptetition, profile, найтройки
 * single-page: один html
