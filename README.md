@@ -13,7 +13,7 @@
     - через redis - но не понял как это работает. 
 * с точки зрения реализации api есть class based views / functions based views
   + fbv проще
-  + cbv не сильно сложнее.
+  + cbv не сильно сложнее
 * используем ли мы стандартную модель пользователя с кастомизацией или используем свою модель
   + от этого зависит будущая авторизация и как авторизация / permissions будут работать
   + Если стандартную модель - надо перезагрузить все примененные миграции и таблички
@@ -203,6 +203,19 @@
   + не пушить код большими и хаотичными кусками
   + we do not "git push" directly to main branch - only push to your own branch and after check (we have no tests so it is just double check from your side) - merge your branch with main branch
   + https://befitting-chili-056.notion.site/Branch-management-171a80978370805f8faedeadcb86e35d?pvs=4 
+* git
+  + клонировать dev
+  + `git checkout dev` переключитесь в dev
+  + `git checkout -b an` создайте новую ветку для ваших изменений
+  + Теперь вы можете работать над своим кодом, добавлять, изменять и удалять файлы в ветке an
+  + `git add .`
+  + `git commit -m "Добавляет функционал ..."`
+  + `git push origin an`
+  + Перейдите на GitHub и найдите вашу ветку an
+  + Создайте Pull Request для слияния ветки an с dev
+    - Добавьте описание изменений в PR, чтобы команда могла понять, над чем вы работали
+    - Дождитесь проверки и одобрения от других участников команды
+  + `git branch -d an` можете удалить локальную ветку
 * the password for the django admin panel ...
 * the docker extension in vscode
   + you can launch bash inside a container from gui
