@@ -262,7 +262,7 @@
 ### to do
 * pop-up windows : login, chat, profile
 * страница comptetition, profile, найтройки
-* single-page: один html
+* single-page (SPA): один html
   + этот html меняется с помощью js
   + не надо: server side rendering подход
   + не надо: django html - server-side code
