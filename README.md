@@ -60,8 +60,23 @@
     ]
     ```
   + `python manage.py collectstatic` файлы будут скопированы в директорию, указанную в STATIC_ROOT
-
-
+  + python manage.py findstatic css/popUpChat.css
+  + Убедитесь, что сервер Django может обслуживать статические файлы. Для локальной разработки добавьте в urls.py обработку статических файлов:
+     ```
+    from django.conf import settings
+    from django.conf.urls.static import static
+    
+    if settings.DEBUG:
+        urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+    ```
+  + Если вы используете Docker, убедитесь, что папка frontend/static доступна контейнеру Django. Для этого в docker-compose.yml добавьте frontend/static как volume:
+    ```
+    backend:
+  volumes:
+    - ./backend:/app
+    - ./frontend/static:/app/frontend/static
+    ```
+  + http://localhost:8000/static/css/table.css
 
 ### index.html
 * `{% extends "base.html" %}` расширение базового шаблона
