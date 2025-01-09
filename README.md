@@ -49,42 +49,68 @@
   + js на фронте читает инпут, проверяет с помощью regex
   + функция make password django шифрует на сервере ?
   + бэк ещё раз валидирует (например, проверяет пароль и почту) 
-* подключить css
-  + статические файлы Django (table.css) должны быть настроены для загрузки через тег {% static %}
-  + в начале шаблона (base.html) {% load static %}
-    - Без этой строки Django не сможет корректно обработать ссылку {% static ... %}
-  + backend/settings.py
-    ```
-    STATIC_URL = '/static/'
-    STATICFILES_DIRS = [
-        os.path.join(BASE_DIR, '../frontend/static'),  # Путь к статическим файлам
-    ]
-    ```
-  + `python manage.py collectstatic` файлы будут скопированы в backend/staticfiles
-  + `python manage.py findstatic css/popUpChat.css`
-  + `python manage.py runserver`
-  + В urls.py добавьте:
-    ```
-    from django.conf import settings
-    from django.conf.urls.static import static
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    ```
-  + Убедитесь, что сервер Django может обслуживать статические файлы. Для локальной разработки добавьте в urls.py обработку статических файлов:
-     ```
-    from django.conf import settings
-    from django.conf.urls.static import static
-    if settings.DEBUG:
-        urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
-    ```
-  + Если вы используете Docker, убедитесь, что папка frontend/static доступна контейнеру Django. Для этого в docker-compose.yml добавьте frontend/static как volume:
-    ```
-    backend:
-      volumes:
-        - ./backend:/app
-        - ./frontend/static:/app/frontend/static
-    ```
-  + to activate a virtual environment
-  + http://localhost:8000/static/css/table.css
+### подключить css
+* статические файлы Django (table.css) должны быть настроены для загрузки через тег {% static %}
+* в начале шаблона (base.html) {% load static %}
+  + Без этой строки Django не сможет корректно обработать ссылку {% static ... %}
+* backend/settings.py
+  ```
+  STATIC_URL = '/static/'
+  STATICFILES_DIRS = [
+      os.path.join(BASE_DIR, '../frontend/static'),  # Путь к статическим файлам
+  ]
+  ```
+* `python manage.py collectstatic` файлы будут скопированы в backend/staticfiles
+* `python manage.py findstatic css/popUpChat.css`
+* `python manage.py runserver`
+* В urls.py добавьте:
+  ```
+  from django.conf import settings
+  from django.conf.urls.static import static
+  urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+  ```
+* Убедитесь, что сервер Django может обслуживать статические файлы. Для локальной разработки добавьте в urls.py обработку статических файлов:
+   ```
+  from django.conf import settings
+  from django.conf.urls.static import static
+  if settings.DEBUG:
+      urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+  ```
+* Если вы используете Docker, убедитесь, что папка frontend/static доступна контейнеру Django. Для этого в docker-compose.yml добавьте frontend/static как volume:
+  ```
+  backend:
+    volumes:
+      - ./backend:/app
+      - ./frontend/static:/app/frontend/static
+  ```
+* to activate a virtual environment
+* http://localhost:8000/static/css/table.css
+* настройки Django
+  ```
+  INSTALLED_APPS = [
+      # ...
+      'django.contrib.staticfiles',
+      # ...
+  ]
+  
+  STATIC_URL = '/static/'
+  
+  # Если вы используете нестандартную структуру (например, папка статических файлов во фронтенде),
+  # пропишите её здесь. Например:
+  import os
+  BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+  
+  STATICFILES_DIRS = [
+      os.path.join(BASE_DIR, '..', 'frontend', 'static'),  # путь до папки frontend/static
+  ]
+  # STATICFILES_DIRS должен указывать на родительскую директорию, которая содержит все ваши статические файлы
+  ```
+* В режиме разработки (когда DEBUG = True), статика обслуживается самим Django, и обычно достаточно просто запустить python manage.py runserver.
+* В продакшене (когда DEBUG = False) вам нужно настроить раздачу статики (например, через collectstatic и веб-сервер Nginx/Apache). Если у вас режим продакшена и вы при этом не сделали collectstatic и не настроили сервер для раздачи статических файлов, то CSS грузиться не будет.
+* Откройте Инструменты разработчика (DevTools) → вкладка Network (Сеть).
+  + какой путь к CSS-файлу пытается загрузить браузер и какой код ответа (200 или 404)
+  + Если 404, значит Django не может найти нужный файл. Убедитесь, что конечный URL, по которому файл запрашивается, совпадает с реальным расположением вашего файла.
+* Иногда, если CSS-файл уже кэшировался, браузер может «залипать» на устаревшей версии. Проверьте, обновляется ли версия CSS (можно добавить некий ?v=123 в конце ссылки или просто очистить кэш браузера).
 
 ### How to manage static files (e.g. images, JavaScript, CSS)
 * https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -103,25 +129,22 @@
     - During development, if you use django.contrib.staticfiles, this will be done automatically by runserver when DEBUG is set to True (see django.contrib.staticfiles.views.serve()). 
     - This method is inefficient and insecure, so it is unsuitable for production.
     - See How to deploy static files for proper strategies to serve static files in production environments.
-
-Your project will probably also have static assets that aren’t tied to a particular app. In addition to using a static/ directory inside your apps, you can define a list of directories (STATICFILES_DIRS) in your settings file where Django will also look for static files. For example:
-
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-    "/var/www/static/",
-]
-See the documentation for the STATICFILES_FINDERS setting for details on how staticfiles finds your files.
-
-Static file namespacing
-
-Now we might be able to get away with putting our static files directly in my_app/static/ (rather than creating another my_app subdirectory), but it would actually be a bad idea. Django will use the first static file it finds whose name matches, and if you had a static file with the same name in a different application, Django would be unable to distinguish between them. We need to be able to point Django at the right one, and the best way to ensure this is by namespacing them. That is, by putting those static files inside another directory named for the application itself.
-
-You can namespace static assets in STATICFILES_DIRS by specifying prefixes.
-
-Serving static files during development¶
-If you use django.contrib.staticfiles as explained above, runserver will do this automatically when DEBUG is set to True. If you don’t have django.contrib.staticfiles in INSTALLED_APPS, you can still manually serve static files using the django.views.static.serve() view.
-
-This is not suitable for production use! For some common deployment strategies, see How to deploy static files.
+* Your project will probably also have static assets that aren’t tied to a particular app
+  + In addition to using a static/ directory inside your apps, you can define a list of directories (STATICFILES_DIRS) in your settings file where Django will also look for static files. For example:
+  ```
+  STATICFILES_DIRS = [
+      BASE_DIR / "static",
+      "/var/www/static/",
+  ]
+  ```
+  + See the documentation for the STATICFILES_FINDERS setting for details on how staticfiles finds your files
+* Static file namespacing.
+  + Now we might be able to get away with putting our static files directly in my_app/static/ (rather than creating another my_app subdirectory), but it would actually be a bad idea. Django will use the first static file it finds whose name matches, and if you had a static file with the same name in a different application, Django would be unable to distinguish between them. We need to be able to point Django at the right one, and the best way to ensure this is by namespacing them. That is, by putting those static files inside another directory named for the application itself.
+  + You can namespace static assets in STATICFILES_DIRS by specifying prefixes.
+* Serving static files during development
+  + If you use django.contrib.staticfiles as explained above, runserver will do this automatically when DEBUG is set to True
+  + If you don’t have django.contrib.staticfiles in INSTALLED_APPS, you can still manually serve static files using the django.views.static.serve() view
+    - This is not suitable for production use! For some common deployment strategies, see How to deploy static files.
 
 For example, if your STATIC_URL is defined as static/, you can do this by adding the following snippet to your urls.py:
 
