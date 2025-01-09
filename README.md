@@ -49,6 +49,19 @@
   + js на фронте читает инпут, проверяет с помощью regex
   + функция make password django шифрует на сервере ?
   + бэк ещё раз валидирует (например, проверяет пароль и почту) 
+* подключить css
+  + base.html не видит table.css, потому что base.html и table.css находятся в разных частях проекта
+  + статические файлы Django (table.css) должны быть настроены для загрузки через тег {% static %}
+  + backend/settings.py
+    ```
+    STATIC_URL = '/static/'
+    STATICFILES_DIRS = [
+        os.path.join(BASE_DIR, '../frontend/static'),  # Путь к статическим файлам
+    ]
+    ```
+  + `python manage.py collectstatic` файлы будут скопированы в директорию, указанную в STATIC_ROOT
+
+
 
 ### index.html
 * `{% extends "base.html" %}` расширение базового шаблона
