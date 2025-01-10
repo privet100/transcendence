@@ -1,8 +1,9 @@
-                           (Internet)
+```
+                            Internet
                                 |
                +----------------+----------------+
                |                                 |
-          (Browser/User)                    (GitHub / внешний сервис)
+          Browser/User                    GitHub / внешний сервис
                |                                 |
       1) HTTPS |                                 | 2) Webhook (HTTPS)
                v                                 v
@@ -11,7 +12,7 @@
         | (frontend)   |                 |  server block    |
         +------+-------+                 +--------+---------+
                |                                 |
-      ( location /static )       ( location /webhook ) 
+       location /static           location /webhook 
       отдача статики  |                  | proxy_pass
                |      |                  |
                |      v                  v
@@ -27,12 +28,12 @@
     Запросы к  |        |  Веб-хуки ( /webhook ), чаты, API и т.д.
    API/логике  |        |
                v        v
-         +-----+--+   +------+
-         | Postgres|  |Redis |
-         | (db)    |  |(Cache|
+         +-----+--+   +-------+
+         | Postgres|  |Redis  |
+         | (db)    |  |(Cache |
          +---------+  |PubSub)|
                       +-------+
-
+```
 ### как устроен проект
 * Бэкенд (Django)
 * Фронтенд (например, React)
