@@ -743,7 +743,7 @@
 * update_docker.sh автоматизирует обновление и пересборку Docker-контейнеров (например, docker-compose pull, docker-compose build, docker-compose up -d)
 * docker-compose up --build (или update_docker.sh)
   + чтобы пересобрать образы -> Django подхватывает изменения (если настроен hot-reload), фронтенд тоже
-
+* change the post requests to a websocket. The idea was to make the game and chat using websockets (native browser api), it’s beneficial in terms of continuous data streaming
 
 ### Tutorials
 * как работает бэк, фронт-энд, база данных, зачем API https://www.youtube.com/watch?v=XBu54nfzxAQ
