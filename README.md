@@ -1,40 +1,30 @@
+### как это работает
 ```
                             Internet
-                                |
                +----------------+----------------+
-               |                                 |
           Browser/User                    GitHub / внешний сервис
-               |                                 |
       1) HTTPS |                                 | 2) Webhook (HTTPS)
                v                                 v
-        +--------------+                 +------------------+
-        |   Nginx      |                 |  Nginx (тот же)  |
-        | (frontend)   |                 |  server block    |
-        +------+-------+                 +--------+---------+
+        +--------------+                 +-----------+
+        | Nginx front  |                 |  Nginx    |
+        +------+-------+                 +-------+---+
                |                                 |
-       location /static           location /webhook 
-      отдача статики  |                  | proxy_pass
-               |      |                  |
+       location /static           location /webhook proxy_pass
                |      v                  v
                |  /usr/share/nginx/html/static/      
                |                                      
                |    ( location / ) proxy_pass http://backend:8000
                v
-        +------+-------------------+
-        |      Django (backend)   |
-        | (runserver на порту 8000)|
-        +------+--------+---------+
-               |        |
-    Запросы к  |        |  Веб-хуки ( /webhook ), чаты, API и т.д.
-   API/логике  |        |
-               v        v
-         +-----+--+   +-------+
-         | Postgres|  |Redis  |
-         | (db)    |  |(Cache |
-         +---------+  |PubSub)|
-                      +-------+
+        +------+----------------------------------+
+        | Django backend runserver на порту 8000) |
+        +------+--------+-------------------------+
+Запросы к API/логике |        |  Веб-хуки ( /webhook ), чаты, API и т.д.
+                     v        v
+               +-----+--+   +-------+
+               | Postgres|  |Redis  |
+               +---------+  +-------+
 ```
-### как устроен проект
+
 * Пользователь открывает в браузере https://tr.naurzalinov.me/
   + видит загруженный фронтенд
   + приходит пользовательский запрос к корню сайта (http://<ваш IP>/)
