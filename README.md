@@ -223,6 +223,7 @@
 * we implement game logic in backed, backend because we need it to do the multiplayer
 
 ### SSL (HTTPS)
+* **где SSL, CSRF, **
 * шифровать соединение между клиентом (браузером) и сервером
 * `listen 443 ssl;` сервер слушает и обрабатывает SSL/HTTPS-соединения  
 * `ssl_certificate /etc/nginx/ssl/certificate.crt;`, `ssl_certificate_key /etc/nginx/ssl/private.key;` сертификат и приватный ключ для домена
@@ -282,7 +283,7 @@
   + views.py: набор проверок которые нужно добавить при запросе к api
   + https://docs.djangoproject.com/en/5.1/howto/csrf/ использование CSRF с Django, Документ Django по всем вопросам аутентификации и глобального использования
   + лучше использовать **JWT** и тогда не будет необходимости в поименении CSRF-токена
-* JWT (JSON Web Token
+* JWT (JSON Web Token)
   + формат токена для передачи данных между сторонами в безопасном и компактном виде
   + состоит из Base64-строки, что делает его лёгким для передачи через URL, заголовки и т.д.
   + для аутентификации, авторизации, обмена информацией в веб-приложениях
