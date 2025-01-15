@@ -1,4 +1,16 @@
-https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/WebSocket
+* https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/WebSocket
+* http://127.0.0.1:8000/admin/login/?next=/admin/
+* https://github.com/bakyt92/14_ft_transendence
+* бэк, фронт, база данных, API https://www.youtube.com/watch?v=XBu54nfzxAQ
+* REST API на DRF в Pycharm https://blog.jetbrains.com/pycharm/2023/09/building-apis-with-django-rest-framework/
+* бэкенд
+  + Django Tutorial https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/Tutorial_local_library_website
+  + https://www.djangoproject.com/start/
+  + https://www.django-rest-framework.org/tutorial/quickstart/
+  + django https://youtube.com/playlist?list=PLA0M1Bcd0w8xZA3Kl1fYmOH_MfLpiYMRs&si=mza4MvfFeRMqgU_B
+  + django https://youtube.com/playlist?list=PLA0M1Bcd0w8yU5h2vwZ4LO7h1xt8COUXl&si=ddHMMDnBVPiUuEXy
+  + The Browsable API - Django REST frameworkhttps://www.django-rest-framework.org/topics/browsable-api/
+* https://docs.djangoproject.com/en/5.1/ref/contrib/auth/
 
 ```
      Browser/User HTTPS               GitHub Webhook (HTTPS) 
@@ -763,19 +775,6 @@ https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/WebSocket
   + чтобы пересобрать образы -> Django подхватывает изменения (если настроен hot-reload), фронтенд тоже
 * change the post requests to a websocket. The idea was to make the game and chat using websockets (native browser api), it’s beneficial in terms of continuous data streaming
 
-### Tutorials
-* как работает бэк, фронт-энд, база данных, зачем API https://www.youtube.com/watch?v=XBu54nfzxAQ
-* созданиe REST API на DRF в Pycharm https://blog.jetbrains.com/pycharm/2023/09/building-apis-with-django-rest-framework/
-* как работает бэк, фронт, база данных, зачем API https://www.youtube.com/watch?v=XBu54nfzxAQ 
-* бэкенд
-  + Django Tutorial https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/Tutorial_local_library_website
-  + https://www.djangoproject.com/start/
-  + https://www.django-rest-framework.org/tutorial/quickstart/
-  + django https://youtube.com/playlist?list=PLA0M1Bcd0w8xZA3Kl1fYmOH_MfLpiYMRs&si=mza4MvfFeRMqgU_B
-  + django https://youtube.com/playlist?list=PLA0M1Bcd0w8yU5h2vwZ4LO7h1xt8COUXl&si=ddHMMDnBVPiUuEXy
-  + The Browsable API - Django REST frameworkhttps://www.django-rest-framework.org/topics/browsable-api/
-* https://docs.djangoproject.com/en/5.1/ref/contrib/auth/
-
 ### to do
 * pop-up windows : login, chat, profile
 * страница comptetition, profile, найтройки
@@ -805,9 +804,6 @@ https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/WebSocket
   + писать код, делать шаблончики  
   + сайт должен быть одностраничный, один html файл
   + обсудить с Л. структуры страничек, API с бэкэнда
-  + помощь на фронт энд, точечные задания 
-* К
-  + помощь на фронт энд, точечные задания 
 * Амин
   + вебсокеты для модуля remote players
     - обмен информацией между игроками и сервером о локации ракетки и мяча
