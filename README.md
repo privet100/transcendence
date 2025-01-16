@@ -189,6 +189,7 @@
   + инструменты по защите от распространённых уязвимостей (CSRF, XSS, SQL Injection)
   + благодаря джанговским формам и сериализаторам (в связке с Django REST Framework, если вы его используете), упрощается валидация данных, приходящих от фронтенда
 * на базе Python
+
 ### приложения Django app - отдельные модульные приложения внутри проекта
 * api_42 авторизация через intra 42 и т.д.
 * module_auth логика авторизации
@@ -219,8 +220,6 @@
   + уровни важности сообщений: `messages.debug`, `messages.info`, `messages.success`, `messages.warning`, `messages.error`
   + Отправка сообщений в представлении:
     ```python
-    from django.contrib import messages
-    from django.shortcuts import redirect
     def my_view(request):
         messages.success(request, 'Your action was successful!')
         messages.error(request, 'Something went wrong.')
@@ -259,8 +258,6 @@
 * добавьте `chat` в `INSTALLED_APPS`
 * в `chat/models.py` создайте модели сообщений и комнат
   ```python
-  from django.db import models
-  from django.contrib.auth.models import User
   class ChatRoom(models.Model):
       name = models.CharField(max_length=100, unique=True)
       def __str__(self):
@@ -275,60 +272,46 @@
   ```
 * создайте WebSocket consumer
   + обрабатывает соединения WebSocket
-  + файл `chat/consumers.py`:
+  + `chat/consumers.py`:
     ```python
-    import json
-    from channels.generic.websocket import AsyncWebsocketConsumer
     class ChatConsumer(AsyncWebsocketConsumer):
         async def connect(self):
             self.room_name = self.scope['url_route']['kwargs']['room_name']
             self.room_group_name = f'chat_{self.room_name}'
-            # Присоединиться к группе комнаты
-            await self.channel_layer.group_add(
+            await self.channel_layer.group_add(             # Присоединиться к группе комнаты
                 self.room_group_name,
                 self.channel_name
             )
             await self.accept()
         async def disconnect(self, close_code):
-            # Отключиться от группы комнаты
-            await self.channel_layer.group_discard(
+            await self.channel_layer.group_discard(                  # Отключиться от группы комнаты
                 self.room_group_name,
                 self.channel_name
             )
-        # Получение сообщения от WebSocket
-        async def receive(self, text_data):
+        async def receive(self, text_data):            # Получение сообщения от WebSocket
             text_data_json = json.loads(text_data)
             message = text_data_json['message']
-            # Отправить сообщение группе
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
+            await self.channel_layer.group_send(             # Отправить сообщение группе
+                self.room_group_name, {
                     'type': 'chat_message',
                     'message': message
                 }
             )
-        # Получение сообщения от группы
-        async def chat_message(self, event):
+        async def chat_message(self, event):       # Получение сообщения от группы
             message = event['message']
-            # Отправить сообщение обратно в WebSocket
-            await self.send(text_data=json.dumps({
+            await self.send(text_data=json.dumps({            # Отправить сообщение обратно в WebSocket
                 'message': message
             }))
     ```
 * Настройте маршруты WebSocket
-  + создайте `chat/routing.py` для маршрутов WebSocket:
+  + создайте `chat/routing.py`:
     ```python
-    from django.urls import path
-    from . import consumers
     websocket_urlpatterns = [
         path('ws/chat/<str:room_name>/', consumers.ChatConsumer.as_asgi()),
     ]
 ```
 * Добавьте маршруты WebSocket в `asgi.py`
   ```python
-  from channels.routing import ProtocolTypeRouter, URLRouter
-  from channels.auth import AuthMiddlewareStack
-  from chat.routing import websocket_urlpatterns
   application = ProtocolTypeRouter({
       'http': get_asgi_application(),
       'websocket': AuthMiddlewareStack(
@@ -340,15 +323,12 @@
   ```
 * в `chat/urls.py` настройте маршруты для комнаты чата
   ```python
-  from django.urls import path
-  from . import views
   urlpatterns = [
       path('<str:room_name>/', views.chat_room, name='chat_room'),
   ]
   ```
 * В `chat/views.py` создайте представление
   ```python
-  from django.shortcuts import render
   def chat_room(request, room_name):
       return render(request, 'chat/room.html', {'room_name': room_name})
   ```
@@ -390,43 +370,40 @@
   ```
 * `python manage.py makemigrations`, `python manage.py migrate` создайте и примените миграции для моделей 
 * `python manage.py runserver` запустите сервер разработки 
-* если используете WebSocket, убедитесь, что сервер ASGI корректно работает
-* вы можете расширить функциональность, добавив:
-  + Авторизацию пользователей
-  + Отображение истории сообщений
-  + Обработку ошибок и уведомления
+* убедитесь, что сервер ASGI корректно работает
+* можете расширить функциональность, добавив авторизацию пользователей, отображение истории сообщений, обработку ошибок и уведомления
 
 ### Chat
 * можно ли делать live chat с библиотекой channels или надо целиком писать
   + Какие библиотеки можно использовать?
 * Django Channels
   + библиотека для вебсокетов
-  + WebSocket позволяет передавать данные между сервером и клиентом в режиме реального времени (обмен сообщениями, уведомления)
-  + WebSocket обеспечивает постоянное соединение между клиентом и сервером, что важно для передачи игровых данных в реальном времени
-  + для реализации приложений с функциями реального времени, выходящих за рамки стандартного HTTP-протокола: онлайн-игра, отображение онлайн-статуса пользователей
+  + надстройка для Django
+  + добавить поддержку протоколов, отличных от HTTP (WebSocket, ...)
+  + для приложений с функциями реального времени, выходящих за рамки стандартного HTTP-протокола: онлайн-игра, онлайн-статус пользователей
+  + WebSocket - передавать данные между сервером и клиентом в режиме реального времени
+  + WebSocket обеспечивает постоянное соединение между клиентом и сервером
   + подходит для чата
-  + надстройка для Django: добавить поддержку протоколов, отличных от HTTP (WebSocket, ...)
-* **RabbitMQ** будет использоваться как брокер сообщений
-  + для системных сообщений
-  + уведомление о начале турнира, уведомление о добавлении в друзья
-  + Channels library / RabbitMQ **нужны ли оба?**
+* **RabbitMQ**
+  + брокер сообщений
+  + для системных сообщений (уведомление о начале турнира, уведомление о добавлении в друзья)_
+  + **нужны ли оба?** Channels library / RabbitMQ 
 * чат в формате поп-ап окна сбоку
-* to set up the database
+* to set up the database **для чего?**
   + `python manage.py makemigrations`, `python manage.py migrate`
   + create a superuser `python manage.py createsuperuser`
   + reload the server in Docker
 
 ### chat
-* класс router обрабатывает перемешения по сайту
+* класс router обрабатывает перемещения по сайту
   + popstate кнопки назад вперёд в брузере
-  + pathname = часть адреса после корня
 * на место .app подставляется div
   + div = homapage, profile, ... (все они наследуют от Component)
   + constructor() создаёт класс
   + class Component базовый, абстрактный - **понять**
   + render = вернуть html
   + state = переменные 
-  + событие DomContactLoaded = html полностью загрузился (у нас это только 1 раз)
+  + событие DomContactLoaded = html полностью загрузился (у нас только 1 раз)
   + фиксированная часть страницы доступна в js
   + % body % кберем, т.к. у нас SPA
   + login pages.js - запрос post к бэку
@@ -466,6 +443,7 @@
 * если сообщение не дошло, то такого пользователя нет
 * в контейнере бэк: python manage.py superuser то ли python manage.py createsuperuser, с именем админ пародлем админ
   + после этог модет быть migrations
+* pathname = часть адреса после корня
 
 ### F12 concole
 * лучше всего в chrome
