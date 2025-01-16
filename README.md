@@ -1,6 +1,7 @@
 * https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/WebSocket
 * http://127.0.0.1:8000/admin/login/?next=/admin/
 * https://github.com/bakyt92/14_ft_transendence
+* http://95.217.129.132:8000/
 * бэк, фронт, база данных, API https://www.youtube.com/watch?v=XBu54nfzxAQ
 * REST API на DRF в Pycharm https://blog.jetbrains.com/pycharm/2023/09/building-apis-with-django-rest-framework/
 * бэкенд
