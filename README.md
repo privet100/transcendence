@@ -538,7 +538,8 @@
     - фронтенд — отдельное SPA (React/Vue)
     - в бэкенде только делаете API (Django REST или Channels)
     - CSS лежат в папке фронта
-    - после сборки весь CSS окажется в итоговых бандлах (или отдельных .css файлах), и Django будет их отдавать или (чаще) их будет отдавать Nginx
+    - после сборки CSS окажется в итоговых бандлах (или отдельных .css файлах)
+    - Django будет их отдавать или (чаще) их будет отдавать Nginx
     - бэкенд отдает данные (API)
     - в корне репозитория есть frontend/ (с package.json, src/, node_modules/ и т.п.)
     - отдельное фронтенд-приложение (React, Vue и т.д.)
@@ -685,7 +686,7 @@
     <p>Вы не авторизованы. Пожалуйста, <a href="/login/">войдите</a> в систему.</p>
   {% endif %}
   ```
-* Карточка Bootstrap  
+* **Карточка Bootstrap**  
 
 ### некоторые файлы
 * .map (Source Map) для отладки кода в браузере
@@ -829,6 +830,37 @@
 * docker-compose up --build (или update_docker.sh)
   + чтобы пересобрать образы -> Django подхватывает изменения (если настроен hot-reload), фронтенд тоже
 * change the post requests to a websocket. The idea was to make the game and chat using websockets (native browser api), it’s beneficial in terms of continuous data streaming
+* `frontend/static/app.js`
+  + связь между бекендом и фронтендом
+  + получать информацию о пользователе (имя, статус, аватар, результаты игр)
+  + динамическое обновления пользовательского интерфейса с использованием данных, полученных от бэка 
+  + `fetch('http://backend:8000/api/user-data/')`: HTTP-запрос к эндпоинту бекенда `/api/user-data/`, получить данные JSON о пользователе
+  + `response => response.json()` конвертирует ответ JSON от сервера в объект JavaScript
+  + после получения данных пользовательский интерфейс (UI) (отображение имени пользователя, аватарка, настройки) обновляется без перезагрузки страницы
+  + `http://backend:8000` лушче хранить в перменной окружения
+  + улушение: динамически изменять DOM:
+    ```
+    fetch('http://backend:8000/api/user-data/')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('username').innerText = data.username;
+            document.getElementById('avatar').src = data.avatar_url;
+        })
+        .catch(error => console.error('Error:', error));
+    ```
+  + улучшене: `async/await` для упрощения чтения:
+     ```
+     async function fetchUserData() {
+         try {
+             const response = await fetch('http://backend:8000/api/user-data/');
+             const data = await response.json();
+             console.log('User Data:', data);
+         } catch (error) {
+             console.error('Error fetching user data:', error);
+         }
+     }
+     fetchUserData();
+     ```
 
 ### to do
 * pop-up windows : login, chat, profile
