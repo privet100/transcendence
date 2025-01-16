@@ -84,6 +84,8 @@
 * слушает и проксирует или статику фронта (SPA), или перенаправляет /api запросы на backend:8000
 * отдаёт фронтенд на http://localhost/
 * в роли прокси/сервера статики
+
+#### frontend/nginx.conf
 * `nginx.conf` в папке `frontend` по следующим причинам:
   + рядом с Dockerfile, чтобы во время сборки он копировался внутрь контейнера
   + Обслуживание статических файлов  
@@ -95,25 +97,20 @@
    - `frontend/`: сервировка фронта: статика, конфиг Nginx
    - `backend/`: код Django, его настройки, requirements, миграции, ...
    - Разделение frontend /backend — логическая структура, не привязка к тому, что фронтенд работает в браузере, а конфиг = сервер
-
-#### frontend/nginx.conf
 * Сервер для tr.naurzalinov.me
   + прослушивает HTTPS-трафик на порту 443
   + Запросы к /static/ перенаправляются на локальную папку /usr/share/nginx/html/static/
-  + Все остальные запросы проксируются на бэкенд (http://backend:8000)
-  + proxy_set_header передаёт нужные заголовки (IP клиента, протоколь Host, X-Forwarded-For и т.п.), что важно для Django
-* Сервер для IP-адреса 95.217.129.132
-  + идентичен первому
-* Сервер для вебхуков
-  + Обрабатывает запросы к tr.naurzalinov.me и 95.217.129.132, только для пути /webhook
-  + Используется отдельный сертификат для вебхуков (/certif/webhook.crt, /certif/webhook.key)
-  + Запросы на /webhook проксируются на http://backend:8000, передавая все важные заголовки
-  + Специальный блок для вебхуков (GitHub или других).
-  + При запросе к https://tr.naurzalinov.me/webhook (или на IP с /webhook), Nginx шлёт запрос на http://backend:8000/webhook
-  + Django (в webhook/views.py) уже обрабатывает пуши, git pull и т.д
+  + остальные запросы проксируются на бэкенд http://backend:8000
+  + proxy_set_header передаёт заголовки (IP клиента, протоколь Host, X-Forwarded-For, ...), это важно для Django
 * Перенаправление HTTP на HTTPS
   + Прослушивает HTTP-запросы на порту 80
   + Перенаправляет все запросы на HTTPS с использованием кода 301 (постоянное перенаправление)
+* If you are encountering errors after merging the two server blocks
+  + it is likely due to a misunderstanding of how NGINX processes server_name and return directives in conjunction with IP addresses
+  + server_name cannot match raw IP addresses: The server_name directive is designed for matching domain names. While you can technically include an IP address, it won't work as expected because NGINX does not use server_name for requests with an IP address; it relies on the listen directive instead
+  + Conflicting rules for IP-based requests: When a request is made to http://95.217.129.132, NGINX does not use the server_name directive for matching. Instead, it matches the listen directive and uses the first server block that matches the port
+  + By merging the two server_name values, requests to http://95.217.129.132 may not behave as intended because NGINX will not consider the IP address part of server_name
+  + you should keep separate server blocks. This ensures that requests with the IP address are correctly handled. Here’s the configuration
 
 ### backend
 * серверные задачи: бизнес-логика (чат, авторизация, API, управление базой данных, игровая логика, ...), роутинг Django, модели, чаты, аутентификация
