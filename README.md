@@ -191,6 +191,52 @@
   + инструменты по защите от распространённых уязвимостей (CSRF, XSS, SQL Injection)
   + благодаря джанговским формам и сериализаторам (в связке с Django REST Framework, если вы его используете), упрощается валидация данных, приходящих от фронтенда
 * на базе Python
+* `'django.contrib.messages'`
+  + встроенное приложение Django
+  + удобный способ интеграции уведомлений в веб-приложения, чтобы взаимодействовать с пользователем
+  + для работы с временными сообщениями (flash messages)
+  + передавать сообщения пользователю между запросами
+    - Уведомить пользователя об успешной регистрации
+    - Показать ошибку при неверном вводе данных
+    - Сообщить о выполнении действия, например, сохранении изменений
+  + например, чтобы показать уведомления об успешных действиях или сообщениях об ошибках
+  + сообщения сохраняются в сессии и автоматически удаляются после отображения
+  + уровни важности сообщений
+    - `messages.debug` (для отладки)
+    - `messages.info` (информационные сообщения)
+    - `messages.success` (сообщения об успехе)
+    - `messages.warning` (предупреждения)
+    - `messages.error` (ошибки)
+  + `'django.contrib.messages'` должно быть добавлено в `INSTALLED_APPS` и соответствующий middleware — в `MIDDLEWARE`
+  + Отправка сообщений в представлении:
+    - Django предоставляет API для работы с сообщениями через модуль `django.contrib.messages`.
+    -
+      ```python
+      from django.contrib import messages
+      from django.shortcuts import redirect
+      def my_view(request):
+          messages.success(request, 'Your action was successful!')
+          messages.error(request, 'Something went wrong.')
+          return redirect('home')
+      ```
+  + в шаблонах сообщения можно выводить с помощью цикла
+    - тег `{% get_messages %}`
+    - 
+      ```html
+      {% if messages %}
+          <ul>
+              {% for message in messages %}
+                  <li class="{{ message.tags }}">{{ message }}</li>
+              {% endfor %}
+          </ul>
+      {% endif %}
+      ```
+  + Уровень важности сообщения = `message.tags`
+    - `messages.add_message(request, messages.INFO, 'This is an informational message.')`
+  + по умолчанию сообщения хранятся в сессии
+    - можете изменить бэкэнд для хранения сообщений
+    - например, использовать куки вместо сессии
+    - в `settings.py` настройте: `MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'`
 
 ### приложения Django app - отдельное модульные приложения внутри проекта
 * we implement game logic in backed, backend because we need it to do the multiplayer
@@ -207,7 +253,7 @@
   + `friends = models.ManyToManyField("self")` пользователи могут быть друзьями 
   + чтобы расширить профили (добавить рейтинг, биографию, статистику), турнирную логику (сетка турнира, раунды), механику игр (разные типы игр) - добавлять поля и **миграции** в соответствующие модели в этом приложении
 
-### django aspp chat
+### django app chat
 * Настройка Channels в `settings.py`:
   ```python
   INSTALLED_APPS = [
