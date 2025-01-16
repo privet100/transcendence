@@ -189,23 +189,18 @@
 * на базе Python
 * `'django.contrib.messages'`
   + встроенное приложение Django
-  + удобный способ интеграции уведомлений в веб-приложения, чтобы взаимодействовать с пользователем
-  + для работы с временными сообщениями (flash messages)
-  + передавать сообщения пользователю между запросами
-    - Уведомить пользователя об успешной регистрации
-    - Показать ошибку при неверном вводе данных
-    - Сообщить о выполнении действия, например, сохранении изменений
-  + например, чтобы показать уведомления об успешных действиях или сообщениях об ошибках
-  + сообщения сохраняются в сессии и автоматически удаляются после отображения
-  + уровни важности сообщений
-    - `messages.debug` (для отладки)
-    - `messages.info` (информационные сообщения)
-    - `messages.success` (сообщения об успехе)
-    - `messages.warning` (предупреждения)
-    - `messages.error` (ошибки)
-  + `'django.contrib.messages'` должно быть добавлено в `INSTALLED_APPS` и соответствующий middleware — в `MIDDLEWARE`
+  + API для работы с сообщениями
+  + добавить в `INSTALLED_APPS`
+  + добавить в соответствующий в `MIDDLEWARE`
+  + интеграция уведомлений в веб-приложения, чтобы взаимодействовать с пользователем
+  + для временных сообщений (flash messages)
+  + сообщения пользователю **между запросами** (об успешной регистрации, показать ошибку при неверном вводе данных, о сохранении изменений)
+  + по умолчанию сообщения хранятся в сессии
+    - можете изменить бэкэнд для хранения сообщений
+    - например, использовать куки: `settings.py`: `MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'`
+  + сообщения автоматически удаляются после отображения
+  + уровни важности сообщений: `messages.debug`, `messages.info`, `messages.success`, `messages.warning`, `messages.error`
   + Отправка сообщений в представлении:
-    - Django предоставляет API для работы с сообщениями через модуль `django.contrib.messages`.
     -
       ```python
       from django.contrib import messages
@@ -216,23 +211,15 @@
           return redirect('home')
       ```
   + в шаблонах сообщения можно выводить с помощью цикла
-    - тег `{% get_messages %}`
-    - 
-      ```html
-      {% if messages %}
-          <ul>
-              {% for message in messages %}
-                  <li class="{{ message.tags }}">{{ message }}</li>
-              {% endfor %}
-          </ul>
-      {% endif %}
-      ```
-  + Уровень важности сообщения = `message.tags`
-    - `messages.add_message(request, messages.INFO, 'This is an informational message.')`
-  + по умолчанию сообщения хранятся в сессии
-    - можете изменить бэкэнд для хранения сообщений
-    - например, использовать куки вместо сессии
-    - в `settings.py` настройте: `MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'`
+    ```html
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    ```
 
 ### приложения Django app - отдельное модульные приложения внутри проекта
 * we implement game logic in backed, backend because we need it to do the multiplayer
