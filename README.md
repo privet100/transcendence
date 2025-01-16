@@ -209,6 +209,170 @@
   + `friends = models.ManyToManyField("self")` пользователи могут быть друзьями 
   + чтобы расширить профили (добавить рейтинг, биографию, статистику), турнирную логику (сетка турнира, раунды), механику игр (разные типы игр) - добавлять поля и **миграции** в соответствующие модели в этом приложении
 
+### django aspp chat
+* Настройка Channels в `settings.py`:
+  ```python
+  INSTALLED_APPS = [
+      # другие приложения
+      'channels',
+      'chat',  # новое приложение чата
+  ]
+  ASGI_APPLICATION = 'transcendence.asgi.application'
+  # Настройте канал слоя (например, для разработки используется in-memory)
+  CHANNEL_LAYERS = {
+      'default': {
+          'BACKEND': 'channels.layers.InMemoryChannelLayer',
+      },
+  }
+  ```
+* Создайте файл `asgi.py` в корне проекта, если его ещё нет
+* создайте приложение "chat" в вашем проекте: `python manage.py startapp chat`
+* Добавьте `chat` в `INSTALLED_APPS`
+* в `chat/models.py` создайте модели для сообщений и комнат
+  ```python
+  from django.db import models
+  from django.contrib.auth.models import User
+  class ChatRoom(models.Model):
+      name = models.CharField(max_length=100, unique=True)
+      def __str__(self):
+          return self.name
+  class Message(models.Model):
+      user = models.ForeignKey(User, on_delete=models.CASCADE)
+      room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
+      content = models.TextField()
+      timestamp = models.DateTimeField(auto_now_add=True)
+      def __str__(self):
+          return f'{self.user.username}: {self.content[:20]}'
+  ```
+* создайте WebSocket consumer
+  + обрабатывает соединения WebSocket
+  + файл `chat/consumers.py`:
+    ```python
+    import json
+    from channels.generic.websocket import AsyncWebsocketConsumer
+    class ChatConsumer(AsyncWebsocketConsumer):
+        async def connect(self):
+            self.room_name = self.scope['url_route']['kwargs']['room_name']
+            self.room_group_name = f'chat_{self.room_name}'
+            # Присоединиться к группе комнаты
+            await self.channel_layer.group_add(
+                self.room_group_name,
+                self.channel_name
+            )
+            await self.accept()
+        async def disconnect(self, close_code):
+            # Отключиться от группы комнаты
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+        # Получение сообщения от WebSocket
+        async def receive(self, text_data):
+            text_data_json = json.loads(text_data)
+            message = text_data_json['message']
+            # Отправить сообщение группе
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message
+                }
+            )
+        # Получение сообщения от группы
+        async def chat_message(self, event):
+            message = event['message']
+            # Отправить сообщение обратно в WebSocket
+            await self.send(text_data=json.dumps({
+                'message': message
+            }))
+    ```
+* Настройте маршруты WebSocket
+  + Создайте файл `chat/routing.py` для маршрутов WebSocket:
+    ```python
+    from django.urls import path
+    from . import consumers
+    websocket_urlpatterns = [
+        path('ws/chat/<str:room_name>/', consumers.ChatConsumer.as_asgi()),
+    ]
+```
+* Добавьте маршруты WebSocket в `asgi.py`
+  ```python
+  from channels.routing import ProtocolTypeRouter, URLRouter
+  from channels.auth import AuthMiddlewareStack
+  from chat.routing import websocket_urlpatterns
+  application = ProtocolTypeRouter({
+      'http': get_asgi_application(),
+      'websocket': AuthMiddlewareStack(
+          URLRouter(
+              websocket_urlpatterns
+          )
+      ),
+  })
+  ```
+* создайте маршруты и представления, в `chat/urls.py` настройте маршруты для комнаты чата
+  ```python
+  from django.urls import path
+  from . import views
+  
+  urlpatterns = [
+      path('<str:room_name>/', views.chat_room, name='chat_room'),
+  ]
+  ```
+* В `chat/views.py` создайте представление
+  ```python
+  from django.shortcuts import render
+  def chat_room(request, room_name):
+      return render(request, 'chat/room.html', {'room_name': room_name})
+  ```
+* создайте шаблоны для чата
+  + Создайте файл `chat/templates/chat/room.html`
+    ```html
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Chat Room</title>
+    </head>
+    <body>
+        <h1>Room: {{ room_name }}</h1>
+        <div id="chat-log"></div>
+        <input id="chat-message-input" type="text" size="100">
+        <button id="chat-message-submit">Send</button>
+        <script>
+            const roomName = "{{ room_name }}";
+            const chatSocket = new WebSocket(
+                'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+            );
+            chatSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                document.querySelector('#chat-log').innerHTML += '<br>' + data.message;
+            };
+            chatSocket.onclose = function(e) {
+                console.error('Chat socket closed unexpectedly');
+            };
+            document.querySelector('#chat-message-submit').onclick = function(e) {
+                const messageInputDom = document.querySelector('#chat-message-input');
+                const message = messageInputDom.value;
+                chatSocket.send(JSON.stringify({
+                    'message': message
+                }));
+                messageInputDom.value = '';
+            };
+        </script>
+    </body>
+    </html>
+    ```
+* создайте и примените миграции для моделей
+  ```bash
+  python manage.py makemigrations
+  python manage.py migrate
+* запустите сервер разработки `python manage.py runserver`
+* Если вы используете WebSocket, убедитесь, что сервер ASGI корректно работает.
+* теперь у вас приложение чата с реальным временем на WebSocket
+* Вы можете расширить функциональность, добавив:
+  + Авторизацию пользователей
+  + Отображение истории сообщений
+  + Обработку ошибок и уведомления
+
 ### chat
 * класс router обрабатывает перемешения по сайту
   + popstate кнопки назад вперёд в брузере
