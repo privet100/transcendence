@@ -109,20 +109,26 @@
   + Conflicting rules for IP-based requests: When a request is made to http://95.217.129.132, NGINX does not use the server_name directive for matching. Instead, it matches the listen directive and uses the first server block that matches the port
   + By merging the two server_name values, requests to http://95.217.129.132 may not behave as intended because NGINX will not consider the IP address part of server_name
   + you should keep separate server blocks
+* работает через HTTP/WS-протоколы
+* использует эндпоинты Django для обмена данными и взаимодействия (чат, игра, профили пользователей)
+* отправляет запросы к бэкенду (GET/POST, ...)
+* подписывается на WebSocket-каналы для чата
 
 ### backend
-* обрабатывает запросы фронтенда: логика аутентификации, чат (через Channels, если настроено), API для фронтенда, взаимодействие с базой данных
-* бизнес-логика (чат, авторизация, API, управление базой данных, игровая логика, ...), роутинг Django, модели, чаты, аутентификация
-* отдаёт данные (например, в JSON), формирует ответы
+* получает обрабатывает запросы фронтенда
+* обрабатывает их: аутентификация, чат (через Channels), API для фронтенда, бизнес-логика (чат, авторизация, API, игровая логика, ...), роутинг Django, модели, чаты, аутентификация
+* возвращает ответы
   + рендеринг шаблонов (Server-Side Rendering) или отдача JSON-данных (**REST API**)
   + отдаёт JSON/HTML или websocket (Channels)
 * runserver 0.0.0.0:8000 => запускает Django-приложение
 * слушает внутри контейнера на порту 8000 внутри сети Docker
 * снаружи его можно вызвать на localhost:8000
 * Обращается к Postgres для чтения/записи данных (пользователи, чат, профили)
-* Общается с Redis для кэша, сессий, Pub/Sub (чат, обновления статусов игроков в реальном времени)
+* общается с Redis для кэша, сессий, Pub/Sub (чат, обновления статусов игроков в реальном времени)
+* Django Channels обрабатывает событийную логику для чатов/онлайн-игр
 * myproject/
   + конфигурация проекта Django  
+  + собираете все apps вместе
   + связывает настройки, корневой маршрутизатор, запуск, управление проектом
   + __init__.py, asgi.py, wsgi.py **точки входа** Django
   + settings.py Django (подключение к БД, приложения, Middleware, статика, ...)
@@ -151,24 +157,16 @@
   + `urls.py` (корневой маршрут)
   + `wsgi.py` и `asgi.py` (точки входа для запуска приложения)
   + `__init__.py` (делает папку пакетом Python)
-  + в этой папке вы «собираете» все отдельные приложения (apps) вместе, указываете их в `INSTALLED_APPS` и настраиваете проект в целом
 * staticfiles
   + Django или система сборки складывает статические файлы после команды collectstatic
   + обычно не трекается гитом
-* requirements.txt: Python-библиотеки для работы бэкенда
-* manage.py django-утилита для миграций, запуска сервера, создания суперпользователя, ...
-* при запуске внутри Docker Compose, сервис backend получает имя backend (proxy_pass http://backend:8000)
+* Django = JSON API (используя Django REST Framework или WebSocket-соединения через Channels)
+* сервис backend получает имя backend (proxy_pass http://backend:8000)
 * ./backend:/app локальная backend примонтирована в контейнер как /app
   + изменения в коде сразу видны внутри контейнера (при корректной настройке)
-* Связь с фронтендом
-  + Django = JSON API (используя Django REST Framework или WebSocket-соединения через Channels)
-  + фронт отправляет запросы к бэкенду (GET/POST и пр.)
-  + фронт подписывается на WebSocket-каналы для чата
-  + Django обрабатывает данные, сохраняет в БД, возвращает ответы (JSON/HTTP)
-  + Django Channels обрабатывает событийную логику для чатов/онлайн-игр
-  + фронт работает через HTTP/WS-протоколы
-  + фронт использует эндпоинты Django для обмена данными и взаимодействия (чат, игра, профили пользователей)
 * **`daphne`** ASGI-сервер для **Django Channels**
+* manage.py django-утилита для миграций, запуска сервера, создания суперпользователя, ...
+* requirements.txt: Python-библиотеки для работы бэкенда
 
 ### django в целом
 * Бэкенд-фреймворк
