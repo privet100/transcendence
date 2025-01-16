@@ -115,6 +115,7 @@
 * подписывается на WebSocket-каналы для чата
 
 ### backend
+* we implement game logic in backed, backend because we need it to do the multiplayer
 * runserver 0.0.0.0:8000 => запустили Django-приложение
 * слушает внутри контейнера на порту 8000 внутри сети Docker
 * снаружи его можно вызвать на localhost:8000
@@ -187,7 +188,22 @@
   + инструменты по защите от распространённых уязвимостей (CSRF, XSS, SQL Injection)
   + благодаря джанговским формам и сериализаторам (в связке с Django REST Framework, если вы его используете), упрощается валидация данных, приходящих от фронтенда
 * на базе Python
-* `'django.contrib.messages'`
+### приложения Django app - отдельные модульные приложения внутри проекта
+* api_42 авторизация через intra 42 и т.д.
+* module_auth логика авторизации
+* auth_app логика аутентификации
+* chat (модели для сообщений, WebSocket-каналы, Django Channels)
+* myapp
+  + бизнес-логика пользовательских профилей, турниров, историй игр
+  + модель `UserProfile`: инфо о пользователе, друзьях, аватаре, дате последней активности, ...
+  + модель `Tournament`: список участников (many-to-many к `UserProfile`)
+    - даёт возможность собирать игры в рамках конкретного соревнования, управлять списком участников
+  + модель `Game` история матчей, кто участвовал, какой турнир, счёт, победитель
+  + `friends = models.ManyToManyField("self")` пользователи могут быть друзьями 
+  + расширить профили (добавить рейтинг, биографию, статистику), турнирную логику (сетка турнира, раунды), механику игр (разные типы игр):
+     - добавлять поля
+     - добавтиь **миграции** в соответствующие модели
+* встроенное прилождение `'django.contrib.messages'`
   + встроенное приложение Django
   + API для работы с сообщениями
   + добавить в `INSTALLED_APPS`
@@ -220,22 +236,8 @@
     {% endif %}
     ```
 
-### приложения Django app - отдельное модульные приложения внутри проекта
-* we implement game logic in backed, backend because we need it to do the multiplayer
-* api_42 авторизация через intra 42 и т.д.
-* module_auth логика авторизации
-* auth_app логика аутентификации
-* chat (модели для сообщений, WebSocket-каналы, Django Channels)
-* myapp
-  + бизнес-логика пользовательских профилей, турниров, историй игр
-  + модель `UserProfile`: инфо о пользователе, друзьях, аватаре, дате последней активности, ...
-  + модель `Tournament`: понятие турнира, список участников (many-to-many к `UserProfile`)
-    - даёт возможность собирать игры в рамках конкретного соревнования, управлять списком участников
-  + модель `Game` история сыгранных матчей, кто участвовал, какой турнир (если есть), счёт, определяет победителя
-  + `friends = models.ManyToManyField("self")` пользователи могут быть друзьями 
-  + чтобы расширить профили (добавить рейтинг, биографию, статистику), турнирную логику (сетка турнира, раунды), механику игр (разные типы игр) - добавлять поля и **миграции** в соответствующие модели в этом приложении
-
 ### django app chat
+* приложение чата с реальным временем на WebSocket
 * Настройка Channels в `settings.py`:
   ```python
   INSTALLED_APPS = [
@@ -251,10 +253,10 @@
       },
   }
   ```
-* Создайте файл `asgi.py` в корне проекта, если его ещё нет
-* создайте приложение "chat" в вашем проекте: `python manage.py startapp chat`
-* Добавьте `chat` в `INSTALLED_APPS`
-* в `chat/models.py` создайте модели для сообщений и комнат
+* Создайте файл `asgi.py` в корне проекта
+* создайте приложение "chat": `python manage.py startapp chat`
+* добавьте `chat` в `INSTALLED_APPS`
+* в `chat/models.py` создайте модели сообщений и комнат
   ```python
   from django.db import models
   from django.contrib.auth.models import User
@@ -313,7 +315,7 @@
             }))
     ```
 * Настройте маршруты WebSocket
-  + Создайте файл `chat/routing.py` для маршрутов WebSocket:
+  + создайте `chat/routing.py` для маршрутов WebSocket:
     ```python
     from django.urls import path
     from . import consumers
@@ -335,11 +337,10 @@
       ),
   })
   ```
-* создайте маршруты и представления, в `chat/urls.py` настройте маршруты для комнаты чата
+* в `chat/urls.py` настройте маршруты для комнаты чата
   ```python
   from django.urls import path
   from . import views
-  
   urlpatterns = [
       path('<str:room_name>/', views.chat_room, name='chat_room'),
   ]
@@ -350,51 +351,46 @@
   def chat_room(request, room_name):
       return render(request, 'chat/room.html', {'room_name': room_name})
   ```
-* создайте шаблоны для чата
-  + Создайте файл `chat/templates/chat/room.html`
-    ```html
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Chat Room</title>
-    </head>
-    <body>
-        <h1>Room: {{ room_name }}</h1>
-        <div id="chat-log"></div>
-        <input id="chat-message-input" type="text" size="100">
-        <button id="chat-message-submit">Send</button>
-        <script>
-            const roomName = "{{ room_name }}";
-            const chatSocket = new WebSocket(
-                'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
-            );
-            chatSocket.onmessage = function(e) {
-                const data = JSON.parse(e.data);
-                document.querySelector('#chat-log').innerHTML += '<br>' + data.message;
-            };
-            chatSocket.onclose = function(e) {
-                console.error('Chat socket closed unexpectedly');
-            };
-            document.querySelector('#chat-message-submit').onclick = function(e) {
-                const messageInputDom = document.querySelector('#chat-message-input');
-                const message = messageInputDom.value;
-                chatSocket.send(JSON.stringify({
-                    'message': message
-                }));
-                messageInputDom.value = '';
-            };
-        </script>
-    </body>
-    </html>
-    ```
-* создайте и примените миграции для моделей
-  ```bash
-  python manage.py makemigrations
-  python manage.py migrate
-* запустите сервер разработки `python manage.py runserver`
-* Если вы используете WebSocket, убедитесь, что сервер ASGI корректно работает.
-* теперь у вас приложение чата с реальным временем на WebSocket
-* Вы можете расширить функциональность, добавив:
+* создайте шаблоны для чата - создайте файл `chat/templates/chat/room.html`
+  ```html
+  <!DOCTYPE html>
+  <html>
+  <head>
+      <title>Chat Room</title>
+  </head>
+  <body>
+      <h1>Room: {{ room_name }}</h1>
+      <div id="chat-log"></div>
+      <input id="chat-message-input" type="text" size="100">
+      <button id="chat-message-submit">Send</button>
+      <script>
+          const roomName = "{{ room_name }}";
+          const chatSocket = new WebSocket(
+              'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+          );
+          chatSocket.onmessage = function(e) {
+              const data = JSON.parse(e.data);
+              document.querySelector('#chat-log').innerHTML += '<br>' + data.message;
+          };
+          chatSocket.onclose = function(e) {
+              console.error('Chat socket closed unexpectedly');
+          };
+          document.querySelector('#chat-message-submit').onclick = function(e) {
+              const messageInputDom = document.querySelector('#chat-message-input');
+              const message = messageInputDom.value;
+              chatSocket.send(JSON.stringify({
+                  'message': message
+              }));
+              messageInputDom.value = '';
+          };
+      </script>
+  </body>
+  </html>
+  ```
+* `python manage.py makemigrations`, `python manage.py migrate` создайте и примените миграции для моделей 
+* `python manage.py runserver` запустите сервер разработки 
+* если используете WebSocket, убедитесь, что сервер ASGI корректно работает
+* вы можете расширить функциональность, добавив:
   + Авторизацию пользователей
   + Отображение истории сообщений
   + Обработку ошибок и уведомления
