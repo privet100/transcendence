@@ -201,15 +201,14 @@
   + сообщения автоматически удаляются после отображения
   + уровни важности сообщений: `messages.debug`, `messages.info`, `messages.success`, `messages.warning`, `messages.error`
   + Отправка сообщений в представлении:
-    -
-      ```python
-      from django.contrib import messages
-      from django.shortcuts import redirect
-      def my_view(request):
-          messages.success(request, 'Your action was successful!')
-          messages.error(request, 'Something went wrong.')
-          return redirect('home')
-      ```
+    ```python
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    def my_view(request):
+        messages.success(request, 'Your action was successful!')
+        messages.error(request, 'Something went wrong.')
+        return redirect('home')
+    ```
   + в шаблонах сообщения можно выводить с помощью цикла
     ```html
     {% if messages %}
