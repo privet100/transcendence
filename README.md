@@ -137,7 +137,7 @@
     - конфиг проекта Django на высоком уровне (middleware, установленными приложения, роутинг, шаблоны, локаль, приложения, статика, ключи, переменные окружения, параметры безопасности, подключение к БД,  ...)
     - использует среды (.env) и пакеты `decouple`, `dotenv`, чтобы пароли, **ключи OAuth**, ... не хранились в коде
     - `BASE_DIR` корневая папка проекта  
-    - `STATIC_ROOT` куда Django складывает статические файлы при выполнении `collectstatic`
+    - `STATIC_ROOT = staticfiles` куда Django или система сборки складывает статические файлы при выполнении `collectstatic` (staticfiles обычно не трекается гитом)
     - `SECRET_KEY` уникальная строка для криптографических подписей (в продакшене не выкладывают в открытый доступ) 
     - `DEBUG = True` режим отладки (отображает детальные ошибки), в продакшене `False`  
     - `ALLOWED_HOSTS` список доменов/IP, с которых разрешён доступ к этому Django-приложению (когда `DEBUG=False`)
@@ -157,9 +157,6 @@
   + `urls.py` (корневой маршрут)
   + `wsgi.py` и `asgi.py` (точки входа для запуска приложения)
   + `__init__.py` (делает папку пакетом Python)
-* staticfiles
-  + Django или система сборки складывает статические файлы после команды collectstatic
-  + обычно не трекается гитом
 * сервис backend получает имя backend (proxy_pass http://backend:8000)
 * ./backend:/app локальная backend примонтирована в контейнер как /app
   + изменения в коде сразу видны внутри контейнера (при корректной настройке)
@@ -754,19 +751,20 @@
 * CSS-файлы и другая статика могут располагаться в разных местах
   + некоторые стили автоматически «приносят» сторонние пакеты (например, Django Admin, Django REST Framework)
   + некоторые — это ваши собственные файлы (например, bootstrap.min.css во фронтенде)
-  + когда вы ставите Django, вместе с ним «из коробки» идёт Django Admin и стандартные CSS-файлы для админки
-    - Django складывает их в staticfiles/admin/… (или admin/…), либо при выполнении collectstatic они копируются туда автоматически
-  + Django REST Framework (DRF) имеет свои статические файлы для browsable API или других админ-панелей.
-    - при установке и использовании DRF стили (CSS, JS, изображения) могут оказаться в rest_framework/....
-    - Опять же, это автоматически подтягивается, когда вы делаете collectstatic.
+  + когда вы ставите Django, вместе с ним из коробки идёт Django Admin и стандартные CSS-файлы для админки
+    - Django складывает их в staticfiles/admin/… (или admin/…)
+    - при выполнении collectstatic они копируются туда автоматически
+  + Django REST Framework (DRF) имеет свои статические файлы для browsable API или других админ-панелей
+    - при установке и использовании DRF стили (CSS, JS, изображения) могут оказаться в rest_framework/...
+    - это автоматически подтягивается по `python manage.py collectstatic`
   + Ваши собственные стили (frontend)
     - frontend/static/css
     - например, bootstrap.min.css или ваши собственные файлы
     - Если используете React/Vue/Angular — тогда вообще всё может лежать в папке фронтенда, и при сборке результирующие файлы уходят в папку билда (например, build/static/css/...)
-  + Если запускаете python manage.py collectstatic, то Django собирает все статические файлы, включая админку и DRF, в одну общую директорию сборки
+  + `python manage.py collectstatic` Django собирает все статические файлы, включая админку и DRF, в общую директорию сборки
     - по умолчанию STATIC_ROOT
     - Эта директория может называться backend/staticfiles/ (в зависимости от настроек settings.py)
-    - внутри этой единой директории вы увидите подпапки для каждого приложения (admin, rest_framework, etc.) и для ваших собственных стилей, если вы тоже настроили STATICFILES_DIRS
+    - внутри этой директории подпапки для каждого приложения (admin, rest_framework, ...) и для ваших собственных стилей, если вы тоже настроили STATICFILES_DIRS
   + Django складывает их либо в подпапках staticfiles/…, либо хранит их отдельно, пока вы не соберёте их в одну директорию
   + разные пакеты = разные CSS
     - каждый пакет мог содержать свои статические ресурсы, не мешаясь с чужими
@@ -847,7 +845,7 @@
 #### Deployment
 * django.contrib.staticfiles provides a convenience management command for gathering static files in a single directory
 *  `STATIC_ROOT = "/var/www/example.com/static/"`where you’d like to serve these files
-* `python manage.py collectstatic` copy all files from your static folders into the STATIC_ROOT directory
+* `python manage.py collectstatic` copy all files from your static folders into the STATIC_ROOT
 * Use a web server of your choice to serve the files
   + How to deploy static files covers some common deployment strategies for static files
 
