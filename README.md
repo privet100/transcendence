@@ -1261,14 +1261,18 @@
          }
      }
      fetchUserData();
-* вы должны предупредить клиента о том, что его ждет игра, даже если он в чате     ```
-* single-page (SPA), сайт одностраничный, один html файл
+* вы должны предупредить клиента о том, что его ждет игра, даже если он в чате
+* single-page (SPA)
+  + сайт одностраничный
+  + один html файл
   + этот html меняется с помощью js
   + не надо: server side rendering подход
   + не надо: django html - server-side code
   + не надо: в завимисости от какого-то условия, показываем или нет какие-то части страницы
   + надо: js
   + надо: код внутри {} исполняется в django, если условие выполняется (например, есть есть юзер), он выполняет и заново отправляет html
+* **убрать** settings.py SECRET_KEY, frontend/etc/private.key
+* `backend/webhook/migrations/__init__.py` **пустой**
 
 ### to do
 * pop-up windows : login, chat, profile
@@ -1295,7 +1299,3 @@
   + вебсокеты для модуля remote players
     - обмен информацией между игроками и сервером о локации ракетки и мяча
   + логика игры 
-
-### My questions
-* **убрать** settings.py SECRET_KEY, frontend/etc/private.key
-* `backend/webhook/migrations/__init__.py` **пустой**
