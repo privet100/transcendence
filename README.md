@@ -1,16 +1,13 @@
 ### test of the branch `without_wsgi`
-* list of endpoints:
-  + Откройте каждый `urls.py` и посмотрите, какие маршруты там определены
-  + Например:
-    ```python
-    from django.urls import path, include
-    urlpatterns = [
-        path('api/', include('api_42.urls')),
-        path('chat/', include('chat.urls')),
-    ]
-    ```
-    - тут эндпоинт `/api/` — маршруты в `api_42/urls.py`
-    - тут эндпоинт `/chat/` — маршруты в `chat/urls.py`
+* endpoints:
+  + Откройте каждый `urls.py`
+  + callback/
+    logout/
+    login/
+    auth/email/
+    signup/
+    auth/callback
+    profile/
 * Django предоставляет специальную команду, чтобы получить список всех зарегистрированных эндпоинтов: `python manage.py show_urls`
   + Если команда не работает, установите дополнительный пакет `pip install django-extensions`, добавьте `'django_extensions'` в `INSTALLED_APPS` и повторите команду
 * Если в вашем проекте используется DRF, можно включить автоматическую документацию эндпоинтов.
@@ -110,6 +107,8 @@
 * https://docs.djangoproject.com/en/5.1/ref/contrib/auth/
 
 ### контейнер frontend
+* try using **bolt.new** it's better at frontend
+  + the ui is fire here
 * папка `frontend/`: сервировка фронта: статика, конфиг Nginx
   + Разделение frontend /backend — логическая структура, не привязка к тому, что фронтенд работает в браузере, а конфиг = сервер
 * Nginx + собранный фронт
@@ -1270,6 +1269,7 @@
   + надо: код внутри {} исполняется в django, если условие выполняется (например, есть есть юзер), он выполняет и заново отправляет html
 * **убрать** settings.py SECRET_KEY, frontend/etc/private.key
 * `backend/webhook/migrations/__init__.py` **пустой**
+* создание **virtual environment** лучший способ изолировать зависимости проекта и избежать конфликтов версий между установленными пакетами
 
 ### to do
 * pop-up windows : login, chat, profile
@@ -1278,11 +1278,12 @@
   + потом туда подсоединим вебсокеты, базовый дизайн
 * Б
   + структуры данных
-  + Django REST Framework
+  + **Django REST Framework**
   + модуль с сокетами и чатом (live chat, уведомления о турнирах, и проч)
   + API, эндпоинты и методы для API
   + live chat
   + **rabbitMQ модуль сообщение от сервера**
+  + google doc: status which modules are chosen and which modules are done
 * Л
   + авторизация
   + фронт-энд
@@ -1295,4 +1296,10 @@
 * Амин
   + вебсокеты для модуля remote players
     - обмен информацией между игроками и сервером о локации ракетки и мяча
-  + логика игры 
+  + game logic
+    - whether we want to follow basic ping pong rules?
+    - the ball should speed up when paddle hits the ball ?
+    - https://stackoverflow.com/questions/54796089/python-ping-pong-game-speeding-up-the-ball-after-paddle-hit 
+  + some sort of **anticheat** to be sure that the users mouvement are normal
+    - my code will be easy, it'd just gonne output two players position and the ball and then you can render it however you want
+  + I'll update you soon on the game websocket
