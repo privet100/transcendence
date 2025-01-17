@@ -109,29 +109,6 @@
   + The Browsable API - Django REST frameworkhttps://www.django-rest-framework.org/topics/browsable-api/
 * https://docs.djangoproject.com/en/5.1/ref/contrib/auth/
 
-```
-     Browser/User HTTPS                
-               v                                 
-        +--------------+              
-        | Nginx        |              
-        +------+-------+              
-               |      |                            
-       location /    location /static           
-               |      v                  
-               |  /usr/share/nginx/html/static/      
-               |                                      
-               | proxy_pass http://backend:8000
-               v
-        +------+------------------------+
-        | Django backend runserver 8000 |
-        +------+--------+---------------+
-Запросы к API/логике |        |  чаты, API, ...
-                     v        v
-               +-----+--+   +-------+
-               | Postgres|  |Redis  |
-               +---------+  +-------+
-```
-
 ### контейнер frontend
 * папка `frontend/`: сервировка фронта: статика, конфиг Nginx
   + Разделение frontend /backend — логическая структура, не привязка к тому, что фронтенд работает в браузере, а конфиг = сервер
