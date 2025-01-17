@@ -110,22 +110,22 @@
 * https://docs.djangoproject.com/en/5.1/ref/contrib/auth/
 
 ```
-     Browser/User HTTPS               GitHub Webhook (HTTPS) 
-               v                                 v
-        +--------------+                 +-----------+
-        | Nginx        |                 |  Nginx    |
-        +------+-------+                 +-------+---+
-               |                                 |
-       location /static           location /webhook proxy_pass
-               |      v                  v
+     Browser/User HTTPS                
+               v                                 
+        +--------------+              
+        | Nginx        |              
+        +------+-------+              
+               |      |                            
+       location /    location /static           
+               |      v                  
                |  /usr/share/nginx/html/static/      
                |                                      
-               |    ( location / ) proxy_pass http://backend:8000
+               | proxy_pass http://backend:8000
                v
         +------+------------------------+
         | Django backend runserver 8000 |
         +------+--------+---------------+
-Запросы к API/логике |        |  Веб-хуки ( /webhook ), чаты, API и т.д.
+Запросы к API/логике |        |  чаты, API, ...
                      v        v
                +-----+--+   +-------+
                | Postgres|  |Redis  |
