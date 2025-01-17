@@ -1,3 +1,76 @@
+### test of the branch `without_wsgi`
+* test endpoints HTTP (API или страницы) with Postman:
+  + Введите адрес вашего сервера, например:
+     - `http://localhost:8000/api/endpoint/`
+     - `https://example.com/api/endpoint/`
+  + метод (GET, POST, PUT, DELETE и т. д.).
+  + Если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`).
+  + Отправьте запрос и проверьте статус ответа (200 OK, 401 Unauthorized и т.д.) и тело ответа
+* test endpoints HTTP (API или страницы) with Curl:
+  + `curl -X GET http://localhost:8000/api/endpoint/`
+  + `curl -X POST http://localhost:8000/api/endpoint/ -H "Content-Type: application/json" -d '{"key": "value"}'`
+* test endpoints HTTP (API или страницы) with browser:
+  + Для эндпоинтов, которые возвращают HTML (главная страница, панель администратора), просто откройте браузер и введите URL
+* test endpoints Websockets with Postman
+  + меню `New Request` - `WebSocket`
+  + Укажите URL WebSocket-соединения:
+     - `ws://localhost:8000/ws/chat/room_name/`
+     - `wss://example.com/ws/chat/room_name/`
+  + Установите соединение и отправьте тестовые сообщения
+  +  Посмотрите, возвращает ли сервер ответы.
+* test endpoints Websockets with Chrome + расширения [Smart WebSocket Client](https://chrome.google.com/webstore/detail/smart-websocket-client/kzhddgcmkfiimcdlddieeoemkbdmgkag) 
+  + Укажите URL WebSocket: `ws://localhost:8000/ws/chat/room_name/`
+  + Нажмите «Connect».
+  + Отправьте тестовые сообщения и проверьте, получает ли сервер их.
+* test endpoints Websockets with Python + библиотека `websockets`
+  ```python
+  import asyncio
+  import websockets
+  async def test_websocket():
+      uri = "ws://localhost:8000/ws/chat/room_name/"
+      async with websockets.connect(uri) as websocket:
+          await websocket.send("Hello, WebSocket!")
+          response = await websocket.recv()
+          print(f"Response: {response}")
+  asyncio.run(test_websocket())
+  ```
+* test Redis integration
+  + `redis-cli`
+  + `PING`
+    - Ожидаемый ответ: `PONG`.
+  + Проверьте, публикуются ли сообщения: `SUBSCRIBE my_channel`
+    - отправьте тестовые сообщения в канал `my_channel` и убедитесь, что они принимаются
+* HTTP-тесты с autrotests Django
+  + Django предоставляет встроенные инструменты для тестирования HTTP:
+    ```python
+    from django.test import TestCase
+    from django.urls import reverse
+    class APITest(TestCase):
+        def test_endpoint(self):
+            url = reverse("api_endpoint_name")  # Используйте имя вашего маршрута
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+    ```
+* WebSocket-тесты с Django Channels + `pytest`:
+  ```python
+  from channels.testing import WebsocketCommunicator
+  from myproject.asgi import application
+  import pytest
+  @pytest.mark.asyncio
+  async def test_websocket():
+      communicator = WebsocketCommunicator(application, "/ws/chat/room_name/")
+      connected, _ = await communicator.connect()
+      assert connected
+      await communicator.send_to(text_data="Hello!")
+      response = await communicator.receive_from()
+      assert response == "Hello, WebSocket!"
+      await communicator.disconnect()
+  ```
+* basic functions of website
+* websockets in room page
+* websockets in the game
+
+### links
 * https://github.com/bakyt92/14_ft_transendence
 * https://tr.naurzalinov.me/users/
 * http://95.217.129.132:8000/
@@ -38,12 +111,6 @@
                | Postgres|  |Redis  |
                +---------+  +-------+
 ```
-
-### test
-* endpoints
-* basic functions of website
-* websockets in room page
-* websockets in the game
 
 ### контейнер frontend
 * папка `frontend/`: сервировка фронта: статика, конфиг Nginx
