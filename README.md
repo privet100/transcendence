@@ -1,4 +1,24 @@
 ### test of the branch `without_wsgi`
+* list of endpoints:
+  + Откройте каждый `urls.py` и посмотрите, какие маршруты там определены
+  + Например:
+    ```python
+    from django.urls import path, include
+    urlpatterns = [
+        path('api/', include('api_42.urls')),
+        path('chat/', include('chat.urls')),
+    ]
+    ```
+    - тут эндпоинт `/api/` — маршруты в `api_42/urls.py`
+    - тут эндпоинт `/chat/` — маршруты в `chat/urls.py`
+* Django предоставляет специальную команду, чтобы получить список всех зарегистрированных эндпоинтов: `python manage.py show_urls`
+  + Если команда не работает, установите дополнительный пакет `pip install django-extensions`, добавьте `'django_extensions'` в `INSTALLED_APPS` и повторите команду
+* Если в вашем проекте используется DRF, можно включить автоматическую документацию эндпоинтов.
+  + Browsable API (встроенная документация): Откройте проект в браузере и перейдите на `http://localhost:8000/api/` или `http://localhost:8000/`. Если DRF настроен корректно, вы увидите список всех эндпоинтов.
+  + если в проекте подключены библиотеки для документирования API (drf-yasg, ...), то на `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
+  + поиск в файлах: `grep -r "path(" backend/`, `grep -r "re_path(" backend/` 
+  + Postman: настройте Postman и импортируйте коллекцию эндпоинтов, если она уже создана  
+  + использовать Postman для изучения API, отправляя запросы на `/api/`, `/swagger/`, ... и исследуя доступные маршруты
 * test endpoints HTTP (API или страницы) with Postman:
   + Введите адрес вашего сервера, например:
      - `http://localhost:8000/api/endpoint/`
