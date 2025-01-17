@@ -1,4 +1,4 @@
- * https://github.com/bakyt92/14_ft_transendence
+* https://github.com/bakyt92/14_ft_transendence
 * https://tr.naurzalinov.me/users/
 * http://95.217.129.132:8000/
 * http://95.217.129.132:8000/chat/1
@@ -38,6 +38,12 @@
                | Postgres|  |Redis  |
                +---------+  +-------+
 ```
+
+### test
+* endpoints
+* basic functions of website
+* websockets in room page
+* websockets in the game
 
 ### контейнер frontend
 * папка `frontend/`: сервировка фронта: статика, конфиг Nginx
@@ -625,14 +631,104 @@
   + Если вы не настроите `ASGI_APPLICATION`
     - ASGI-серверу придётся явно указывать путь к точке входа (например, через параметры запуска `uvicorn`)
     - некоторые функции (Channels), могут перестать работать, так как они используют эту настройку для маршрутизации WebSocket-запросов
-* Пример структуры запуска:
-  + ASGI-сервер обрабатывает все соединения
-    - синхронные HTTP-запросы передаются стандартным Django-приложением
-    - WebSocket-запросы обрабатываются через Django Channels
+  + Пример запуска:
+    - ASGI-сервер передаёт синхронные HTTP-запросы стандартным Django-приложением
+    - ASGI-сервер передаёт обрабатывает WebSocket-запросы через Django Channels
+  + asgi.py использует AllowedHostsOriginValidator, который проверяет допустимые хосты для WebSocket-соединений
+    - Убедитесь, что список ALLOWED_HOSTS в settings.py включает все домены и IP-адреса, которые вы используете:
+    - ALLOWED_HOSTS = ['95.217.129.132', 'localhost', '127.0.0.1', 'tr.naurzalinov.me']
 * bakyt: General Django + Channels Features => you may need both WSGI and ASGI servers
   + WSGI serves the synchronous parts of your app (e.g., normal HTTP views)
   + ASGI serves the asynchronous parts (e.g., WebSockets or async views using Channels)
   + Backward Compatibility or Mixed Deployment: If parts of your app are synchronous, and others are asynchronous, running both servers is a practical solution
+* перехожу на asgi only:
+  + удалила файл wsgi.py
+  + удалила строку `Gunicorn_APPLICATION = 'myproject.wsgi.application'`
+  + Убедитесь, что вы используете сервер ASGI: Если у вас уже есть daphne в INSTALLED_APPS, то ASGI-сервер настроен. Daphne работает вместе с Django Channels
+  + Настройте запуск приложения с ASGI-сервером: `daphne -b 0.0.0.0 -p 8000 myproject.asgi:application`
+  + убедиться, что в docker-compose.yml для бэкенда используется ASGI-сервер
+    - было: command: gunicorn myproject.wsgi:application --bind 0.0.0.0:8000
+    - сделать: command: daphne -b 0.0.0.0 -p 8000 myproject.asgi:application
+  + в chat/routing.py WebSocket уже настроен
+  + Убедитесь, что Redis работает корректно
+  + убедитесь, что `urls.py` подключает routing.py через ProtocolTypeRouter в asgi.py:
+    ```
+    from channels.routing import ProtocolTypeRouter, URLRouter
+    from channels.auth import AuthMiddlewareStack
+    import chat.routing
+    application = ProtocolTypeRouter({
+        "http": get_asgi_application(),  # HTTP-приложение
+        "websocket": AuthMiddlewareStack(
+            URLRouter(
+                chat.routing.websocket_urlpatterns
+            )
+        ),
+    })
+    ```
+  + Проверьте Docker или команды запуска
+    - Убедитесь, что вы используете ASGI-сервер для запуска приложения: `daphne -b 0.0.0.0 -p 8000 mysite.asgi:application`
+    - Если у вас docker-compose.yml, замените команду для бэкенда: `command: daphne -b 0.0.0.0 -p 8000 mysite.asgi:application`
+  + убедитесь, что nginx поддерживает WebSocket, добавьте заголовки в блок location:
+    ```
+    location /ws/ {
+        proxy_pass http://backend:8000;  # Путь до ASGI-сервера
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    ```
+  + проверьте, работает ли WebSocket (например, через чат)
+    - Убедитесь, что клиент может подключиться к ws:// или wss://, и сообщения проходят корректно
+    - В логах Daphne или Redis убедитесь, что соединения WebSocket создаются и работают стабильно
+  + Тестирование ASGI: Запустите проект локально с Daphne: `daphne -b 0.0.0.0 -p 8000 myproject.asgi:application`
+  + Проверьте, работает ли WebSocket:
+    - Откройте интерфейс чата и убедитесь, что сообщения отправляются и принимаются
+    - Проверьте логи Daphne — должны быть видны соединения WebSocket
+* как интегрировать и запустить Django с ASGI, сохраняя текущую архитектуру
+  + план:
+    - Настроить сервер запуска (Daphne или Uvicorn)
+    - Обновить проксирование WebSocket в Nginx
+    - Тестировать WebSocket и Redis
+  + Django начиная с версии 3.0 поддерживает ASGI
+  + можно использовать стандартные синхронные HTTP-запросы и асинхронные протоколы (WebSocket)
+  + `asgi.py` уже настроен для работы с Django через ASGI
+    - добавлена поддержка WebSocket через Django Channels
+    - Django всё так же выполняет HTTP-запросы через свой встроенный обработчик, но уже работает под управлением ASGI-сервера
+  + ASGI не меняет вашего Django-кода для HTTP  
+    - Все стандартные Django-функции (middleware, views, models) продолжают работать в синхронном режиме
+    - Вам не нужно ничего менять для обработки стандартных HTTP-запросов
+  + WebSocket обрабатывается через Django Channels  
+  + `asgi.py` уже настроен на поддержку WebSocket с помощью `ProtocolTypeRouter`:
+    - HTTP-запросы идут через `django_asgi_app` (обычный обработчик Django),
+    - WebSocket-запросы маршрутизируются через `AuthMiddlewareStack` и `URLRouter`.
+  + Обновите команду запуска
+    - Поскольку ваш бэкенд — это Django, вы должны запускать его через ASGI-сервер: `daphne -b 0.0.0.0 -p 8000 mysite.asgi:application`
+  + Daphne хорошо интегрируется с Django Channels и поддерживает WebSocket из коробки
+  + Nginx как прокси-сервер должен корректно передавать WebSocket-запросы,
+    - Добавьте следующий блок:
+      ```nginx
+      location /ws/ {
+          proxy_pass http://backend:8000;  # Подключение к вашему ASGI-серверу
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+      }
+      ```
+    - `proxy_pass` указывает на ASGI-сервер, работающий в контейнере бэкенда  
+    - `location /ws/` — путь, который используется для WebSocket-запросов. Убедитесь, что ваш фронтенд использует этот путь для подключения к WebSocket.
+  + Тестирование
+    - Запустите ASGI-сервер `daphne -b 0.0.0.0 -p 8000 mysite.asgi:application`
+    - Проверьте HTTP: Убедитесь, что стандартные HTTP-запросы работают через ASGI-сервер (загрузка HTML-страницы, отправка данных формы)
+    - Проверьте WebSocket: Используйте функционал, связанный с WebSocket (чат, ...). Если соединение успешно устанавливается, то всё  правильно
+    - Проверьте Redis: Если WebSocket-запросы зависят от Redis (например, для хранения данных о сессиях), убедитесь, что Redis работает и настроен правильно: `redis-cli ping`, Ожидаемый ответ: `PONG`
 
 ### db (PostgreSQL)
 * СУБД (база данных) для хранения пользователей, сообщений, данных о матчах в Pong, статистики и т.д.
@@ -742,6 +838,10 @@
 * Redis хранит данные в оперативной памяти, поэтому важно следить за потреблением памяти
 * Если у вас несколько инстансов приложения, они могут одновременно использовать Redis как общий слой.
 * Используйте настройки: время жизни кэша (`TIMEOUT`), ...
+* Убедитесь, что Redis работает корректно
+  + Попробуйте подключиться к Redis через redis-cli
+  + или убедитесь, что контейнер Redis запущен, если вы используете Docker
+  + Если Redis на другой машине, замените ('redis', 6379) на реальный хост Redis-сервера (например, ('your-redis-host', 6379))
 
 ### подключить css
 * статические файлы Django (table.css) должны быть настроены для загрузки через тег {% static %}
@@ -1131,4 +1231,4 @@
 
 ### My questions
 * **убрать** settings.py SECRET_KEY, frontend/etc/private.key
-* backend/webhook/migrations/__init__.py пустой
+* `backend/webhook/migrations/__init__.py` **пустой**
