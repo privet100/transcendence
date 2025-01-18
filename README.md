@@ -12,63 +12,65 @@
   + установите пакет `pip install django-extensions`
   + добавьте `'django_extensions'` в `INSTALLED_APPS`
   + `python manage.py show_urls` список зарегистрированных эндпоинтов
-/       
-/admin/ 
-/admin/<app_label>/
-/admin/<url>    
-/admin/auth/group/
-/admin/auth/group/<path:object_id>/
-/admin/auth/group/<path:object_id>/change/
-/admin/auth/group/<path:object_id>/delete/
-/admin/auth/group/<path:object_id>/history/
-/admin/auth/group/add/
-/admin/autocomplete/
-/admin/jsi18n/
-/admin/login/
-/admin/logout/
-/admin/myapp/game/
-/admin/myapp/game/<path:object_id>/
-/admin/myapp/game/<path:object_id>/change/
-/admin/myapp/game/<path:object_id>/delete/
-/admin/myapp/game/<path:object_id>/history/
-/admin/myapp/game/add/
-/admin/myapp/tournament/
-/admin/myapp/tournament/<path:object_id>/
-/admin/myapp/tournament/<path:object_id>/change/
-/admin/myapp/tournament/<path:object_id>/delete/
-/admin/myapp/tournament/<path:object_id>/history/
-/admin/myapp/tournament/add/
-/admin/myapp/userprofile/
-/admin/myapp/userprofile/<path:object_id>/
-/admin/myapp/userprofile/<path:object_id>/change/
-/admin/myapp/userprofile/<path:object_id>/delete/
-/admin/myapp/userprofile/<path:object_id>/history/
-/admin/myapp/userprofile/add/
-/admin/password_change/
-/admin/password_change/done/
-/admin/r/<int:content_type_id>/<path:object_id>/
-/auth/auth/callback
-/auth/auth/email/
-/auth/callback
-/auth/callback/ 
-/auth/email/
-/auth/login/
-/auth/logout/
-/auth/profile/
-/auth/signup/
-/callback/
-/chat/
-/chat/<str:room_name>/
-/game/<int:id>/
-/login/
-/logout/
-/profile/
-/signup/
-/tour/<int:id>/
-/user/<int:id>/
-/user_42/<int:user_id>/
-/users/
-/users_42/
+    ```
+    /       
+    /admin/ 
+    /admin/<app_label>/
+    /admin/<url>    
+    /admin/auth/group/
+    /admin/auth/group/<path:object_id>/
+    /admin/auth/group/<path:object_id>/change/
+    /admin/auth/group/<path:object_id>/delete/
+    /admin/auth/group/<path:object_id>/history/
+    /admin/auth/group/add/
+    /admin/autocomplete/
+    /admin/jsi18n/
+    /admin/login/
+    /admin/logout/
+    /admin/myapp/game/
+    /admin/myapp/game/<path:object_id>/
+    /admin/myapp/game/<path:object_id>/change/
+    /admin/myapp/game/<path:object_id>/delete/
+    /admin/myapp/game/<path:object_id>/history/
+    /admin/myapp/game/add/
+    /admin/myapp/tournament/
+    /admin/myapp/tournament/<path:object_id>/
+    /admin/myapp/tournament/<path:object_id>/change/
+    /admin/myapp/tournament/<path:object_id>/delete/
+    /admin/myapp/tournament/<path:object_id>/history/
+    /admin/myapp/tournament/add/
+    /admin/myapp/userprofile/
+    /admin/myapp/userprofile/<path:object_id>/
+    /admin/myapp/userprofile/<path:object_id>/change/
+    /admin/myapp/userprofile/<path:object_id>/delete/
+    /admin/myapp/userprofile/<path:object_id>/history/
+    /admin/myapp/userprofile/add/
+    /admin/password_change/
+    /admin/password_change/done/
+    /admin/r/<int:content_type_id>/<path:object_id>/
+    /auth/auth/callback
+    /auth/auth/email/
+    /auth/callback
+    /auth/callback/ 
+    /auth/email/
+    /auth/login/
+    /auth/logout/
+    /auth/profile/
+    /auth/signup/
+    /callback/
+    /chat/
+    /chat/<str:room_name>/
+    /game/<int:id>/
+    /login/
+    /logout/
+    /profile/
+    /signup/
+    /tour/<int:id>/
+    /user/<int:id>/
+    /user_42/<int:user_id>/
+    /users/
+    /users_42/
+    ```
 * Если в вашем проекте используется DRF, можно включить автоматическую документацию эндпоинтов
   + Browsable API (встроенная документация): Откройте проект в браузере и перейдите на `http://localhost:8000/api/` или `http://localhost:8000/` увидите список эндпоинтов (если DRF настроен корректно)
   + если в проекте подключены библиотеки для документирования API (drf-yasg, ...), то на `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
