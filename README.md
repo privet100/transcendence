@@ -1372,19 +1372,13 @@
 * `backend/webhook/migrations/__init__.py` **пустой**
 * virtual environment чтобы изолировать зависимости проекта и избежать конфликтов версий между установленными пакетами
   + не нужно, потому что у нас докер
-* python3 manage.py show_urls
-  ```
-  File "manage.py", line 13, in main
-    raise ImportError(
-  ImportError: Couldn't import Django. Are you sure it's installed and available on your PYTHONPATH environment variable? Did you forget to activate a virtual environment?
-  ```
-  + Django установлен? `pip install django`
-  + Django устанвлен? `pip list | grep django`
-  + текущий каталог проекта доступен для интерпретатора Python? Добавьте его в `PYTHONPATH` `export PYTHONPATH=$(pwd):$PYTHONPATH`
-  + интерпретатор Python соответствует версии, для которой настроен проект? `which python3`
+* на моём компе, не в конте1нере `python3 manage.py show_urls` `ImportError: Couldn't import Django. Are you sure it's installed and available on your PYTHONPATH environment variable? Did you forget to activate a **virtual environment**?`
+  + Should we remove the exception "Did you forget to activate a virtual environment?" in backend/manage.py ? I think you can delete it
 * `PYTHONPATH` переменная окружения
   + где Python ищет модули и пакеты при импорте
   + добавьте директории с модулями в нестандартных путях Python или кастомные библиотеки в `PYTHONPATH` `export PYTHONPATH="/mnt/md0/42/14_ft_transendence/backend:$PYTHONPATH"`
+  + **Do we use PYTHONPATH environment variable ? Let’s discuss tomorrow (sat) in Ecole 42**
++ Will we use **PYTHONUNBUFFERED** ?
 * **конте1ёнер redis остаётся, когда остальные сами как-то выключились**
 
 ### to do
