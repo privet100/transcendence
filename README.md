@@ -1288,6 +1288,11 @@
     raise ImportError(
   ImportError: Couldn't import Django. Are you sure it's installed and available on your PYTHONPATH environment variable? Did you forget to activate a virtual environment?
   ```
+  + Если ваш проект использует виртуальное окружение (`venv`), убедитесь, что оно активировано `source venv/bin/activate`
+  + Django установлен? `pip install django`
+  + Django устанвлен? `pip list | grep django`
+  + текущий каталог проекта доступен для интерпретатора Python? Добавьте его в `PYTHONPATH` `export PYTHONPATH=$(pwd):$PYTHONPATH`
+  + используемый интерпретатор Python соответствует версии, для которой настроен проект? `which python3`
 
 ### to do
 * pop-up windows : login, chat, profile
