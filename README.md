@@ -1269,30 +1269,22 @@
   + надо: код внутри {} исполняется в django, если условие выполняется (например, есть есть юзер), он выполняет и заново отправляет html
 * **убрать** settings.py SECRET_KEY, frontend/etc/private.key
 * `backend/webhook/migrations/__init__.py` **пустой**
-* создание **virtual environment** лучший способ изолировать зависимости проекта и избежать конфликтов версий между установленными пакетами
-  + веб-приложение с бэкендом и фронтендом, стабильность окружения играет ключевую роль
-  + **Разные версии библиотек** могут содержать несовместимые изменения. Изоляция обеспечивает одинаковую работу приложения на всех этапах разработки и тестирования
-  + Контролировать версии пакетов, указанных в `requirements.txt` => упрощает обновление зависимостей и восстановление окружения
-  + изолирует проект от глобальных установок: если у вас есть глобально установленные пакеты, они могут конфликтовать с версиями для Transcendence
-  + чтобы на сервере использовались точно такие же версии зависимостей, как в разработке
-  + python3 -m venv venv
+* virtual environment чтобы изолировать зависимости проекта и избежать конфликтов версий между установленными пакетами
+  + не нужно, потому что у нас докер
 * python3 manage.py show_urls
   ```
-  File "manage.py", line 11, in main
-    from django.core.management import execute_from_command_line
-  ModuleNotFoundError: No module named 'django'
-  The above exception was the direct cause of the following exception:
-  File "manage.py", line 22, in <module>
-    main()
   File "manage.py", line 13, in main
     raise ImportError(
   ImportError: Couldn't import Django. Are you sure it's installed and available on your PYTHONPATH environment variable? Did you forget to activate a virtual environment?
   ```
-  + Если ваш проект использует виртуальное окружение (`venv`), убедитесь, что оно активировано `source venv/bin/activate`
   + Django установлен? `pip install django`
   + Django устанвлен? `pip list | grep django`
   + текущий каталог проекта доступен для интерпретатора Python? Добавьте его в `PYTHONPATH` `export PYTHONPATH=$(pwd):$PYTHONPATH`
-  + используемый интерпретатор Python соответствует версии, для которой настроен проект? `which python3`
+  + интерпретатор Python соответствует версии, для которой настроен проект? `which python3`
+* `PYTHONPATH` переменная окружения
+  + где Python ищет модули и пакеты при импорте
+  + добавьте директории с модулями в нестандартных путях Python или кастомные библиотеки в `PYTHONPATH` `export PYTHONPATH="/mnt/md0/42/14_ft_transendence/backend:$PYTHONPATH"`
+* **конте1ёнер redis остаётся, когда остальные сами как-то выключились**
 
 ### to do
 * pop-up windows : login, chat, profile
