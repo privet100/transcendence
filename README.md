@@ -1,4 +1,4 @@
-### test of the branch `without_wsgi`
+### test the branch `without_wsgi`
 * endpoints:
   + Откройте каждый `urls.py`
   + callback/
@@ -243,6 +243,46 @@
   + инструменты по защите от распространённых уязвимостей (CSRF, XSS, SQL Injection)
   + благодаря джанговским формам и сериализаторам (в связке с Django REST Framework, если вы его используете), упрощается валидация данных, приходящих от фронтенда
 * на базе Python
+* `docker exec -it 423c6474989f python manage.py help` список всех доступных команд django
+  + [auth]
+    changepassword
+    createsuperuser
+  + [contenttypes]
+    remove_stale_contenttypes
+  + [daphne]
+    runserver
+  + [django]
+    check
+    compilemessages
+    createcachetable
+    dbshell
+    diffsettings
+    dumpdata
+    flush
+    inspectdb
+    loaddata
+    makemessages
+    makemigrations
+    migrate
+    optimizemigration
+    sendtestemail
+    shell
+    showmigrations
+    sqlflush
+    sqlmigrate
+    sqlsequencereset
+    squashmigrations
+    startapp
+    startproject
+    test
+    testserver
+  + [rest_framework]
+    generateschema
+  + [sessions]
+    clearsessions
+  + [staticfiles]
+    collectstatic
+    findstatic
 
 ### приложения Django app - отдельные модульные приложения внутри проекта
 * api_42 авторизация через intra 42 и т.д.
