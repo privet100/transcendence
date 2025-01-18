@@ -838,16 +838,13 @@
 * перехожу на asgi only:
   + удалила файл wsgi.py
   + удалила строку `Gunicorn_APPLICATION = 'myproject.wsgi.application'`
-  + Убедитесь, что используете сервер ASGI: daphne в INSTALLED_APPS
-    - Daphne работает вместе с Django Channels
-  + запуск приложения с ASGI-сервером: `daphne -b 0.0.0.0 -p 8000 myproject.asgi:application`
+  + **daphne в INSTALLED_APPS**
   + docker-compose.yml
-     - текущий docker-compose.yml не содержит конкретной команды запуска, поэтому приложение запускается с настройками по умолчанию в Dockerfile
-    - было:    `command: gunicorn myproject.wsgi:application --bind 0.0.0.0:8000`
-    - сделать: `command: daphne -b 0.0.0.0 -p 8000 myproject.asgi:application` // для бэкенда используется ASGI-сервер
+    - текущий docker-compose.yml не содержит конкретной команды запуска, поэтому приложение запускается с настройками по умолчанию в Dockerfile
+    - в docker-compose.yml `command: daphne -b 0.0.0.0 -p 8000 mysite.asgi:application`
   + в chat/routing.py WebSocket уже настроен
   + Убедитесь, что Redis работает корректно
-  + убедитесь, что `urls.py` подключает routing.py через ProtocolTypeRouter в asgi.py:
+  + убедитесь, что `urls.py` подключает routing.py через ProtocolTypeRouter в **asgi.py**:
     ```
     from channels.routing import ProtocolTypeRouter, URLRouter
     from channels.auth import AuthMiddlewareStack
@@ -861,9 +858,6 @@
         ),
     })
     ```
-  + Проверьте Docker или команды запуска
-    - Убедитесь, что вы используете ASGI-сервер для запуска приложения: `daphne -b 0.0.0.0 -p 8000 mysite.asgi:application`
-    - Если у вас docker-compose.yml, замените команду для бэкенда: `command: daphne -b 0.0.0.0 -p 8000 mysite.asgi:application`
   + убедитесь, что nginx поддерживает WebSocket, добавьте заголовки в блок location:
     ```
     location /ws/ {
@@ -878,12 +872,9 @@
     }
     ```
   + проверьте, работает ли WebSocket (например, через чат)
-    - Убедитесь, что клиент может подключиться к ws:// или wss://, и сообщения проходят корректно
-    - В логах Daphne или Redis убедитесь, что соединения WebSocket создаются и работают стабильно
-  + Тестирование ASGI: Запустите проект локально с Daphne: `daphne -b 0.0.0.0 -p 8000 myproject.asgi:application`
-  + Проверьте, работает ли WebSocket:
     - Откройте интерфейс чата и убедитесь, что сообщения отправляются и принимаются
-    - Проверьте логи Daphne — должны быть видны соединения WebSocket
+    - клиент может подключиться к ws:// или wss://, и сообщения проходят корректно
+    - В логах Daphne или Redis убедитесь, что соединения WebSocket создаются и работают стабильно
 * как интегрировать и запустить Django с ASGI, сохраняя текущую архитектуру
   + план:
     - Настроить сервер запуска (Daphne или Uvicorn)
