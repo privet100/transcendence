@@ -82,31 +82,31 @@
 * если в проекте подключены библиотеки для документирования API (drf-yasg, ...), то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
 * поиск в файлах: `grep -r "path(" backend/`, `grep -r "re_path(" backend/`
   +
-```
-login/
-callback/
-logout/
-login/
-auth/email
-signup/
-auth/callback
-profile/
-''
-""
-ws/chat/(?P<room_name>\w+)/$"
-<str:room_name>/
-admin/
-auth/
-chat/
-user_42/<int:user_id>/
-users_42/
-users/
-user/<int:id> /
-tour/<int:id>/
-game/<int:id>/
-r"^api-auth/"
-r"ws/chat/(?P<room_name>\w+)/$
-```
+  ```
+  login/
+  callback/
+  logout/
+  login/
+  auth/email
+  signup/
+  auth/callback
+  profile/
+  ''
+  ""
+  ws/chat/(?P<room_name>\w+)/$"
+  <str:room_name>/
+  admin/
+  auth/
+  chat/
+  user_42/<int:user_id>/
+  users_42/
+  users/
+  user/<int:id> /
+  tour/<int:id>/
+  game/<int:id>/
+  r"^api-auth/"
+  r"ws/chat/(?P<room_name>\w+)/$
+  ```
 * Postman: импортируйте коллекцию эндпоинтов, если она уже создана  
 * использовать Postman для изучения API, отправляя запросы на `/api/`, `/swagger/`, ... и исследуя доступные маршруты
 * test endpoints HTTP (API или страницы) with Postman:
