@@ -8,8 +8,9 @@
     signup/
     auth/callback
     profile/
+    не закончила
 * команда Django
-  + установите пакет `pip install django-extensions`
+  + `pip install django-extensions`
   + добавьте `'django_extensions'` в `INSTALLED_APPS`
   + `python manage.py show_urls` список зарегистрированных эндпоинтов
     ```
@@ -71,7 +72,14 @@
     /users/
     /users_42/
     ```
-* Если в вашем проекте используется DRF, можно включить автоматическую документацию эндпоинтов
+* bakyt: Endpoint that are formed from views.py from different folders
+  + исследовать `views.py` в каждом из приложений и их связи в `urls.py`
+  + эндпоинты (URL-маршруты) определяются в urls.py
+  + `urls.py` связывает URL с функциями или классами представлений из `views.py`
+  + представления (views) могут быть в разных директориях и в разных приложениях
+  + просматривать `views.py` в каждом приложении: какие представления и какие URL-ы ассоциированы с функциями или классами в разных частях проекта
+  + `show_urls`: список всех маршрутов проекта, включая те, которые указаны в `urls.py`
+* Если используется DRF, можно включить автоматическую документацию эндпоинтов
   + Browsable API (встроенная документация): Откройте проект в браузере и перейдите на `http://localhost:8000/api/` или `http://localhost:8000/` увидите список эндпоинтов (если DRF настроен корректно)
   + если в проекте подключены библиотеки для документирования API (drf-yasg, ...), то на `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
   + поиск в файлах: `grep -r "path(" backend/`, `grep -r "re_path(" backend/` 
