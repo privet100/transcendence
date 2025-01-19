@@ -1,3 +1,8 @@
+### do not forget
+* remove убрать settings.py SECRET_KEY, frontend/etc/private.key
+* close ports 800 and 6800 for outside
+
+### links
 * https://github.com/bakyt92/14_ft_transendence
 * http://127.0.0.1:4444/ basic HTTP connection
 * https://127.0.0.1:4443/ HTTPS connection
@@ -1280,10 +1285,7 @@
   + не надо: в завимисости от какого-то условия, показываем или нет какие-то части страницы
   + надо: js
   + надо: код внутри {} исполняется в django, если условие выполняется (например, есть есть юзер), он выполняет и заново отправляет html
-* **убрать** settings.py SECRET_KEY, frontend/etc/private.key
-* `backend/webhook/migrations/__init__.py` **пустой**
-* virtual environment чтобы изолировать зависимости проекта и избежать конфликтов версий между установленными пакетами
-  + не нужно, потому что у нас докер
+* virtual environment чтобы изолировать зависимости проекта и избежать конфликтов версий между установленными пакетами - не нужно, потому что у нас докер
 * на моём компе, не в конте1нере `python3 manage.py show_urls` `ImportError: Couldn't import Django. Are you sure it's installed and available on your PYTHONPATH environment variable? Did you forget to activate a **virtual environment**?`
   + Should we remove the exception "Did you forget to activate a virtual environment?" in backend/manage.py ? I think you can delete it
 
