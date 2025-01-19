@@ -28,6 +28,8 @@
 ### схема
 ![1-1](https://github.com/user-attachments/assets/e6a157ea-b278-493e-9649-6a361614deac)
 ```
+Схема Transcendence (с учётом физического размещения):
+
 [Браузер пользователя (HTML, JS, HTTP/HTTPS)]
     |
     v
@@ -36,13 +38,14 @@
     v
 [Frontend (Nginx)]
     |
-    +--> [Daphne (ASGI)] --> [Backend (Django сервер, Python, Django Framework)]
-    |                               |
-    +-------------------------------+--> [Django REST API (DRF)]
-                                        |
-                                        +--> [CSRF Token Validation]
-                                        |
-                                        +--> [API Авторизация (École 42)]
+    v
+[Backend Container (Daphne + Django)]
+    |
+    +--> [Django REST API (DRF)]
+    |
+    +--> [CSRF Token Validation]
+    |
+    +--> [API Авторизация (École 42)]
 ```
 * Браузер отправляет запросы через HTTP/HTTPS
   + если запрос через HTTPS, данные шифруются с помощью SSL/TLS
