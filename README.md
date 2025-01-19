@@ -6,7 +6,7 @@
   + http://95.217.129.132:8000/
   + http://95.217.129.132:8000/chat/1
   + http://127.0.0.1:8000/admin/login/?next=/admin/
-* https://tr.naurzalinov.me/users/
+* **https://tr.naurzalinov.me/users/**
 * https://localhost
 * https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/WebSocket
 * бэк, фронт, база данных, API https://www.youtube.com/watch?v=XBu54nfzxAQ
