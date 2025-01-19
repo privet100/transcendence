@@ -701,7 +701,7 @@ pip install daphne
   + WebSocket для чатов, уведомлений в реальном времени => нужен ASGI-сервер 
   + Django Channels => нужен ASGI-сервер
   + Redis используется для поддержки WebSocket => нужен ASGI-сервер
-  * **Daphne** это ASGI-сервер, хорошо работающий с Django Channels
+  * Daphne ASGI-сервер, хорошо работающий с Django Channels
 * `ASGI_APPLICATION = "myproject.asgi.application"`
   + указывает на модуль и переменную, содержащую точку входа для ASGI-сервера
   + эта переменная играет ключевую роль при запуске приложения через ASGI-сервер (Daphne)
@@ -712,7 +712,7 @@ pip install daphne
   + `ASGI_APPLICATION` явно не используется в вашем коде
     - предназначена для ASGI-сервера
     - точка входа для ASGI-сервера
-    -  ASGI-сервер загружает модуль и использует `application` для обработки запросов
+    - ASGI-сервер загружает модуль и использует `application` для обработки запросов
     - сервер ищет модуль `myproject.asgi` и внутри него переменную `application` 
     - ASGI-сервер автоматически находит эту настройку в `settings.py`
   + `asgi.py`
@@ -924,6 +924,12 @@ pip install daphne
   + Попробуйте подключиться к Redis через redis-cli
   + или убедитесь, что контейнер Redis запущен, если вы используете Docker
   + Если Redis на другой машине, замените ('redis', 6379) на реальный хост Redis-сервера (например, ('your-redis-host', 6379))
+* **остаётся, когда остальные выключились**
+* Redis = слой для каналов в Django Channels
+  + Django Channels использует Redis для управления состоянием WebSocket-соединений и маршрутизации сообщений между различными клиентами
+  + Redis = брокер для обмена сообщениями между разными инстансами Django (если у вас несколько серверов или контейнеров)
+  + Redis = для работы с асинхронными задачами через Django Channels
+  + настройка в CHANNEL_LAYERS
 
 ### подключить css
 * статические файлы Django (table.css) должны быть настроены для загрузки через тег {% static %}
@@ -1297,11 +1303,10 @@ pip install daphne
 * на моём компе, не в конте1нере `python3 manage.py show_urls` `ImportError: Couldn't import Django. Are you sure it's installed and available on your PYTHONPATH environment variable? Did you forget to activate a **virtual environment**?`
   + Should we remove the exception "Did you forget to activate a virtual environment?" in backend/manage.py ? I think you can delete it
 * `PYTHONPATH` переменная окружения
-  + где Python ищет модули и пакеты при импорте
-  + добавьте директории с модулями в нестандартных путях Python или кастомные библиотеки в `PYTHONPATH` `export PYTHONPATH="/mnt/md0/42/14_ft_transendence/backend:$PYTHONPATH"`
-  + **Do we use PYTHONPATH environment variable ? Let’s discuss tomorrow (sat) in Ecole 42**
-+ Will we use **PYTHONUNBUFFERED** ?
-* **конте1ёнер redis остаётся, когда остальные сами как-то выключились**
+  + где Python ищет директории с модулями, кастомные библиотеки, пакеты при импорте
+  + `PYTHONPATH` `export PYTHONPATH="/mnt/md0/42/14_ft_transendence/backend:$PYTHONPATH"`
+  + удалили
++ PYTHONUNBUFFERED нужна
 * не рекомендуется 
   ```dockerfile
   COPY requirements.txt .
