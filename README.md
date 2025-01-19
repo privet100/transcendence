@@ -1,186 +1,3 @@
-### test the branch `without_wsgi`
-* endpoints:
-  + Откройте каждый `urls.py`
-  + callback/
-    logout/
-    login/
-    auth/email/
-    signup/
-    auth/callback
-    profile/
-    не закончила
-* команда Django
-  + `pip install django-extensions`
-  + добавьте `'django_extensions'` в `INSTALLED_APPS`
-  + `python manage.py show_urls` список зарегистрированных эндпоинтов
-    ```
-    /       
-    /admin/ 
-    /admin/<app_label>/
-    /admin/<url>    
-    /admin/auth/group/
-    /admin/auth/group/<path:object_id>/
-    /admin/auth/group/<path:object_id>/change/
-    /admin/auth/group/<path:object_id>/delete/
-    /admin/auth/group/<path:object_id>/history/
-    /admin/auth/group/add/
-    /admin/autocomplete/
-    /admin/jsi18n/
-    /admin/login/
-    /admin/logout/
-    /admin/myapp/game/
-    /admin/myapp/game/<path:object_id>/
-    /admin/myapp/game/<path:object_id>/change/
-    /admin/myapp/game/<path:object_id>/delete/
-    /admin/myapp/game/<path:object_id>/history/
-    /admin/myapp/game/add/
-    /admin/myapp/tournament/
-    /admin/myapp/tournament/<path:object_id>/
-    /admin/myapp/tournament/<path:object_id>/change/
-    /admin/myapp/tournament/<path:object_id>/delete/
-    /admin/myapp/tournament/<path:object_id>/history/
-    /admin/myapp/tournament/add/
-    /admin/myapp/userprofile/
-    /admin/myapp/userprofile/<path:object_id>/
-    /admin/myapp/userprofile/<path:object_id>/change/
-    /admin/myapp/userprofile/<path:object_id>/delete/
-    /admin/myapp/userprofile/<path:object_id>/history/
-    /admin/myapp/userprofile/add/
-    /admin/password_change/
-    /admin/password_change/done/
-    /admin/r/<int:content_type_id>/<path:object_id>/
-    /auth/auth/callback
-    /auth/auth/email/
-    /auth/callback
-    /auth/callback/ 
-    /auth/email/
-    /auth/login/
-    /auth/logout/
-    /auth/profile/
-    /auth/signup/
-    /callback/
-    /chat/
-    /chat/<str:room_name>/
-    /game/<int:id>/
-    /login/
-    /logout/
-    /profile/
-    /signup/
-    /tour/<int:id>/
-    /user/<int:id>/
-    /user_42/<int:user_id>/
-    /users/
-    /users_42/
-    ```
-* bakyt: Endpoint that are formed from views.py from different folders
-  + `urls.py` связывает эндпоинты (URL-маршруты) с функциями/классами представлений из `views.py`
-  + просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
-  + views могут быть в разных директориях и в разных приложениях
-  + `show_urls`: список всех маршрутов, включая те, которые указаны в `urls.py`
-* Если используется DRF - автоматичесая документация эндпоинтов
-  + Browsable API (встроенная документация): в `http://localhost:8000/api/` или `http://localhost:8000/` увидите список эндпоинтов (если DRF настроен корректно)
-* если в проекте подключены библиотеки для документирования API (drf-yasg, ...), то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
-* поиск в файлах: `grep -r "path(" backend/`, `grep -r "re_path(" backend/`
-  +
-  ```
-  login/
-  callback/
-  logout/
-  login/
-  auth/email
-  signup/
-  auth/callback
-  profile/
-  ''
-  ""
-  ws/chat/(?P<room_name>\w+)/$"
-  <str:room_name>/
-  admin/
-  auth/
-  chat/
-  user_42/<int:user_id>/
-  users_42/
-  users/
-  user/<int:id> /
-  tour/<int:id>/
-  game/<int:id>/
-  r"^api-auth/"
-  r"ws/chat/(?P<room_name>\w+)/$
-  ```
-* Postman: импортируйте коллекцию эндпоинтов, если она уже создана  
-* использовать Postman для изучения API, отправляя запросы на `/api/`, `/swagger/`, ... и исследуя доступные маршруты
-* test endpoints HTTP (API или страницы) with Postman:
-  + Введите адрес вашего сервера, например:
-     - `http://localhost:8000/api/endpoint/`
-     - `https://example.com/api/endpoint/`
-  + метод (GET, POST, PUT, DELETE и т. д.).
-  + Если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`).
-  + Отправьте запрос и проверьте статус ответа (200 OK, 401 Unauthorized и т.д.) и тело ответа
-* test endpoints HTTP (API или страницы) with Curl:
-  + `curl -X GET http://localhost:8000/api/endpoint/`
-  + `curl -X POST http://localhost:8000/api/endpoint/ -H "Content-Type: application/json" -d '{"key": "value"}'`
-* test endpoints HTTP (API или страницы) with browser:
-  + Для эндпоинтов, которые возвращают HTML (главная страница, панель администратора), просто откройте браузер и введите URL
-* test endpoints Websockets with Postman
-  + меню `New Request` - `WebSocket`
-  + Укажите URL WebSocket-соединения:
-     - `ws://localhost:8000/ws/chat/room_name/`
-     - `wss://example.com/ws/chat/room_name/`
-  + Установите соединение и отправьте тестовые сообщения
-  +  Посмотрите, возвращает ли сервер ответы.
-* test endpoints Websockets with Chrome + расширения [Smart WebSocket Client](https://chrome.google.com/webstore/detail/smart-websocket-client/kzhddgcmkfiimcdlddieeoemkbdmgkag) 
-  + Укажите URL WebSocket: `ws://localhost:8000/ws/chat/room_name/`
-  + Нажмите «Connect».
-  + Отправьте тестовые сообщения и проверьте, получает ли сервер их.
-* test endpoints Websockets with Python + библиотека `websockets`
-  ```python
-  import asyncio
-  import websockets
-  async def test_websocket():
-      uri = "ws://localhost:8000/ws/chat/room_name/"
-      async with websockets.connect(uri) as websocket:
-          await websocket.send("Hello, WebSocket!")
-          response = await websocket.recv()
-          print(f"Response: {response}")
-  asyncio.run(test_websocket())
-  ```
-* test Redis integration
-  + `redis-cli`
-  + `PING`
-    - Ожидаемый ответ: `PONG`.
-  + Проверьте, публикуются ли сообщения: `SUBSCRIBE my_channel`
-    - отправьте тестовые сообщения в канал `my_channel` и убедитесь, что они принимаются
-* HTTP-тесты с autrotests Django
-  + Django предоставляет встроенные инструменты для тестирования HTTP:
-    ```python
-    from django.test import TestCase
-    from django.urls import reverse
-    class APITest(TestCase):
-        def test_endpoint(self):
-            url = reverse("api_endpoint_name")  # Используйте имя вашего маршрута
-            response = self.client.get(url)
-            self.assertEqual(response.status_code, 200)
-    ```
-* WebSocket-тесты с Django Channels + `pytest`:
-  ```python
-  from channels.testing import WebsocketCommunicator
-  from myproject.asgi import application
-  import pytest
-  @pytest.mark.asyncio
-  async def test_websocket():
-      communicator = WebsocketCommunicator(application, "/ws/chat/room_name/")
-      connected, _ = await communicator.connect()
-      assert connected
-      await communicator.send_to(text_data="Hello!")
-      response = await communicator.receive_from()
-      assert response == "Hello, WebSocket!"
-      await communicator.disconnect()
-  ```
-* basic functions of website
-* websockets in room page
-* websockets in the game
-
-### links
 * https://github.com/bakyt92/14_ft_transendence
 * https://tr.naurzalinov.me/users/
 * http://95.217.129.132:8000/
@@ -199,7 +16,73 @@
   + The Browsable API - Django REST frameworkhttps://www.django-rest-framework.org/topics/browsable-api/
 * https://docs.djangoproject.com/en/5.1/ref/contrib/auth/
 
-### контейнер frontend
+### схема
+[Браузер пользователя (HTML, JS, HTTP/HTTPS)]
+    |
+    v
+[SSL/TLS (шифрование для HTTPS)]
+    |
+    v
+[Frontend (Nginx)]
+    |
+    +--> [Daphne (ASGI)] --> [Backend (Django сервер, Python, Django Framework)]
+    |                               |
+    +-------------------------------+--> [Django REST API (DRF)]
+                                        |
+                                        +--> [CSRF Token Validation]
+                                        |
+                                        +--> [API Авторизация (École 42)]
+
+* Браузер отправляет запросы через HTTP/HTTPS
+  + если запрос через HTTPS, данные шифруются с помощью SSL/TLS
+* nginx (или другой прокси-сервер)
+  + принимает запросы:
+    - Если запросы через HTTPS, расшифровывает их с использованием SSL-сертификата
+    - Если запросы через HTTP, передаёт в открытом виде 
+  + проксирует запросы на бэкенд (Daphne/ASGI) через **HTTP (внутренний трафик не шифруется)**
+* HTTP (HyperText Transfer Protocol) — протокол для передачи данных между браузером пользователя и сервером
+  + данные передаются в открытом виде, что делает их уязвимыми для перехвата
+  + HTTPS (Secure) — с добавлением шифрования через протокол SSL/TLS
+* протокол SSL/TLS для защиты данных
+  + не является сервером
+  + настраивается на стороне Nginx
+  + шифровать соединение между браузером и nginx
+  + обеспечивает аутентификацию сервера (подключаетесь к правильному серверу)
+  + обеспечивает защиту от **подделки данных**
+  + браузер запрашивает установление защищённого соединения (HTTPS), канал связи
+    - используется публичный ключ сервера (SSL-сертификат)
+  + браузер шифрует данные перед их отправкой на сервер
+  + nginx использует сертификат и приватный ключ, чтобы:  
+    - Подтвердить подлинность **сервера** (**браузер проверяет**, подписан ли сертификат доверенным центром)
+    - Установить **канал связи** (SSL/TLS) между сервером и браузером, чтобы шифровать трафик
+  + nginx расшифровывает данные с использованием приватного ключа, связанного с SSL-сертификатом
+  + nginx передаёт данные на бэкенд-сервер (Daphne/ASGI) без шифрования по HTTP
+  + ответ сервера проходит через Nginx, где он снова шифруется для отправки клиенту
+  + nginx отправляет ответ, зашифрованный для клиента
+  + nginx отправляет ответ, шифрованный
+  + браузер расшифровывает с использованием **сессионного ключа**, согласованного в процессе установки соединения
+* `ssl_protocols TLSv1.2 TLSv1.3;` версии протокола шифрования
+  + старые протоколы TLS 1.1, SSLv3, ... не поддерживаются из соображений безопасности  
+* `ssl_ciphers 'HIGH:!aNULL:!MD5';` использовать надежные шифры, `!aNULL` и `!MD5` исключают небезопасные варианты  
+* `ssl_prefer_server_ciphers on;` браузер отдаёт предпочтение **списку шифров** сервера, а не клиента
+* `proxy_set_header ...` передает заголовки (Host, IP-адрес клиента, протокол и т.д.), чтобы бэкенд понимал, откуда пришел запрос
+* два SSL-контура, два набора сертификатов:
+  + разделять несколько доменных имен/служб или когда webhook обслуживается по отдельному каналу
+  + `etc/nginx/ssl/` для главного домена Transcendence (отдача фронта, проксирование бэкенда), для сайта (домена, где крутится Transcendence), для основного сайта/приложения
+    -`etc/nginx/ssl/` Основные сертификаты для сайта (или сайта и API), для основного домена/сайта, который отрабатывает в большинстве ваших `server { listen 443 ssl; }` блоков 
+    - certificate.crt, private.key, certificate.csr SSL-сертификат и приватный ключ
+    - `.crt`, `.key`, `.csr` необходимы для **обеспечения HTTPS** и **шифрования соединения**
+    - `nginx.conf: ssl_certificate /etc/nginx/ssl/certificate.crt; ssl_certificate_key /etc/nginx/ssl/private.key;`
+    - обеспечивает HTTPS 
+  + `.crt` сертификат, выданный CA (Certificate Authority) или сгенерированный самостоятельно (self-signed)  
+  + `.key` приватный ключ, хранится на сервере, не разглашается, нужен для расшифровки соединения и подтверждения подлинности  
+  + `.csr` запрос на подпись сертификата (Certificate Signing Request)
+    - генерируете `.csr` с приватным ключом локально, отправляете `.csr` в удостоверяющий центр (Let’s Encrypt, ZeroSSL, GeoTrust, ...), получаете `.crt`  
+* **файл сессии, сертификат CSRF, токен авторизации**
+* **где прописано CSRF**
+
+### frontend nginx server
+* слушает и обрабатывает SSL/HTTPS-соединения  
 * try using **bolt.new** it's better at frontend
   + the ui is fire here
 * папка `frontend/`: сервировка фронта: статика, конфиг Nginx
@@ -240,13 +123,12 @@
   + Django обрабатывает API
   + Ответ возвращается по цепочке Django → Nginx → Пользователь/Сервис
 * приём HTTPS/HTTP-запросов извне на порты 80/443, отвечает на порты 80/443
-* проверяет сертификаты **SSL**, обеспечивает HTTPS (SSL/TLS)
+* проверяет сертификаты SSL
 * обратный прокси (reverse proxy) для бэкенда
 * nginx.conf называется default.conf внутри контейнера
   + переопределяет стандартные настройки Nginx
 * Копируем статические файлы (из локальной ./static) в /usr/share/nginx/html/static внутри контейнера
   + так Nginx может их раздавать напрямую по пути /static/
-* копируем SSL-сертификаты в нужные места
 * Прослушивает HTTP-запросы на 80 и перенаправляет на HTTPS с использованием кода 301 (постоянное перенаправление)
 * четыре server{}-блока = один процесс
 * nginx.conf рядом с Dockerfile, чтобы во время сборки копировался внутрь контейнера
@@ -258,9 +140,20 @@
 * работает через HTTP/WS-протоколы
 * использует эндпоинты Django для обмена данными и взаимодействия (чат, игра, профили пользователей)
 * подписывается на WebSocket-каналы для чата
+* обработка WebSocket-запросов
+  
+### ASGI сервер (Daphne)
+* запускает ASGI-приложение (Django через ASGI)
+* Управление синхронными HTTP-запросами
+* управление асинхронными WebSocket-соединениями
+* обработка запросов и передача их в Django Framework для выполнения бизнес-логики
 
-### backend
+### backend django server
 * папка `backend/`: код Django, его настройки, requirements, миграции, ...
+* управляет обработкой логики вашего приложения.
+* бработка API-запросов через Django REST Framework (DRF)
+* валидация CSRF-токенов для защиты от атак
+* ваимодействие с базами данных и другими внешними сервисами (например, API École 42 для авторизации)
 * game logic in backed, backend because we need it to do the multiplayer
 * runserver 0.0.0.0:8000 => запустили Django-приложение
 * слушает внутри контейнера на порту 8000 внутри сети Docker
@@ -658,38 +551,6 @@
 * Netrwork
   + запросы от фронта
   + document = html
-
-### SSL (HTTPS)
-* **где прописано SSL, CSRF**
-* шифровать соединение между клиентом (браузером) и сервером
-* `listen 443 ssl;` сервер слушает и обрабатывает SSL/HTTPS-соединения  
-* `ssl_certificate /etc/nginx/ssl/certificate.crt;`, `ssl_certificate_key /etc/nginx/ssl/private.key;` сертификат и приватный ключ для домена
-  + Когда клиент (браузер) устанавливает HTTPS-соединение, Nginx использует этот сертификат и ключ, чтобы:  
-    - Подтвердить подлинность **сервера** (браузер проверяет, подписан ли сертификат доверенным центром)
-    - Установить канал связи (SSL/TLS) между сервером и браузером, чтобы шифровать трафик
-* `ssl_protocols TLSv1.2 TLSv1.3;` версии протокола шифрования
-  + старые протоколы TLS 1.1, SSLv3, ... не поддерживаются из соображений безопасности  
-* `ssl_ciphers 'HIGH:!aNULL:!MD5';` использовать надежные шифры, `!aNULL` и `!MD5` исключают небезопасные варианты  
-* `ssl_prefer_server_ciphers on;` браузер отдаёт предпочтение **списку шифров** сервера, а не клиента
-* `proxy_set_header ...` передает заголовки (Host, IP-адрес клиента, протокол и т.д.), чтобы бэкенд понимал, откуда пришел запрос
-* два SSL-контура, два набора сертификатов:
-  + явно разделять несколько доменных имен/служб или когда webhook обслуживается по отдельному каналу.  
-  + `etc/nginx/ssl/` для главного домена Transcendence (отдача фронта, проксирование бэкенда), для сайта (домена, где крутится Transcendence), для основного сайта/приложения
-    -`etc/nginx/ssl/` Основные сертификаты для сайта (или сайта и API), для основного домена/сайта, который отрабатывает в большинстве ваших `server { listen 443 ssl; }` блоков 
-    - certificate.crt, private.key, certificate.csr SSL-сертификат и приватный ключ
-    - `.crt`, `.key`, `.csr` необходимы для **обеспечения HTTPS** и **шифрования соединения**
-    - `nginx.conf: ssl_certificate /etc/nginx/ssl/certificate.crt; ssl_certificate_key /etc/nginx/ssl/private.key;`
-    - обеспечивает HTTPS 
-  + `certif/` для webhook-сервера
-    - другие сертификаты для конкретного server-блока  
-    - запросы от GitHub на `https://…/webhook`  
-    - `webhook.csr`, `webhook.crt`, `webhook.key`
-    - `openssl.cnf` конфиг OpenSSL для генерации этих файлов (**для первого сертификата такого нет**), при создании или подписывании сертификатов (например, когда генерируют CSR — Certificate Signing Request)
-  + `.crt` сертификат, выданный CA (Certificate Authority) или сгенерированный самостоятельно (self-signed)  
-  + `.key` приватный ключ, хранится на сервере, не разглашается, нужен для расшифровки соединения и подтверждения подлинности  
-  + `.csr` запрос на подпись сертификата (Certificate Signing Request)
-    - генерируете `.csr` с приватным ключом локально, отправляете `.csr` в удостоверяющий центр (Let’s Encrypt, ZeroSSL, GeoTrust, ...), получаете `.crt`  
-* **файл сессии, сертификат CSRF, токен авторизации**
 
 ### authentification
 * Аутентификация:
@@ -1301,7 +1162,7 @@
 
 ### запуск проекта
 * Секретный ключ от api раз в две недели примерно обновляется
-* 'docker compose up --build'
+* 'docker compose up --build' (BUILD нужно)
   - все скачается и распакуется
   - потом в терминале можно Ctrl + C (условное клавиатурное прерывание)
 * `sudo ufw status` убедитесь, что 80, 443, 8000 открыты
@@ -1448,3 +1309,188 @@
   + some sort of **anticheat** to be sure that the users mouvement are normal
     - my code will be easy, it'd just gonne output two players position and the ball and then you can render it however you want
   + I'll update you soon on the game websocket
+
+### test
+* endpoints:
+  + Откройте каждый `urls.py`
+  + callback/
+    logout/
+    login/
+    auth/email/
+    signup/
+    auth/callback
+    profile/
+    ...
+* команда Django
+  + `pip install django-extensions`
+  + добавьте `'django_extensions'` в `INSTALLED_APPS`
+  + `python manage.py show_urls` список зарегистрированных эндпоинтов
+    ```
+    /       
+    /admin/ 
+    /admin/<app_label>/
+    /admin/<url>    
+    /admin/auth/group/
+    /admin/auth/group/<path:object_id>/
+    /admin/auth/group/<path:object_id>/change/
+    /admin/auth/group/<path:object_id>/delete/
+    /admin/auth/group/<path:object_id>/history/
+    /admin/auth/group/add/
+    /admin/autocomplete/
+    /admin/jsi18n/
+    /admin/login/
+    /admin/logout/
+    /admin/myapp/game/
+    /admin/myapp/game/<path:object_id>/
+    /admin/myapp/game/<path:object_id>/change/
+    /admin/myapp/game/<path:object_id>/delete/
+    /admin/myapp/game/<path:object_id>/history/
+    /admin/myapp/game/add/
+    /admin/myapp/tournament/
+    /admin/myapp/tournament/<path:object_id>/
+    /admin/myapp/tournament/<path:object_id>/change/
+    /admin/myapp/tournament/<path:object_id>/delete/
+    /admin/myapp/tournament/<path:object_id>/history/
+    /admin/myapp/tournament/add/
+    /admin/myapp/userprofile/
+    /admin/myapp/userprofile/<path:object_id>/
+    /admin/myapp/userprofile/<path:object_id>/change/
+    /admin/myapp/userprofile/<path:object_id>/delete/
+    /admin/myapp/userprofile/<path:object_id>/history/
+    /admin/myapp/userprofile/add/
+    /admin/password_change/
+    /admin/password_change/done/
+    /admin/r/<int:content_type_id>/<path:object_id>/
+    /auth/auth/callback
+    /auth/auth/email/
+    /auth/callback
+    /auth/callback/ 
+    /auth/email/
+    /auth/login/
+    /auth/logout/
+    /auth/profile/
+    /auth/signup/
+    /callback/
+    /chat/
+    /chat/<str:room_name>/
+    /game/<int:id>/
+    /login/
+    /logout/
+    /profile/
+    /signup/
+    /tour/<int:id>/
+    /user/<int:id>/
+    /user_42/<int:user_id>/
+    /users/
+    /users_42/
+    ```
+* bakyt: Endpoint that are formed from views.py from different folders
+  + `urls.py` связывает эндпоинты (URL-маршруты) с функциями/классами представлений из `views.py`
+  + просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
+  + views могут быть в разных директориях и в разных приложениях
+  + `show_urls`: список всех маршрутов, включая те, которые указаны в `urls.py`
+* Если используется DRF - автоматичесая документация эндпоинтов
+  + Browsable API (встроенная документация): в `http://localhost:8000/api/` или `http://localhost:8000/` увидите список эндпоинтов (если DRF настроен корректно)
+* если в проекте подключены библиотеки для документирования API (drf-yasg, ...), то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
+* поиск в файлах: `grep -r "path(" backend/`, `grep -r "re_path(" backend/`
+  +
+  ```
+  login/
+  callback/
+  logout/
+  login/
+  auth/email
+  signup/
+  auth/callback
+  profile/
+  ''
+  ""
+  ws/chat/(?P<room_name>\w+)/$"
+  <str:room_name>/
+  admin/
+  auth/
+  chat/
+  user_42/<int:user_id>/
+  users_42/
+  users/
+  user/<int:id> /
+  tour/<int:id>/
+  game/<int:id>/
+  r"^api-auth/"
+  r"ws/chat/(?P<room_name>\w+)/$
+  ```
+* Postman: импортируйте коллекцию эндпоинтов, если она уже создана  
+* использовать Postman для изучения API, отправляя запросы на `/api/`, `/swagger/`, ... и исследуя доступные маршруты
+* test endpoints HTTP (API или страницы) with Postman:
+  + Введите адрес вашего сервера, например:
+     - `http://localhost:8000/api/endpoint/`
+     - `https://example.com/api/endpoint/`
+  + метод (GET, POST, PUT, DELETE и т. д.).
+  + Если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`).
+  + Отправьте запрос и проверьте статус ответа (200 OK, 401 Unauthorized и т.д.) и тело ответа
+* test endpoints HTTP (API или страницы) with Curl:
+  + `curl -X GET http://localhost:8000/api/endpoint/`
+  + `curl -X POST http://localhost:8000/api/endpoint/ -H "Content-Type: application/json" -d '{"key": "value"}'`
+* test endpoints HTTP (API или страницы) with browser:
+  + Для эндпоинтов, которые возвращают HTML (главная страница, панель администратора), просто откройте браузер и введите URL
+* test endpoints Websockets with Postman
+  + меню `New Request` - `WebSocket`
+  + Укажите URL WebSocket-соединения:
+     - `ws://localhost:8000/ws/chat/room_name/`
+     - `wss://example.com/ws/chat/room_name/`
+  + Установите соединение и отправьте тестовые сообщения
+  +  Посмотрите, возвращает ли сервер ответы.
+* test endpoints Websockets with Chrome + расширения [Smart WebSocket Client](https://chrome.google.com/webstore/detail/smart-websocket-client/kzhddgcmkfiimcdlddieeoemkbdmgkag) 
+  + Укажите URL WebSocket: `ws://localhost:8000/ws/chat/room_name/`
+  + Нажмите «Connect».
+  + Отправьте тестовые сообщения и проверьте, получает ли сервер их.
+* test endpoints Websockets with Python + библиотека `websockets`
+  ```python
+  import asyncio
+  import websockets
+  async def test_websocket():
+      uri = "ws://localhost:8000/ws/chat/room_name/"
+      async with websockets.connect(uri) as websocket:
+          await websocket.send("Hello, WebSocket!")
+          response = await websocket.recv()
+          print(f"Response: {response}")
+  asyncio.run(test_websocket())
+  ```
+* test Redis integration
+  + `redis-cli`
+  + `PING`
+    - Ожидаемый ответ: `PONG`.
+  + Проверьте, публикуются ли сообщения: `SUBSCRIBE my_channel`
+    - отправьте тестовые сообщения в канал `my_channel` и убедитесь, что они принимаются
+* HTTP-тесты с autrotests Django
+  + Django предоставляет встроенные инструменты для тестирования HTTP:
+    ```python
+    from django.test import TestCase
+    from django.urls import reverse
+    class APITest(TestCase):
+        def test_endpoint(self):
+            url = reverse("api_endpoint_name")  # Используйте имя вашего маршрута
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+    ```
+* WebSocket-тесты с Django Channels + `pytest`:
+  ```python
+  from channels.testing import WebsocketCommunicator
+  from myproject.asgi import application
+  import pytest
+  @pytest.mark.asyncio
+  async def test_websocket():
+      communicator = WebsocketCommunicator(application, "/ws/chat/room_name/")
+      connected, _ = await communicator.connect()
+      assert connected
+      await communicator.send_to(text_data="Hello!")
+      response = await communicator.receive_from()
+      assert response == "Hello, WebSocket!"      await communicator.disconnect()
+  ```
+* basic functions of website
+* websockets in room page
+* websockets in the game
+* connection
+1. Connection from another computer is working (so local network is working) 
+2. When Ivan tried to login with 42Auth from another computer (not server) - he got error 400; however basic sign up with email is working. 
+3. My login with 42Auth from server computer worked.
