@@ -1302,6 +1302,8 @@ pip install daphne
   + не нужно, потому что у нас докер
 * на моём компе, не в конте1нере `python3 manage.py show_urls` `ImportError: Couldn't import Django. Are you sure it's installed and available on your PYTHONPATH environment variable? Did you forget to activate a **virtual environment**?`
   + Should we remove the exception "Did you forget to activate a virtual environment?" in backend/manage.py ? I think you can delete it
+
+### Dockefiles
 * `PYTHONPATH` переменная окружения
   + где Python ищет директории с модулями, кастомные библиотеки, пакеты при импорте
   + `PYTHONPATH` `export PYTHONPATH="/mnt/md0/42/14_ft_transendence/backend:$PYTHONPATH"`
@@ -1322,6 +1324,9 @@ pip install daphne
   + Увеличение времени сборки: При каждой сборке будут тратиться ресурсы на переустановку всех пакетов, даже если зависимости остались неизменными.
   + Ускоряет сборку благодаря кэшированию,
   + Избегает повторной установки зависимостей без необходимости
+* `./context`
+  + все файлы и папки из указанной директории будут доступны для Docker в процессе сборки (исходный код, конфигурационные файлы, ...)
+  + только те файлы, которые явно указаны в Dockerfile (COPY, ADD, ...), будут скопированы в контейнер
   
 ### to do
 * pop-up windows : login, chat, profile
