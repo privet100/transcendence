@@ -21,6 +21,7 @@
 * https://docs.djangoproject.com/en/5.1/ref/contrib/auth/
 
 ### схема
+![1-1](https://github.com/user-attachments/assets/e6a157ea-b278-493e-9649-6a361614deac)
 ```
 [Браузер пользователя (HTML, JS, HTTP/HTTPS)]
     |
