@@ -1,9 +1,13 @@
 * https://github.com/bakyt92/14_ft_transendence
+* http://127.0.0.1:4444/ basic HTTP connection
+* https://127.0.0.1:4443/ HTTPS connection
+* http://127.0.0.1:8000/ 
+* устаревшие
+  + http://95.217.129.132:8000/
+  + http://95.217.129.132:8000/chat/1
+  + http://127.0.0.1:8000/admin/login/?next=/admin/
 * https://tr.naurzalinov.me/users/
-* http://95.217.129.132:8000/
-* http://95.217.129.132:8000/chat/1
 * https://localhost
-* http://127.0.0.1:8000/admin/login/?next=/admin/
 * https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/WebSocket
 * бэк, фронт, база данных, API https://www.youtube.com/watch?v=XBu54nfzxAQ
 * REST API на DRF в Pycharm https://blog.jetbrains.com/pycharm/2023/09/building-apis-with-django-rest-framework/
@@ -1194,6 +1198,13 @@ pip install daphne
   + multiple language
 
 ### запуск проекта
+* For Ecole42 computers, I've updated settings of docker file in DEV branch 
+  + порт, который нужен для django, занят
+  + поменять номера портов в docker и в nginx
+  + 6800  port for redis 
+  + 4444 port frontend HTTP connections
+  + 4443 port frontend for SSL connections over HTTPS
+  + for local Ecole 42's network `ALLOWED_HOSTS = ['*']` in settings.py
 * Секретный ключ от api раз в две недели примерно обновляется
 * 'docker compose up --build' (BUILD нужно)
   - все скачается и распакуется
@@ -1212,9 +1223,6 @@ pip install daphne
   + 2 саособ лучше:
     - каждый компьютер использует VM, в ней вы изменяете файл хостов, чтобы связать IP-адрес исходной станции с URL-адресами
     - подключиться к другому компьютеру в кластере через его внутреннее доменное имя школы, добавить это в nginx.conf, чтобы веб-сервер разрешал связываться с вами в этом домене, а также на стороне django
-* в школе
-  + порт, который нужен для django, занят
-  + поменять номера портов в docker и в nginx
 
 ### разное
 * Vanilla JS (без фреймворков)
