@@ -211,7 +211,7 @@
     - `CHANNEL_LAYERS` для Django Channels
     - `CACHES` Django **по умолчанию может кэшировать в памяти, но вы используете Redis**
     - `INSTALLED_APPS` список приложений: стандартные (admin, auth, sessions), кастомные: `myapp`, `chat`, `api_42`, ...
-    - `MIDDLEWARE` Django-посредники, обрабатывают запросы/ответы (сессии, безопасность, авторизация, ...)
+    - `MIDDLEWARE`
     - `ROOT_URLCONF` главный файл роутов `myproject/urls.py`, роутинг для всего проекта
     - `TEMPLATES` настройки для системы шаблонов Django (где **HTML-шаблоны**, какие контекстные процессоры использовать)
     - `DATABASES` параметры (имя пользователя, ...) из `.env` (`decouple.config`), бд на сервисе `db`
@@ -563,19 +563,6 @@
   + удалила строку `Gunicorn_APPLICATION = 'myproject.wsgi.application'`
   + в chat/routing.py WebSocket уже настроен
   + убедитесь, что `urls.py` подключает routing.py через ProtocolTypeRouter в **asgi.py**:
-    ```
-    from channels.routing import ProtocolTypeRouter, URLRouter
-    from channels.auth import AuthMiddlewareStack
-    import chat.routing
-    application = ProtocolTypeRouter({
-        "http": get_asgi_application(),  # HTTP-приложение
-        "websocket": AuthMiddlewareStack(
-            URLRouter(
-                chat.routing.websocket_urlpatterns
-            )
-        ),
-    })
-    ```
   + убедитесь, что nginx поддерживает WebSocket, добавьте заголовки в блок location:
     ```
     location /ws/ {
@@ -599,7 +586,7 @@
   + WebSocket обрабатывается через Django Channels  
   + `asgi.py`настроен на поддержку WebSocket с помощью `ProtocolTypeRouter`:
     - HTTP-запросы идут через `django_asgi_app` (обычный обработчик Django),
-    - WebSocket-запросы маршрутизируются через `AuthMiddlewareStack` и `URLRouter`.
+    - WebSocket-запросы маршрутизируются через `AuthMiddlewareStack` и `URLRouter`
   + `daphne -b 0.0.0.0 -p 8000 mysite.asgi:application`
   + фронтенд использует /ws/ для подключения к WebSocket
   + Тестирование
@@ -702,17 +689,15 @@
   + библиотеки `channels_redis` и `django-redis` скрывают всю сложность интеграции
     - абстрагируют работу с Redis, позволяя вам сосредоточиться на разработке приложения
 * Redis сервер хранение и маршрутизация данных
-* Django Middleware (`SessionMiddleware`, `MessageMiddleware`, ...) может использовать Redis для хранения сеансов или flash-сообщений
-* Доступен по адресу redis:6379 в сети
+* Middleware (`SessionMiddleware`, `MessageMiddleware`, ...) может использовать Redis для хранения сеансов или flash-сообщений
 * **in-memory key-value store**
 * значения могут быть: string, list, hash, set, sorted sets, bitmap, HyperLogLogs, геопространственные индексы и др  
 * поддерживает множество языков программирования
 * Транзакции и скрипты на языке Lua
-* почему Redis
-  + работает в оперативной памяти => высокая скорость
-    - может сохранять данные на диск, чтобы избежать потери при сбоях
-  + пддержка Pub/Sub (публикации/подписки) => идеальный для каналов WebSocket
-  + простоте настройки: легко интегрируется с Django через библиотеки, такие как `channels_redis` и `django-redis`
+* работает в оперативной памяти => высокая скорость
+*+ может сохранять данные на диск, чтобы избежать потери при сбоях
+* пддержка Pub/Sub (публикации/подписки) => идеальный для каналов WebSocket
+* простоте настройки: легко интегрируется с Django через библиотеки, такие как `channels_redis` и `django-redis`
 * Убедитесь, что сервер Redis защищён (настройка пароля, ограничение доступа, ...)
 * Настройте Redis для работы с высоким количеством соединений
 * Redis хранит данные в оперативной памяти, поэтому важно следить за потреблением памяти
@@ -779,14 +764,15 @@
 * помогают в аутентификации, защите от атак, обработке сессий, модификации ответов
 * запрос поступает от Daphne в django
 * каждый middleware по очереди обрабатывает запрос и передаёт запрос следующему middleware
-* django.middleware.security.SecurityMiddleware обратывает запрос
+* SecurityMiddleware обратывает запрос
   + добавляет заголовки безопасности (`Strict-Transport-Security` для HTTPS)
   + перенаправляет HTTP-запросы на HTTPS (если настроено) **ведь это nginx**
   + убирает потенциально опасные элементы из запросов (например, если они могут привести к **уязвимости XSS**)
-* django.contrib.sessions.middleware.SessionMiddleware
-  + Управляет сессиями пользователя
+* SessionMiddleware
+  + загружает данные сессии из хранилища
   + если **сессии хранятся в Redis или базе данных**, сохраняет данные сессии после выполнения запроса (пример: Если пользователь **аутентифицирован**, сессия **сохраняет его идентификатор**)
 * CommonMiddleware
+  + выполняет базовую обработку (например, перенаправление с /)
   + **Перенаправление при добавлении/удалении `/` в конце URL** (если включено)
   + Возвращает стандартные заголовки HTTP (`Content-Type`, ...)
 * CsrfViewMiddleware
@@ -797,19 +783,26 @@
   + Проверяет сессию или заголовки авторизации
   + Добавляет **объект `request.user`**, чтобы представления могли определить, аутентифицирован ли пользователь
 * MessageMiddleware
+  + добавляет поддержку flash-сообщений
   + Обрабатывает **систему сообщений (flash messages)**
   + Позволяет передавать временные **уведомления (вместо чата?)** пользователю ("Ваш профиль успешно обновлён", ...)
 * XFrameOptionsMiddleware
   + добавляет заголовок `X-Frame-Options` для защиты от атак **clickjacking** (например запрещает отображение сайта в **iframe** на других доменах)
 * запрос передаётся в view
 * view обрабатывает его и формирует ответ
-* ответ проходит через все middleware в обратном порядке, Middleware могут модифицировать, логировать, фильтровать ответ:
-  + AuthenticationMiddleware добавление объекта `request.user` для авторизованных пользователей 
-  + SecurityMiddleware Проверка заголовков 
-  + CsrfViewMiddleware проверка CSRF-токена **ещё раз?**
-  + SecurityMiddleware добавление заголовков безопасности
+* XFrameOptionsMiddleware Ответ сначала обрабатывает (например, добавляет заголовок X-Frame-Options)
   + XFrameOptionsMiddleware добавление заголовков безопасности
+* MessageMiddleware (сохраняет flash-сообщения)
+* AuthenticationMiddleware (например, завершает обработку данных авторизации)
+  + добавление объекта `request.user` для авторизованных пользователей 
+* CsrfViewMiddleware (может добавлять CSRF-токен в шаблон)
+  + CsrfViewMiddleware проверка CSRF-токена **ещё раз?**
+* CommonMiddleware (может модифицировать заголовки)
+* SessionMiddleware (сохраняет сессии, если они изменились)
   + SessionMiddleware Сохранение сессии
+* SecurityMiddleware
+  + SecurityMiddleware Проверка заголовков 
+  + SecurityMiddleware добавление заголовков безопасности
 
 ### подключить css
 * статические файлы Django (table.css) должны быть настроены для загрузки через тег {% static %}
