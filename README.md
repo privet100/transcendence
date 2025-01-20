@@ -144,6 +144,7 @@
 ### frontend nginx server
 * Nginx + собранный фронт
 * слушает и обрабатывает HTTPS-соединения  
+* подписывается на WebSocket-каналы для чата
 * обработка WebSocket-запросов
 * try using **bolt.new** it's better at frontend
   + the ui is fire here
@@ -153,39 +154,34 @@
   + приходит запрос к http://95.217.129.132 на контейнер Nginx
   + если запрос к статическому файлу (CSS/JS/картинк/HTML), nginx отдает его из /usr/share/nginx/html/static/
     - certif/ и etc/ для сертификатов, дополнительных конфигураций, скриптов, вспомогательных файлов
-    - клиентский код (CSS, JS)
-    - nginx.conf рядом с файлами, относящимися к клиентской части (CSS, JS, изображения в `frontend/static/`), Nginx их раздаёт
   + **Фронтенд вызывает методы API** (для аутентификации, получения/отправки данных)
     - запросы на /api/ идут через Nginx на Django
-    - слушает и проксирует статику фронта (SPA)
-  + если это данные из Django (JSON, HTML, WebSocket), проходят через прокси на порт 8000
-  + **views.p** проверяет токен/подпись, docker-compose up --build -d, и т.д
+  + если данные из Django (JSON, HTML, WebSocket), проходят через прокси на порт 8000
+  + views.py **проверяет токен/подпись**
   + Django обрабатывает API
 * проверяет сертификаты SSL
-* nginx.conf называется default.conf внутри контейнера
-  + переопределяет стандартные настройки Nginx
+* nginx.conf = default.conf внутри контейнера, переопределяет стандартные настройки Nginx
 * прослушивает HTTP-запросы на 80 и перенаправляет на HTTPS с использованием кода 301 (постоянное перенаправление)
 * четыре server{}-блока = один процесс
 * nginx.conf рядом с Dockerfile, чтобы во время сборки копировался внутрь контейнера
-* If you are encountering errors after merging the two server blocks
-  + server_name cannot match raw IP addresses: The server_name directive is designed for matching domain names. While you can technically include an IP address, it won't work as expected because NGINX does not use server_name for requests with an IP address
+* you should keep separate server blocks, if you are encountering errors after merging the two server blocks
+  + server_name cannot match raw IP addresses: The server_name directive is designed for matching domain names
+  NGINX does not use server_name for requests with an IP address
   + Conflicting rules for IP-based requests: When a request is made to http://95.217.129.132, NGINX does not use the server_name directive for matching. Instead, it matches the listen directive and uses the first server block that matches the port
   + By merging the two server_name values, requests to http://95.217.129.132 may not behave as intended because NGINX will not consider the IP address part of server_name
-  + you should keep separate server blocks
 * работает через HTTP/WS-протоколы
-* использует эндпоинты Django для обмена данными и взаимодействия (чат, игра, профили пользователей)
-* подписывается на WebSocket-каналы для чата
+* использует эндпоинты Django 
 * Bootstrap toolkit
 * assessibility
 * multiple language
   
 ### backend ASGI сервер Daphne
-* управляет обработкой логики вашего приложения
-* слушает внутри контейнера на порту 8000 внутри сети Docker
-* запускает ASGI-приложение (Django через ASGI)
+* обработка запросов и передача их в Django Framework для выполнения бизнес-логики
+* управляет обработкой логики приложения
 * Управление синхронными HTTP-запросами
 * управление асинхронными WebSocket-соединениями
-* обработка запросов и передача их в Django Framework для выполнения бизнес-логики
+* слушает внутри контейнера на порту 8000 в сети Docker
+* Django через ASGI
 * папка `backend/`: код Django, настройки, requirements, миграции, ...
 * обработка **API-запросов** через Django REST Framework (DRF)
 * валидация CSRF-токенов для защиты от атак
@@ -246,24 +242,26 @@
     - нопка "создать турнир"
     - вызывает 127.0.0.1/tour
     - запускает rest framework
+* django channel создает websocket, слушает запросы
+  + отличия от html: непрерывное соединение, стрим
+  + new Websocket(127.0.0.1:8000/game, wss)
+    - wss протокол
 
 ### django в целом
 * Бэкенд-фреймворк
-* библиотека
-* с ключевыми механиками (аутентификация, управление базой данных, админка, API), готовые функции и практики из коробки
+* ключевые механики (аутентификация, управление базой данных, админка, API), функции и практики из коробки
 * диктует архитектуру (приложения, модели, views, urls, ...)
 * `models.py` структура данных, связь между ними (пользователи, профили, чаты, сообщения, статистика игры, ...)
 * `url.py` какие функции обрабатывают какие пути, какие запросы обрабатывает по адресу endpoint
-* `views.py` функции при обращении под адресу = эндпоинт, обрабатывают логику запросов (создание комнаты, отправка сообщения, обновление профиля
-  + определяет функцию для обработки endpoint
+* `views.py` функции  для обработки endpoint, обрабатывают логику запросов (отправка сообщения, обновление профиля)
 * `admin.py`
 * `apps.py` (регистрация приложения в Django)
-* `migrations/` (миграции для моделей)
-* `tests.py` (тесты для этого приложения)
+* **`migrations/`** (миграции для моделей)
+* `tests.py`
 * Управление пользователями и аутентификацией
   + встроенная система аутентификации и модель пользователей
   + Регистрацию и авторизацию (в том числе OAuth/SSO)
-  + Разграничение доступа к страницам (приватные/публичные чаты, комнаты и т.д.)
+  + Разграничение доступа к страницам (приватные/публичные чаты, комнаты, ...)
   + Проверку токена/сессии при каждом запросе с фронтенда
 * Администрирование
   + позволяет набросать интерфейс для управления данными (пользователи, чаты, статистика, ...)
@@ -331,6 +329,9 @@
 * `routing.py` маршруты WebSocket
   + Каждый WebSocket-путь можно считать отдельным API
   + WebSocket - часть API
+* могут быть
+  + стандартными REST (GET, POST, PUT, DELETE)
+  + асинхронными WebSocket (через Django Channels)
 * несколько эндпоинтов реализуют функциональность API
   + приложение `api_42`
   + приложение `chat`
@@ -345,9 +346,6 @@
     - маршрут `GET /users/<id>/`
     - маршрут `DELETE /users/<id>/`
     - маршрут API чата = группа всех маршрутов, связанных с чатом
-* могут быть
-  + стандартными REST (GET, POST, PUT, DELETE)
-  + асинхронными WebSocket (через Django Channels)
 * **создаются с помощью Django REST Framework (DRF)**
 * список API http://localhost:8000/swagger/, http://localhost:8000/redoc/
   + если настроена автоматическая документация (Swagger, Redoc)  
@@ -492,7 +490,7 @@
               self.room_group_name,
               self.channel_name
           )
-      async def receive(self, text_data):            # Получение сообщения от WebSocket
+      async def receive(self, text_data):            # сообщение от WebSocket
           text_data_json = json.loads(text_data)
           message = text_data_json['message']
           await self.channel_layer.group_send(             # Отправить сообщение группе
@@ -503,7 +501,7 @@
           )
       async def chat_message(self, event):       # Получение сообщения от группы
           message = event['message']
-          await self.send(text_data=json.dumps({            # Отправить сообщение обратно в WebSocket
+          await self.send(text_data=json.dumps({            # Отправить сообщение в WebSocket
               'message': message
           }))
   ```
@@ -528,12 +526,11 @@
 * можно ли делать live chat с библиотекой channels или надо целиком писать
   + Какие библиотеки можно использовать?
 * Django Channels
-  + библиотека для вебсокетов
-  + надстройка для Django
+  + библиотека, надстройка Django для вебсокетов
   + добавить поддержку протоколов, отличных от HTTP (WebSocket, ...)
   + для приложений с функциями реального времени, выходящих за рамки стандартного HTTP-протокола: онлайн-игра, онлайн-статус пользователей
+  + WebSocket - постоянное соединение между клиентом и сервером
   + WebSocket - передавать данные между сервером и клиентом в режиме реального времени
-  + WebSocket обеспечивает постоянное соединение между клиентом и сервером
   + подходит для чата
 * **RabbitMQ**
   + брокер сообщений
@@ -561,24 +558,22 @@
   + fetch (в js) = запрос к бэку
   + функция render своя в каждом компоненте
     - например нужен username - делаем запрос к бэку fetchuserprofile
-* ws объект js
+* websocket объект js
 * send.msg
 * receive = render msg
-* ws: кому пишем сообщение? в запросе
+* websocket: кому пишем сообщение? в запросе
 * prepMsg забирает инпут и делает ws запрос
-  + либо взять список друзей из базы и сделать выпадающие список
-  + либоа поле инпут - кому сообщение
+  + взять список пользователей из базы
 * @login_required только если залогинен, если нет токена или он неправильный - не пропустит
-* отдельный endpoint проверить, существует ли такой юзер (не нужен)
-* fetch() запрос обычный (не ws)
-* ws один для всех пользователей для чата
+* fetch() запрос обычный (не websocket)
+* websocket один для всех пользователей для чата
 * **AbsTimeUser** (непралвьно написано) наш класс наследует
 * johnResponse - временный
 * view.py не html
   + jsonResponse или httpResponse
 * createuser встроенная, т.к. наследуем от ... 
 * **[2302]** в контейнере бэк: python manage.py make migrations
-* если логин - присылает session id token
+* если логин - присылает **session id token**
 * первый логин - header CSRF токен
   + посмотреть это: F12 Applocation storage cookies
   + в js фенкция post - в header токен CSRF
@@ -591,7 +586,7 @@
   + в заголовке запроса - кому сообщение
 * если сообщение не дошло, то такого пользователя нет
 * в контейнере бэк: python manage.py superuser то ли python manage.py createsuperuser, с именем админ пародлем админ
-  + после этог модет быть migrations
+  + после этого migrations
 * pathname = часть адреса после корня
 * login = new ws connexion
 * ws system msgs
@@ -609,10 +604,6 @@
   + во время игры - статистика, другой user
   + приложение, отправлятть сообщение через js !!
   + django channel = **fr.w.** для сокетов
-* front: django channel создает WS websocket, слушает запросы
-  + отличия от html: непрерывное соединение, стрим
-  + new Websocket(127.0.0.1:8000/game, wss)
-    - wss протокол
 * прямо в консоли можно писать js и пробовать
   + ndetermined - то, что ыернула функция
   + можно создать переменные (let)
@@ -642,16 +633,16 @@
 
 ### asgi, wsgi
 * WSGI, Web Server Gateway Interface
-  + интерфейс между веб-сервером и веб-приложениями или фреймворками, используемый Django-приложениями
+  + интерфейс между веб-сервером и веб-приложениями/фреймворками, используемый Django-приложениями
   + стандарт для взаимодействия между веб-серверами и Python-приложениями
     - в Python существует большое количество фреймворков, тулкитов, библиотек, для каждого из них собственный метод установки и настройки, они не умеют взаимодействовать между собой
+  + WSGI-сервер передаёт данные о запросе Python-приложению
+  + Python-приложение обрабатывает запрос и возвращает ответ
   + WSGI-приложение должно:
     - callable объект (обычно это функция или метод)
     - два параметра: словарь переменных окружения и обработчик запроса (start_response)
     - вызывать обработчик запроса с кодом HTTP-ответа и HTTP-заголовками
     - возвращать итерируемый объект с телом ответа
-  + WSGI-сервер передаёт данные о запросе Python-приложению
-  + Python-приложение обрабатывает запрос и возвращает ответ
   + поддерживает только синхронные запросы HTTP
   + не подходит для реального времени или протокола WebSocket
   + всё ещё нужен в некоторых случаях
@@ -662,14 +653,10 @@
     - если используете только HTTP-запросы (API, стандартные страницы, ...)
 * ASGI, Asynchronous Server Gateway Interface
   + продолжение WSGI для приложений, которым нужно обрабатывать асинхронные задачи
-  + ASGI-сервер может обрабатывать асинхронные (WebSocket) и синхронные (HTTP) запросы
-    - передаёт синхронные HTTP-запросы стандартным Django-приложением
-    - обрабатывает WebSocket-запросы через Django Channels
-  + ASGI-сервер (Daphne,  ...) обрабатывает синхронные HTTP-запросы и асинхронные соединения (WebSocket)
-  + Django работает с библиотекой Django Channels, чтобы обрабатывать WebSocket
+  + ASGI-сервер передаёт синхронные HTTP-запросы стандартным Django-приложением
+  + ASGI-сервер обрабатывает асинхронные-запросы (WebSocket) через Django Channels
+    - Django работает с библиотекой Django Channels, чтобы обрабатывать WebSocket
   + для приложений, работающих в реальном времени (чат, уведомления, игры)
-  + Django Channels => нужен ASGI-сервер
-  + Redis используется для поддержки WebSocket => нужен ASGI-сервер
   * Daphne ASGI-сервер, хорошо работающий с Django Channels
 * `ASGI_APPLICATION = "myproject.asgi.application"`
   + модуль и переменная, содержащая точку входа для ASGI-сервера
@@ -677,8 +664,7 @@
     - переменная `application` = ASGI-приложение, которое обрабатывает входящие запросы
     - Переменная `application` = точка входа для ASGI-сервера
     - ASGI-приложение объединяет Django и Channels
-  + `ASGI_APPLICATION` явно не используется в коде
-    - точка входа для ASGI-сервера
+  + явно не используется в коде
     - ASGI-сервер загружает модуль и использует `application` для обработки запросов
     - сервер ищет  в `settings.py модуль `myproject.asgi` и внутри него переменную `application` 
   + если не настроить `ASGI_APPLICATION`
@@ -688,26 +674,26 @@
     - Убедитесь, что ALLOWED_HOSTS включает все домены и IP-адреса, которые вы используете:
     - ALLOWED_HOSTS = ['95.217.129.132', 'localhost', '127.0.0.1', 'tr.naurzalinov.me']
 * перехожу на asgi only:
-  + ASGI не меняет Django-кода для HTTP
-  + стандартные Django-функции (middleware, views, models) продолжают работать
+  + стандартные Django-функции (middleware, views, models) продолжают работать, не меняет Django-кода для HTTP
   + удалила файл wsgi.py
   + удалила строку `Gunicorn_APPLICATION = 'myproject.wsgi.application'`
   + в chat/routing.py WebSocket уже настроен
   + убедитесь, что `urls.py` подключает routing.py через ProtocolTypeRouter в **asgi.py**:
-  + фронтенд использует /ws/ для подключения к WebSocket
-  + убедитесь, что nginx поддерживает WebSocket, добавьте заголовки в блок location:
-    ```
-    location /ws/ {
-        proxy_pass http://backend:8000;  # Путь до ASGI-сервера
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-    ```
+  + убедитесь, что nginx поддерживает WebSocket
+    - использует /ws/ для подключения к WebSocket
+    - добавьте заголовки в блок location:
+      ```
+      location /ws/ {
+          proxy_pass http://backend:8000;  # Путь до ASGI-сервера
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+      }
+      ```
   + `asgi.py`настроен на поддержку WebSocket с помощью `ProtocolTypeRouter`:
     - Django выполняет HTTP-запросы через **встроенный обработчик**, работает под управлением ASGI-сервера
     - HTTP-запросы идут через `django_asgi_app` (обычный обработчик Django)
@@ -929,6 +915,87 @@
 * SecurityMiddleware
   + SecurityMiddleware Проверка заголовков 
   + SecurityMiddleware добавление заголовков безопасности
+
+### WebSockets
+* для реализации функций реального времени: чата, игровой механики
+* WebSocket-соединение: сервер и клиент обмениваются данными в реальном времени
+* создание 
+  + клиент загружает страницу чата или игровой комнаты
+  + Клиентский код js инициирует соединение через WebSocket API: `const socket = new WebSocket("ws://example.com/ws/chat/room1/");`
+  + отправляется запрос на сервер
+    ```json
+    {
+      "type": "chat.message",
+      "message": "Hello, World!"
+    }
+    ```
+  + daphne устанавливает WebSocket-соединение, передавая его в ASGI-приложение
+  + daphne принимает запрос
+  + daphne передаёт запрос в Django через механизм Channels
+  +  **Consumer** в Django Channels, consumers.py классы для обработки WebSocket-сообщений
+  + от сервера к клиенту:
+    ```json
+    {
+      "type": "chat.message",
+      "message": "Hi there!"
+    }
+    ```
+
+
+### 6. **Схема сокетов**
+
+```plaintext
+[Браузер пользователя (JavaScript WebSocket API)]
+    |
+    | ws://example.com/ws/chat/room1/
+    v
+[Frontend (Nginx)]
+    |
+    | Проксирование WebSocket на порт 8000
+    v
+[Backend Container]
+    +--> [Daphne (ASGI-сервер)]
+          |
+          +--> [Django Channels (Consumer)]
+                |
+                +--> [Обработка сообщений в логике чата или игры]
+```
+
+---
+
+### Пример конфигурации Nginx для WebSocket
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name example.com;
+
+    ssl_certificate /etc/nginx/ssl/certificate.crt;
+    ssl_certificate_key /etc/nginx/ssl/private.key;
+
+    location /ws/ {
+        proxy_pass http://backend:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+```
+
+---
+
+### Итог
+- **Кто создаёт сокеты**: Клиент (браузер) инициирует соединение через JavaScript. Daphne на сервере обрабатывает соединение.
+- **Когда создаются**: В момент, когда клиент открывает страницу, требующую реального времени (чат или игра).
+- **Что передаётся**: JSON-сообщения между клиентом и сервером.
+- **Путь запросов**:
+  1. Клиент → Nginx (порт 443, wss://).
+  2. Nginx → Daphne (порт 8000, WebSocket).
+  3. Daphne → Django Channels (обработка сообщений).
+  4. 
 
 ### подключить css
 * статические файлы Django (table.css) должны быть настроены для загрузки через тег {% static %}
