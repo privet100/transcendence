@@ -142,7 +142,6 @@
   + **сещуствующее приложение django?**
 
 ### frontend nginx server
-* Nginx + собранный фронт
 * слушает и обрабатывает HTTPS-соединения  
 * подписывается на WebSocket-каналы для чата
 * обработка WebSocket-запросов
@@ -652,6 +651,7 @@
     - уменьшает сложность, если вам не нужны возможности ASGI
     - если используете только HTTP-запросы (API, стандартные страницы, ...)
 * ASGI, Asynchronous Server Gateway Interface
+  + Daphne хорошо интегрируется с Django Channels и поддерживает WebSocket из коробки
   + продолжение WSGI для приложений, которым нужно обрабатывать асинхронные задачи
   + ASGI-сервер передаёт синхронные HTTP-запросы стандартным Django-приложением
   + ASGI-сервер обрабатывает асинхронные-запросы (WebSocket) через Django Channels
@@ -678,11 +678,8 @@
   + удалила файл wsgi.py
   + удалила строку `Gunicorn_APPLICATION = 'myproject.wsgi.application'`
   + в chat/routing.py WebSocket уже настроен
-  + убедитесь, что `urls.py` подключает routing.py через ProtocolTypeRouter в **asgi.py**:
-  + убедитесь, что nginx поддерживает WebSocket
-    - использует /ws/ для подключения к WebSocket
-    - добавьте заголовки в блок location:
-      ```
+  + nginx поддерживает WebSocket, /ws/ для подключения к WebSocket
+    - ```
       location /ws/ {
           proxy_pass http://backend:8000;  # Путь до ASGI-сервера
           proxy_http_version 1.1;
@@ -697,14 +694,13 @@
   + `asgi.py`настроен на поддержку WebSocket с помощью `ProtocolTypeRouter`:
     - Django выполняет HTTP-запросы через **встроенный обработчик**, работает под управлением ASGI-сервера
     - HTTP-запросы идут через `django_asgi_app` (обычный обработчик Django)
-    - WebSocket-запросы маршрутизируются через `AuthMiddlewareStack` и `URLRouter`, обрабатывается через Django Channels  
+    - WebSocket-запросы маршрутизируются через `AuthMiddlewareStack` и `URLRouter`, обрабатывается через Django Channels
   + Тестирование
     - стандартные HTTP-запросы (загрузка HTML-страницы, отправка данных формы)
     - функционал, связанный с WebSocket (чат, ...)
     - клиент может подключиться к ws:// или wss://, сообщения проходят корректно
     - если WebSocket-запросы зависят от Redis (например, для хранения данных о сессиях), убедитесь, что Redis работает и настроен правильно: `redis-cli ping`, Ожидаемый ответ: `PONG`
     - логи Daphne или Redis (соединения WebSocket создаются и работают стабильно?)
-* Daphne хорошо интегрируется с Django Channels и поддерживает WebSocket из коробки
 
 ### db (PostgreSQL)
 * СУБД (база данных) для хранения пользователей, сообщений, данных о матчах в Pong, статистики и т.д.
@@ -933,7 +929,26 @@
   + daphne устанавливает WebSocket-соединение, **передавая его в ASGI-приложение
   + daphne принимает запрос
   + daphne передаёт запрос в Django через механизм Channels
-  +  **Consumer** в Django Channels, consumers.py классы для обработки WebSocket-сообщений
+  + запрос направляется в Consumer - обработчик соединений, класс для обработки WebSocket-сообщений
+    ```python
+    class ChatConsumer(AsyncWebsocketConsumer):
+      async def connect(self):
+        self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
+        self.room_group_name = f"chat_{self.room_name}"
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        await self.accept()
+      async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+      async def receive(self, text_data):
+        text_data_json = json.loads(text_data)
+        message = text_data_json["message"]
+        await self.channel_layer.group_send(
+          self.room_group_name, {"type": "chat.message", "message": message}
+        )
+      async def chat_message(self, event):
+        message = event["message"]
+        await self.send(text_data=json.dumps({"message": message}))
+     ```
   + от сервера к клиенту:
     ```json
     {
@@ -941,7 +956,41 @@
       "message": "Hi there!"
     }
     ```
-  
+* Django Channels
+  + не сервер, не принимает запросы от клиента 
+  + работает через сервер daphne
+  + инструмент для управления асинхронными соединениями внутри Django
+  + расширение Django для обработки асинхронных протоколов, таких как WebSocket
+  + обработка соединений внутри приложения 
+  + daphne принимает запросы (HTTP или WebSocket) и передаёт их в приложение Django, **настроенное через Channels**
+  + Consumers обрабатывают каждое соединение и сообщения, отправленные клиентом
+  + `asgi.py` ProtocolTypeRouter маршрутизатор, какой протокол (HTTP, WebSocket) использовать для обработки запроса
+     - ```python
+      application = ProtocolTypeRouter(
+        {
+          "http": django_asgi_app,
+          "websocket": AllowedHostsOriginValidator(
+            AuthMiddlewareStack(URLRouter(websocket_urlpatterns))
+          ),
+        }
+      )
+     ```
+    - `websocket_urlpatterns` из `chat/routing.py` добавляются в маршрутизатор `URLRouter`, чтобы перенаправлять запросы на `ChatConsumer`
+  + `chat/routing.py`
+    - для **подключения WebSocket-маршрутов к приложению**
+    - ```
+      from . import consumers
+      websocket_urlpatterns = [
+          re_path(r"ws/chat/(?P<room_name>\w+)/$", consumers.ChatConsumer.as_asgi()),
+      ]
+      ```
+    - связывает URL, по которым поступают запросы, с обработчиками Consumers
+    - запросы, начинающиеся с `ws/chat/`
+    - `<room_name>` переменная, динамически извлекается из URL, в данном случае любое слово (`\w+`): `ws/chat/room1/`, `room_name = "room1"`
+    - `consumers.ChatConsumer.as_asgi()` связывает запросы с Consumer-классом `ChatConsumer`, `as_asgi()` позволяет Consumer работать в асинхронной среде 
+  + канальный слой (Channel Layers) для взаимодействия между обработчиками (Consumers) и для передачи сообщений между процессами
+   - **Redis = backend для Channel Layers**
+
 ### подключить css
 * статические файлы Django (table.css) должны быть настроены для загрузки через тег {% static %}
 * в начале шаблона (base.html) {% load static %}
