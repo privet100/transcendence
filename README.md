@@ -4,6 +4,7 @@
 
 ### links
 * https://github.com/bakyt92/14_ft_transendence
+* https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
 * http://127.0.0.1:4444/ basic HTTP connection
 * https://127.0.0.1:4443/ HTTPS connection
 * http://127.0.0.1:8000/ 
