@@ -352,6 +352,76 @@
     - `POST /chat/rooms/` — создать комнату.
     - `GET /chat/rooms/<room_id>/messages/` — получить сообщения из комнаты.
     - `POST /chat/rooms/<room_id>/messages/` — отправить сообщение.
+* endpoints:
+  + Откройте каждый `urls.py`
+  + callback/
+    logout/
+    login/
+    auth/email/
+    signup/
+    auth/callback
+    profile/
+    ...
+* команда Django `python manage.py show_urls` список эндпоинтов
+    ```
+    /       
+    /admin/ 
+    /admin/<app_label>/
+    /admin/<url>    
+    /admin/auth/group/
+    /admin/auth/group/<path:object_id>/
+    /admin/auth/group/<path:object_id>/change/
+    /admin/auth/group/<path:object_id>/delete/
+    /admin/auth/group/<path:object_id>/history/
+    /admin/auth/group/add/
+    /admin/autocomplete/
+    /admin/jsi18n/
+    /admin/login/
+    /admin/logout/
+    /admin/myapp/game/
+    /admin/myapp/game/<path:object_id>/
+    /admin/myapp/game/<path:object_id>/change/
+    /admin/myapp/game/<path:object_id>/delete/
+    /admin/myapp/game/<path:object_id>/history/
+    /admin/myapp/game/add/
+    /admin/myapp/tournament/
+    /admin/myapp/tournament/<path:object_id>/
+    /admin/myapp/tournament/<path:object_id>/change/
+    /admin/myapp/tournament/<path:object_id>/delete/
+    /admin/myapp/tournament/<path:object_id>/history/
+    /admin/myapp/tournament/add/
+    /admin/myapp/userprofile/
+    /admin/myapp/userprofile/<path:object_id>/
+    /admin/myapp/userprofile/<path:object_id>/change/
+    /admin/myapp/userprofile/<path:object_id>/delete/
+    /admin/myapp/userprofile/<path:object_id>/history/
+    /admin/myapp/userprofile/add/
+    /admin/password_change/
+    /admin/password_change/done/
+    /admin/r/<int:content_type_id>/<path:object_id>/
+    /auth/auth/callback
+    /auth/auth/email/
+    /auth/callback
+    /auth/callback/ 
+    /auth/email/
+    /auth/login/
+    /auth/logout/
+    /auth/profile/
+    /auth/signup/
+    /callback/
+    /chat/
+    /chat/<str:room_name>/
+    /game/<int:id>/
+    /login/
+    /logout/
+    /profile/
+    /signup/
+    /tour/<int:id>/
+    /user/<int:id>/
+    /user_42/<int:user_id>/
+    /users/
+    /users_42/
+    ```
 
 ### django app chat
 * приложение с реальным временем на WebSocket
@@ -1249,79 +1319,6 @@
   + I'll update you soon on the game websocket
 
 ### test
-* endpoints:
-  + Откройте каждый `urls.py`
-  + callback/
-    logout/
-    login/
-    auth/email/
-    signup/
-    auth/callback
-    profile/
-    ...
-* команда Django
-  + `pip install django-extensions`
-  + добавьте `'django_extensions'` в `INSTALLED_APPS`
-  + `python manage.py show_urls` список зарегистрированных эндпоинтов
-    ```
-    /       
-    /admin/ 
-    /admin/<app_label>/
-    /admin/<url>    
-    /admin/auth/group/
-    /admin/auth/group/<path:object_id>/
-    /admin/auth/group/<path:object_id>/change/
-    /admin/auth/group/<path:object_id>/delete/
-    /admin/auth/group/<path:object_id>/history/
-    /admin/auth/group/add/
-    /admin/autocomplete/
-    /admin/jsi18n/
-    /admin/login/
-    /admin/logout/
-    /admin/myapp/game/
-    /admin/myapp/game/<path:object_id>/
-    /admin/myapp/game/<path:object_id>/change/
-    /admin/myapp/game/<path:object_id>/delete/
-    /admin/myapp/game/<path:object_id>/history/
-    /admin/myapp/game/add/
-    /admin/myapp/tournament/
-    /admin/myapp/tournament/<path:object_id>/
-    /admin/myapp/tournament/<path:object_id>/change/
-    /admin/myapp/tournament/<path:object_id>/delete/
-    /admin/myapp/tournament/<path:object_id>/history/
-    /admin/myapp/tournament/add/
-    /admin/myapp/userprofile/
-    /admin/myapp/userprofile/<path:object_id>/
-    /admin/myapp/userprofile/<path:object_id>/change/
-    /admin/myapp/userprofile/<path:object_id>/delete/
-    /admin/myapp/userprofile/<path:object_id>/history/
-    /admin/myapp/userprofile/add/
-    /admin/password_change/
-    /admin/password_change/done/
-    /admin/r/<int:content_type_id>/<path:object_id>/
-    /auth/auth/callback
-    /auth/auth/email/
-    /auth/callback
-    /auth/callback/ 
-    /auth/email/
-    /auth/login/
-    /auth/logout/
-    /auth/profile/
-    /auth/signup/
-    /callback/
-    /chat/
-    /chat/<str:room_name>/
-    /game/<int:id>/
-    /login/
-    /logout/
-    /profile/
-    /signup/
-    /tour/<int:id>/
-    /user/<int:id>/
-    /user_42/<int:user_id>/
-    /users/
-    /users_42/
-    ```
 * bakyt: Endpoint that are formed from views.py from different folders
   + `urls.py` связывает эндпоинты (URL-маршруты) с функциями/классами представлений из `views.py`
   + просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
