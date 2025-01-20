@@ -918,18 +918,19 @@
 
 ### WebSockets
 * для реализации функций реального времени: чата, игровой механики
-* WebSocket-соединение: сервер и клиент обмениваются данными в реальном времени
+* Браузер пользователя (JavaScript WebSocket API) ?
+* сервер и клиент обмениваются данными в реальном времени
 * создание 
   + клиент загружает страницу чата или игровой комнаты
-  + Клиентский код js инициирует соединение через WebSocket API: `const socket = new WebSocket("ws://example.com/ws/chat/room1/");`
-  + отправляется запрос на сервер
+  + клиентский код js инициирует соединение через WebSocket API: `const socket = new WebSocket("ws://example.com/ws/chat/room1/");`
+  + запрос на сервер
     ```json
     {
       "type": "chat.message",
       "message": "Hello, World!"
     }
     ```
-  + daphne устанавливает WebSocket-соединение, передавая его в ASGI-приложение
+  + daphne устанавливает WebSocket-соединение, **передавая его в ASGI-приложение
   + daphne принимает запрос
   + daphne передаёт запрос в Django через механизм Channels
   +  **Consumer** в Django Channels, consumers.py классы для обработки WebSocket-сообщений
@@ -940,63 +941,7 @@
       "message": "Hi there!"
     }
     ```
-
-
-### 6. **Схема сокетов**
-
-```plaintext
-[Браузер пользователя (JavaScript WebSocket API)]
-    |
-    | ws://example.com/ws/chat/room1/
-    v
-[Frontend (Nginx)]
-    |
-    | Проксирование WebSocket на порт 8000
-    v
-[Backend Container]
-    +--> [Daphne (ASGI-сервер)]
-          |
-          +--> [Django Channels (Consumer)]
-                |
-                +--> [Обработка сообщений в логике чата или игры]
-```
-
----
-
-### Пример конфигурации Nginx для WebSocket
-
-```nginx
-server {
-    listen 443 ssl;
-    server_name example.com;
-
-    ssl_certificate /etc/nginx/ssl/certificate.crt;
-    ssl_certificate_key /etc/nginx/ssl/private.key;
-
-    location /ws/ {
-        proxy_pass http://backend:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-}
-```
-
----
-
-### Итог
-- **Кто создаёт сокеты**: Клиент (браузер) инициирует соединение через JavaScript. Daphne на сервере обрабатывает соединение.
-- **Когда создаются**: В момент, когда клиент открывает страницу, требующую реального времени (чат или игра).
-- **Что передаётся**: JSON-сообщения между клиентом и сервером.
-- **Путь запросов**:
-  1. Клиент → Nginx (порт 443, wss://).
-  2. Nginx → Daphne (порт 8000, WebSocket).
-  3. Daphne → Django Channels (обработка сообщений).
-  4. 
-
+  
 ### подключить css
 * статические файлы Django (table.css) должны быть настроены для загрузки через тег {% static %}
 * в начале шаблона (base.html) {% load static %}
