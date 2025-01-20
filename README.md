@@ -347,7 +347,7 @@
 
 ### django app chat
 * приложение чата с реальным временем на WebSocket
-* Настройка Channels в `settings.py`:
+* `settings.py` настройка Channels:
   ```python
   INSTALLED_APPS = [
       'channels',
@@ -361,8 +361,17 @@
   }
   ```
 * Создайте файл `asgi.py` в корне проекта
+  ```python
+  application = ProtocolTypeRouter({
+      'http': get_asgi_application(),
+      'websocket': AuthMiddlewareStack(
+          URLRouter(
+              websocket_urlpatterns
+          )
+      ),
+  })
+  ```
 * создайте приложение "chat": `python manage.py startapp chat`
-* добавьте `chat` в `INSTALLED_APPS`
 * в `chat/models.py` создайте модели сообщений и комнат
   ```python
   class ChatRoom(models.Model):
@@ -410,75 +419,24 @@
                 'message': message
             }))
     ```
-* Настройте маршруты WebSocket
-  + создайте `chat/routing.py`:
-    ```python
+* `chat/routing.py маршруты WebSocket 
+  ```python
     websocket_urlpatterns = [
         path('ws/chat/<str:room_name>/', consumers.ChatConsumer.as_asgi()),
     ]
-```
-* Добавьте маршруты WebSocket в `asgi.py`
-  ```python
-  application = ProtocolTypeRouter({
-      'http': get_asgi_application(),
-      'websocket': AuthMiddlewareStack(
-          URLRouter(
-              websocket_urlpatterns
-          )
-      ),
-  })
   ```
-* в `chat/urls.py` настройте маршруты для комнаты чата
+* `chat/urls.py` настройте маршруты для комнаты чата
   ```python
   urlpatterns = [
       path('<str:room_name>/', views.chat_room, name='chat_room'),
   ]
   ```
-* В `chat/views.py` создайте представление
+* `chat/views.py представление
   ```python
   def chat_room(request, room_name):
       return render(request, 'chat/room.html', {'room_name': room_name})
   ```
-* создайте шаблоны для чата - создайте файл `chat/templates/chat/room.html`
-  ```html
-  <!DOCTYPE html>
-  <html>
-  <head>
-      <title>Chat Room</title>
-  </head>
-  <body>
-      <h1>Room: {{ room_name }}</h1>
-      <div id="chat-log"></div>
-      <input id="chat-message-input" type="text" size="100">
-      <button id="chat-message-submit">Send</button>
-      <script>
-          const roomName = "{{ room_name }}";
-          const chatSocket = new WebSocket(
-              'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
-          );
-          chatSocket.onmessage = function(e) {
-              const data = JSON.parse(e.data);
-              document.querySelector('#chat-log').innerHTML += '<br>' + data.message;
-          };
-          chatSocket.onclose = function(e) {
-              console.error('Chat socket closed unexpectedly');
-          };
-          document.querySelector('#chat-message-submit').onclick = function(e) {
-              const messageInputDom = document.querySelector('#chat-message-input');
-              const message = messageInputDom.value;
-              chatSocket.send(JSON.stringify({
-                  'message': message
-              }));
-              messageInputDom.value = '';
-          };
-      </script>
-  </body>
-  </html>
-  ```
 * `python manage.py makemigrations`, `python manage.py migrate` создайте и примените миграции для моделей 
-* `python manage.py runserver` запустите сервер разработки 
-* убедитесь, что сервер ASGI корректно работает
-* можете расширить функциональность, добавив авторизацию пользователей, отображение истории сообщений, обработку ошибок и уведомления
 
 ### Chat
 * можно ли делать live chat с библиотекой channels или надо целиком писать
