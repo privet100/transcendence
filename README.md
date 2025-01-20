@@ -333,82 +333,53 @@
 ### django app chat
 * приложение с реальным временем на WebSocket
 * dj channels библиотека для чата
-* tuto по ссылке в закладках ?
-* js обращается к rest api (get), views.py,  
 * API создать через REST: endpoint -> func
-* с каждым пользователем у бэкенда 2 вебсовета: чат, положение ракетки 
-* `settings.py` настройка Channels:
+* tuto https://channels.readthedocs.io/en/latest/index.html
+* js обращается к rest api (post) endpoints /history, /users/, /send
+* rest api строит и отдаёт html  
+* js получает ответ (get)
+* логика в views.py
+* с каждым пользователем у бэкенда 2 вебсовета: чат, положение ракетки
+* история хранится в бд
+* ws login new WS connexion
+* ws system msg
+* ws user communicqtions
+* INSTALLED_APPS 'channels'
+* CHANNEL_LAYERS 'BACKEND': 'channels.layers.InMemoryChannelLayer', **in-memory ?**
+* `asgi.py`
+* `python manage.py startapp chat`
+* `chat/models.py` модели сообщений и комнат
+* `chat/consumers.py` WebSocket consumer 
   ```python
-  INSTALLED_APPS = [
-      'channels',
-      'chat', 
-  ]
-  ASGI_APPLICATION = 'transcendence.asgi.application'
-  CHANNEL_LAYERS = {   # Настройте канал слоя (например, для разработки используется **in-memory**)
-      'default': {
-          'BACKEND': 'channels.layers.InMemoryChannelLayer',
-      },
-  }
-  ```
-* Создайте файл `asgi.py` в корне проекта
-  ```python
-  application = ProtocolTypeRouter({
-      'http': get_asgi_application(),
-      'websocket': AuthMiddlewareStack(
-          URLRouter(
-              websocket_urlpatterns
+  class ChatConsumer(AsyncWebsocketConsumer):
+      async def connect(self):
+          self.room_name = self.scope['url_route']['kwargs']['room_name']
+          self.room_group_name = f'chat_{self.room_name}'
+          await self.channel_layer.group_add(             # Присоединиться к группе комнаты
+              self.room_group_name,
+              self.channel_name
           )
-      ),
-  })
+          await self.accept()
+      async def disconnect(self, close_code):
+          await self.channel_layer.group_discard(                  # Отключиться от группы комнаты
+              self.room_group_name,
+              self.channel_name
+          )
+      async def receive(self, text_data):            # Получение сообщения от WebSocket
+          text_data_json = json.loads(text_data)
+          message = text_data_json['message']
+          await self.channel_layer.group_send(             # Отправить сообщение группе
+              self.room_group_name, {
+                  'type': 'chat_message',
+                  'message': message
+              }
+          )
+      async def chat_message(self, event):       # Получение сообщения от группы
+          message = event['message']
+          await self.send(text_data=json.dumps({            # Отправить сообщение обратно в WebSocket
+              'message': message
+          }))
   ```
-* создайте приложение "chat": `python manage.py startapp chat`
-* в `chat/models.py` создайте модели сообщений и комнат
-  ```python
-  class ChatRoom(models.Model):
-      name = models.CharField(max_length=100, unique=True)
-      def __str__(self):
-          return self.name
-  class Message(models.Model):
-      user = models.ForeignKey(User, on_delete=models.CASCADE)
-      room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
-      content = models.TextField()
-      timestamp = models.DateTimeField(auto_now_add=True)
-      def __str__(self):
-          return f'{self.user.username}: {self.content[:20]}'
-  ```
-* создайте WebSocket consumer
-  + обрабатывает соединения WebSocket
-  + `chat/consumers.py`:
-    ```python
-    class ChatConsumer(AsyncWebsocketConsumer):
-        async def connect(self):
-            self.room_name = self.scope['url_route']['kwargs']['room_name']
-            self.room_group_name = f'chat_{self.room_name}'
-            await self.channel_layer.group_add(             # Присоединиться к группе комнаты
-                self.room_group_name,
-                self.channel_name
-            )
-            await self.accept()
-        async def disconnect(self, close_code):
-            await self.channel_layer.group_discard(                  # Отключиться от группы комнаты
-                self.room_group_name,
-                self.channel_name
-            )
-        async def receive(self, text_data):            # Получение сообщения от WebSocket
-            text_data_json = json.loads(text_data)
-            message = text_data_json['message']
-            await self.channel_layer.group_send(             # Отправить сообщение группе
-                self.room_group_name, {
-                    'type': 'chat_message',
-                    'message': message
-                }
-            )
-        async def chat_message(self, event):       # Получение сообщения от группы
-            message = event['message']
-            await self.send(text_data=json.dumps({            # Отправить сообщение обратно в WebSocket
-                'message': message
-            }))
-    ```
 * `chat/routing.py маршруты WebSocket 
   ```python
     websocket_urlpatterns = [
@@ -649,6 +620,7 @@
 * доступен внутри сети Docker по адресу db:5432
 
 ### redis (Remote Dictionary Server) 
+* bakyt: только кэш сообщений, чат и системные
 * инструмент управления данными
 * для:
   + Кэширование данных: Хранение временных данных для ускорения работы приложений, хранение кэш, кэширование с гибким управлением временем жизни данных (TTL) (Django-кэш / Celery кэш)
@@ -762,6 +734,7 @@
   + настройка в CHANNEL_LAYERS
 * Убедитесь, что Redis не перегружен `redis-cli info memory`
 * очистить кэш `redis-cli -n 1 flushdb`
+
 #### у нас Redis для кэширования
 * `CACHES`, которая настроена на использование **`django_redis`** в качестве backend для кэширования
 *`BACKEND` = `django_redis.cache.RedisCache` говорит Django использовать Redis в качестве кэша
@@ -772,27 +745,27 @@
 * Django может кэшировать рендеринг HTML-шаблонов, чтобы повторные запросы быстрее обрабатывались
 * можно кэшировать результаты REST API-запросов, чтобы не нагружать базу данных повторными запросами
 * Убедитесь, что кэширование настроено правильно, чтобы извлечь максимальную выгоду
-#### у нас redis для `CHANNEL_LAYERS`
 
-* Django имеет встроенные механизмы кэширования без Redis. Эти методы имеют ограничения и уступают Redis по производительности и функциональности. Давайте сравним.
+#### у нас redis для `CHANNEL_LAYERS`
+* встроенные механизмы кэширования Django без Redis
   + Простое в настройке
-  + Подходит для небольших и локальных проектов
   + Ограничено по производительности и функциональности
-  + встроенное кэширование Django 1 типа: Локальное кэширование в памяти (`LocMemCache`)
+  + Подходит для небольших и локальных проектов
+  + 1 типа: Локальное кэширование в памяти (`LocMemCache`)
     - кэш в оперативной памяти локального сервера
     - для небольших проектов
     - данные не разделяются между несколькими процессами или серверами
     - кэш очищается при перезапуске приложения.
-  + встроенное кэширование Django 2 типа: Файловое кэширование (`FileBasedCache`)
+  + 2 типа: Файловое кэширование (`FileBasedCache`)
     - кэш в файловой системе
     - для простых сценариев, где не требуется высокая скорость, медленнее, чем кэш в памяти или Redis
     - требует места на диске
-  + встроенное кэширование Django 3 типа: База данных (`DatabaseCache`)
+  + 3 типа: База данных (`DatabaseCache`)
     - кэш в базе данных
     - если проект уже активно использует базу данных
     - замедляет производительность, так как кэш хранится в той же базе, что и основные данные, не подходит для высоконагруженных систем
-* Redis является более мощным инструментом для кэширования:
-  + работает исключительно в оперативной памяти, что делает его чрезвычайно быстрым
+* Redis является более мощным инструментом для кэширования
+  + работает в оперативной памяти, что делает его чрезвычайно быстрым
   + поддерживает сложные операции (например, Pub/Sub), что полезно для систем в реальном времени
   + легко масштабируется и может использоваться в распределённых системах
   + данные кэша разделяются между всеми процессами и серверами, что делает его идеальным для **кластеров**
@@ -1207,10 +1180,15 @@
   + live chat
   + **rabbitMQ модуль сообщение от сервера**
   + google doc: status which modules are chosen and which modules are done
+  + to finish APIS
+  + live chat, ws
 * Л
   + авторизация
   + фронт-энд
   + шаблон для фронт энда
+  + profile
+  + game page
+  + auth issue
 * Ан
   + фронт-энд
   + накидать в Figma шаблоны страничек (часть есть в Миро) страницы: страница с логином, с самой игрой (пока без игры), профиль пользователя, страница с турниром
