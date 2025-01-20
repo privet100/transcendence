@@ -71,13 +71,11 @@
   + гарантирует контроль ошибок: если пакет теряется или повреждается, он будет переотправлен
   + альтернатива: UDP (User Datagram Protocol), менее надежен, но быстрее
   + Docker по умолчанию использует TCP, так как он подходит для большинства сетевых приложений, например:
-    - HTTP и HTTPS работают через TCP
-    - Подключение к базам данных (PostgreSQL, MySQL) обычно использует TCP
-    - Redis и другие внутренние сервисы также используют TCP
+    - HTTP, HTTPS, подключение к PostgreSQL, redis  используют TCP
 * SSL/TLS 
   + шифровать соединение между браузером и nginx
-  + обеспечивает аутентификацию сервера (подключаетесь к правильному серверу)
-  + обеспечивает защиту от **подделки данных**
+  + аутентификация сервера (подключаетесь к правильному серверу)
+  + защита от **подделки данных**
   + браузер запрашивает установление защищённого **соединения** (HTTPS)
     - используется публичный ключ сервера (SSL-сертификат)
   + **сессионный ключ**, согласуется в процессе установки соединения
@@ -100,6 +98,7 @@
   + настраивается на стороне Nginx
 * CSRF (Cross-Site Request Forgery) token
   + токен **прописан в settings.py**
+  + чтобы никто не зашёл в БД
   + отдать клиенту при первом запросе
   + клиент будет слать запросы к **api** и вставлять этот токен в заголовок запроса при post / get запросах
   + views.py: набор проверок которые нужно добавить при запросе к api
@@ -126,18 +125,25 @@
     - https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html
     - https://openclassrooms.com/fr/courses/7192416-mise-en-place-une-api-avec-django-rest-framework/7424720-give-access-with-the-tokens
   + nginx хранит jwt не в cookie, а в **локальном хранилище** (в переменной в js, обновляем как только он истечет)
-* Аутентификация:
+* Идентификация = Кто вы
   + Пользователь вводит логин и пароль
   + Сервер проверяет данные и создаёт **JWT**, содержащий информацию о пользователе
-  + Токен отправляется клиенту
-  + асимметричный алгоритм (например **RSA**)
-  + служба аутентификации хранит закрытый ключ и может выдавать токены
   + токены содержат имя пользователя, которого они идентифицируют
+  + Токен отправляется клиенту
+  + служба аутентификации хранит закрытый ключ и может выдавать токены
   + другие микросервисы могут проверять их с помощью открытого ключа
   + Самый простой и самый безопасный — **cookie**
     - Поскольку все микросервисы имеют одно и то же имя хоста, файл cookie будет автоматически отправляться браузером при каждом запросе
     - Со стороны DRF у вас есть расширение для JWT, но мне не удалось заставить его работать с RSA, было проще создать собственное промежуточное программное обеспечение для аутентификации
   + https://dzone.com/articles/using-jwt-in-a-microservice-architecture
+* Аутентификация = докажите, что это вы
+  + асимметричный алгоритм (например **RSA**)
+  + вы заявили свою личность, система требует доказательства (пароль, одноразовый код (OTP) из SMS, отпечаток пальца, лицо
+  + у нас: email + password или через 42
+* Авторизация = что вам разрешено делать?
+  + проверяется, что вы можете делать и к каким ресурсам имеете доступ
+  + после входа в систему (идентификации) вы пытаетесь открыть раздел "Администрирование". Система проверяет, есть ли у вас соответствующие права доступа
+  + **сещуствующее приложение django?**
 
 ### frontend nginx server
 * Nginx + собранный фронт
@@ -174,7 +180,6 @@
 * использует эндпоинты Django для обмена данными и взаимодействия (чат, игра, профили пользователей)
 * подписывается на WebSocket-каналы для чата
   
-
 ### backend ASGI сервер Daphne
 * управляет обработкой логики вашего приложения
 * слушает внутри контейнера на порту 8000 внутри сети Docker
@@ -226,8 +231,8 @@
 * трекинг когда пользователь был онлайн
   + models.py: last online для индикатива
   + три решения 
+    - через библиотеку channels - по вебсокетам следим пользователь онлайн или нет - НАМ ЭТОТ СПОСОБ
     - через Django sessions - как только юзер делает какое либо действие, Джанго сохраняет в базу данных дату этого действия 
-    - через библиотеку channels - по вебсокетам следим пользователь онлайн или нет 
     - через redis - но не понял как это работает
 * `CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]`
   + не запускает Daphne
@@ -239,9 +244,20 @@
     - не сможет обрабатывать WebSocket-соединения или другие асинхронные протоколы, такие как **HTTP/2** или **Server-Sent Events**
     - не рассчитан на высокую нагрузку, не оптимизирован для продакшена
   + в продакшн требуется Daphne
+* REST FRAMEWORK
+  + без него надо было бы писать запрос sql в бд
+  + с ним: PUT - поменять поле в бд
+  + http://127.0.0.1:8000/user/1 отладка
+  + http://127.0.0.1:8000/users
+  + http://127.0.0.1:8000/tour
+  + к нему обращается js:
+    - нопка "создать турнир"
+    - вызывает 127.0.0.1/tour
+    - запускает rest framework
 
 ### django в целом
 * Бэкенд-фреймворк
+* библиотека
 * с ключевыми механиками (аутентификация, управление базой данных, админка, API), готовые функции и практики из коробки
 * диктует архитектуру (приложения, модели, views, urls, ...)
 * `models.py` структура данных, связь между ними (пользователи, профили, чаты, сообщения, статистика игры, ...)
@@ -265,51 +281,15 @@
   + благодаря джанговским формам и сериализаторам (в связке с Django REST Framework, если вы его используете), упрощается валидация данных, приходящих от фронтенда
 * на базе Python
 * `docker exec -it 423c6474989f python manage.py help` список команд django
-  + [auth]
-    changepassword
-    createsuperuser
-  + [contenttypes]
-    remove_stale_contenttypes
-  + [daphne]
-    runserver
-  + [django]
-    check
-    compilemessages
-    createcachetable
-    dbshell
-    diffsettings
-    dumpdata
-    flush
-    inspectdb
-    loaddata
-    makemessages
-    makemigrations
-    migrate
-    optimizemigration
-    sendtestemail
-    shell
-    showmigrations
-    sqlflush
-    sqlmigrate
-    sqlsequencereset
-    squashmigrations
-    startapp
-    startproject
-    test
-    testserver
-  + [rest_framework]
-    generateschema
-  + [sessions]
-    clearsessions
-  + [staticfiles]
-    collectstatic
-    findstatic
+  + [auth]: changepassword createsuperuser
+  + [contenttypes] remove_stale_contenttypes
+  + [daphne] runserver
+  + [django] check compilemessages createcachetable dbshell diffsettings dumpdata flush inspectdb loaddata makemessages makemigrations   migrate optimizemigration sendtestemail shell showmigrations sqlflush sqlmigrate sqlsequencereset squashmigrations startapp startproject test testserver
+  + [rest_framework] **generateschema**
+  + [sessions] clearsessions
+  + [staticfiles] collectstatic findstatic
 
 ### приложения Django app - отдельные модульные приложения внутри проекта
-* api_42 авторизация через intra 42 и т.д.
-* module_auth логика авторизации
-* auth_app логика аутентификации
-* chat (модели для сообщений, WebSocket-каналы, Django Channels)
 * myapp
   + бизнес-логика пользовательских профилей, турниров, историй игр
   + модель `UserProfile`: инфо о пользователе, друзьях, аватаре, дате последней активности, ...
@@ -324,13 +304,12 @@
   + встроенное приложение Django
   + API для работы с сообщениями
   + добавить в `INSTALLED_APPS`
-  + добавить в соответствующий в `MIDDLEWARE`
+  + добавить в `MIDDLEWARE`
   + интеграция уведомлений в веб-приложения, чтобы взаимодействовать с пользователем
   + для временных сообщений (flash messages)
   + сообщения пользователю **между запросами** (об успешной регистрации, показать ошибку при неверном вводе данных, о сохранении изменений)
-  + по умолчанию сообщения хранятся в сессии
-    - можете изменить бэкэнд для хранения сообщений
-    - например, использовать куки: `settings.py`: `MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'`
+  + по умолчанию сообщения **хранятся в сессии**
+    - можете изменить бэкэнд для хранения сообщений, например, `settings.py`: `MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'`
   + сообщения автоматически удаляются после отображения
   + уровни важности сообщений: `messages.debug`, `messages.info`, `messages.success`, `messages.warning`, `messages.error`
   + Отправка сообщений в представлении:
@@ -352,7 +331,12 @@
     ```
 
 ### django app chat
-* приложение чата с реальным временем на WebSocket
+* приложение с реальным временем на WebSocket
+* dj channels библиотека для чата
+* tuto по ссылке в закладках ?
+* js обращается к rest api (get), views.py,  
+* API создать через REST: endpoint -> func
+* с каждым пользователем у бэкенда 2 вебсовета: чат, положение ракетки 
 * `settings.py` настройка Channels:
   ```python
   INSTALLED_APPS = [
@@ -443,8 +427,6 @@
       return render(request, 'chat/room.html', {'room_name': room_name})
   ```
 * `python manage.py makemigrations`, `python manage.py migrate` создайте и примените миграции для моделей 
-
-### Chat
 * можно ли делать live chat с библиотекой channels или надо целиком писать
   + Какие библиотеки можно использовать?
 * Django Channels
@@ -464,8 +446,6 @@
   + `python manage.py makemigrations`, `python manage.py migrate`
   + create a superuser `python manage.py createsuperuser`
   + reload the server in Docker
-
-### chat
 * класс router обрабатывает перемещения по сайту
   + popstate кнопки назад вперёд в брузере
 * на место .app подставляется div
@@ -1221,7 +1201,7 @@
   + потом туда подсоединим вебсокеты, базовый дизайн
 * Б
   + структуры данных
-  + **Django REST Framework**
+  + Django REST Framework
   + модуль с сокетами и чатом (live chat, уведомления о турнирах, и проч)
   + API, эндпоинты и методы для API
   + live chat
@@ -1363,8 +1343,8 @@
      - `http://localhost:8000/api/endpoint/`
      - `https://example.com/api/endpoint/`
   + метод (GET, POST, PUT, DELETE и т. д.).
-  + Если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`).
-  + Отправьте запрос и проверьте статус ответа (200 OK, 401 Unauthorized и т.д.) и тело ответа
+  + если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`).
+  + отправьте запрос и проверьте статус ответа (200 OK, 401 Unauthorized и т.д.) и тело ответа
 * test endpoints HTTP (API или страницы) with Curl:
   + `curl -X GET http://localhost:8000/api/endpoint/`
   + `curl -X POST http://localhost:8000/api/endpoint/ -H "Content-Type: application/json" -d '{"key": "value"}'`
