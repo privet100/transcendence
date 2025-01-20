@@ -174,6 +174,9 @@
 * работает через HTTP/WS-протоколы
 * использует эндпоинты Django для обмена данными и взаимодействия (чат, игра, профили пользователей)
 * подписывается на WebSocket-каналы для чата
+* Bootstrap toolkit
+* assessibility
+* multiple language
   
 ### backend ASGI сервер Daphne
 * управляет обработкой логики вашего приложения
@@ -363,65 +366,91 @@
     profile/
     ...
 * команда Django `python manage.py show_urls` список эндпоинтов
-    ```
-    /       
-    /admin/ 
-    /admin/<app_label>/
-    /admin/<url>    
-    /admin/auth/group/
-    /admin/auth/group/<path:object_id>/
-    /admin/auth/group/<path:object_id>/change/
-    /admin/auth/group/<path:object_id>/delete/
-    /admin/auth/group/<path:object_id>/history/
-    /admin/auth/group/add/
-    /admin/autocomplete/
-    /admin/jsi18n/
-    /admin/login/
-    /admin/logout/
-    /admin/myapp/game/
-    /admin/myapp/game/<path:object_id>/
-    /admin/myapp/game/<path:object_id>/change/
-    /admin/myapp/game/<path:object_id>/delete/
-    /admin/myapp/game/<path:object_id>/history/
-    /admin/myapp/game/add/
-    /admin/myapp/tournament/
-    /admin/myapp/tournament/<path:object_id>/
-    /admin/myapp/tournament/<path:object_id>/change/
-    /admin/myapp/tournament/<path:object_id>/delete/
-    /admin/myapp/tournament/<path:object_id>/history/
-    /admin/myapp/tournament/add/
-    /admin/myapp/userprofile/
-    /admin/myapp/userprofile/<path:object_id>/
-    /admin/myapp/userprofile/<path:object_id>/change/
-    /admin/myapp/userprofile/<path:object_id>/delete/
-    /admin/myapp/userprofile/<path:object_id>/history/
-    /admin/myapp/userprofile/add/
-    /admin/password_change/
-    /admin/password_change/done/
-    /admin/r/<int:content_type_id>/<path:object_id>/
-    /auth/auth/callback
-    /auth/auth/email/
-    /auth/callback
-    /auth/callback/ 
-    /auth/email/
-    /auth/login/
-    /auth/logout/
-    /auth/profile/
-    /auth/signup/
-    /callback/
-    /chat/
-    /chat/<str:room_name>/
-    /game/<int:id>/
-    /login/
-    /logout/
-    /profile/
-    /signup/
-    /tour/<int:id>/
-    /user/<int:id>/
-    /user_42/<int:user_id>/
-    /users/
-    /users_42/
-    ```
+  ```
+  /       
+  /admin/ 
+  /admin/<app_label>/
+  /admin/<url>    
+  /admin/auth/group/
+  /admin/auth/group/<path:object_id>/
+  /admin/auth/group/<path:object_id>/change/
+  /admin/auth/group/<path:object_id>/delete/
+  /admin/auth/group/<path:object_id>/history/
+  /admin/auth/group/add/
+  /admin/autocomplete/
+  /admin/jsi18n/
+  /admin/login/
+  /admin/logout/
+  /admin/myapp/game/
+  /admin/myapp/game/<path:object_id>/
+  /admin/myapp/game/<path:object_id>/change/
+  /admin/myapp/game/<path:object_id>/delete/
+  /admin/myapp/game/<path:object_id>/history/
+  /admin/myapp/game/add/
+  /admin/myapp/tournament/
+  /admin/myapp/tournament/<path:object_id>/
+  /admin/myapp/tournament/<path:object_id>/change/
+  /admin/myapp/tournament/<path:object_id>/delete/
+  /admin/myapp/tournament/<path:object_id>/history/
+  /admin/myapp/tournament/add/
+  /admin/myapp/userprofile/
+  /admin/myapp/userprofile/<path:object_id>/
+  /admin/myapp/userprofile/<path:object_id>/change/
+  /admin/myapp/userprofile/<path:object_id>/delete/
+  /admin/myapp/userprofile/<path:object_id>/history/
+  /admin/myapp/userprofile/add/
+  /admin/password_change/
+  /admin/password_change/done/
+  /admin/r/<int:content_type_id>/<path:object_id>/
+  /auth/auth/callback
+  /auth/auth/email/
+  /auth/callback
+  /auth/callback/ 
+  /auth/email/
+  /auth/login/
+  /auth/logout/
+  /auth/profile/
+  /auth/signup/
+  /callback/
+  /chat/
+  /chat/<str:room_name>/
+  /game/<int:id>/
+  /login/
+  /logout/
+  /profile/
+  /signup/
+  /tour/<int:id>/
+  /user/<int:id>/
+  /user_42/<int:user_id>/
+  /users/
+  /users_42/
+  ```
+* `grep -r "path(" backend/`, `grep -r "re_path(" backend/`
+  ```
+  login/
+  callback/
+  logout/
+  login/
+  auth/email
+  signup/
+  auth/callback
+  profile/
+  ''
+  ""
+  ws/chat/(?P<room_name>\w+)/$"
+  <str:room_name>/
+  admin/
+  auth/
+  chat/
+  user_42/<int:user_id>/
+  users_42/
+  users/
+  user/<int:id> /
+  tour/<int:id>/
+  game/<int:id>/
+  r"^api-auth/"
+  r"ws/chat/(?P<room_name>\w+)/$
+  ```
 
 ### django app chat
 * приложение с реальным временем на WebSocket
@@ -559,6 +588,9 @@
 * в контейнере бэк: python manage.py superuser то ли python manage.py createsuperuser, с именем админ пародлем админ
   + после этог модет быть migrations
 * pathname = часть адреса после корня
+* login = new ws connexion
+* ws system msgs
+* ws user communications
 
 ### F12 concole
 * лучше всего в chrome
@@ -1126,45 +1158,6 @@
   + если не хотите, чтобы пользователи имели доступ к отладочной информации, .map-файлы можно не заливать на сервер или закрывать их от внешнего доступа
   + в большинстве случаев там только информация о соответствии строк исходного и минифицированного кода
 
-### Organisation
-* https://miro.com/app/board/uXjVLAphyh8=/
-* https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
-* У нас на всю линейку продуктов от JetBrains бесплатная студенческая лицензия
-  + для фронта WebStorm
-* git
-  + создать dev ветку и работать с ней, потом смерджить в main
-  + в dev-ветке создавать суб-ветки под каждую фичу или фикс
-    - git checkput -b feature/backend/add_user_model
-    - в этой ветке работать именно над конкретной задачей и оформлять в пул реквест.
-  + не пушить код большими и хаотичными кусками
-  + we do not "git push" directly to main branch - only push to your own branch and after check (we have no tests so it is just double check from your side) - merge your branch with main branch
-  + https://befitting-chili-056.notion.site/Branch-management-171a80978370805f8faedeadcb86e35d?pvs=4 
-* git
-  + клонировать dev
-  + `git checkout dev` переключитесь в dev
-  + `git checkout -b an` создайте новую ветку для ваших изменений
-  + Теперь вы можете работать над своим кодом, добавлять, изменять и удалять файлы в ветке an
-  + `git add .`
-  + `git commit -m "Добавляет функционал ..."`
-  + `git push origin an`
-  + Перейдите на GitHub и найдите вашу ветку an
-  + Создайте Pull Request для слияния ветки an с dev
-    - Добавьте описание изменений в PR, чтобы команда могла понять, над чем вы работали
-    - Дождитесь проверки и одобрения от других участников команды
-  + `git branch -d an` можете удалить локальную ветку
-* the password for the django admin panel ...
-* the docker extension in vscode
-  + you can launch bash inside a container from gui
-* web sockets
-  + Django Channels стандартное средство реализации веб-сокетов на базе Django
-  + не запрещено в сабжекте
-  + реализация собственного асинхронного слоя может быть проблемой
-* frontend:
-  + Bootstrap toolkit
-  + игра сама, картинка
-  + assessibility
-  + multiple language
-
 ### запуск проекта
 * For Ecole42 computers, I've updated settings of docker file in DEV branch 
   + порт, который нужен для django, занят
@@ -1250,10 +1243,10 @@
   + не надо: django html - server-side code
   + не надо: в завимисости от какого-то условия, показываем или нет какие-то части страницы
   + надо: js
-  + надо: код внутри {} исполняется в django, если условие выполняется (например, есть есть юзер), он выполняет и заново отправляет html
-* virtual environment чтобы изолировать зависимости проекта и избежать конфликтов версий между установленными пакетами - не нужно, потому что у нас докер
-* на моём компе, не в конте1нере `python3 manage.py show_urls` `ImportError: Couldn't import Django. Are you sure it's installed and available on your PYTHONPATH environment variable? Did you forget to activate a **virtual environment**?`
-  + Should we remove the exception "Did you forget to activate a virtual environment?" in backend/manage.py ? I think you can delete it
+  + надо: код внутри {} исполняется в django, если условие выполняется (например, есть юзер), он выполняет и заново отправляет html
+* virtual environment не нужно, потому что у нас докер
+* pass reset будет ли?
+* change username, email будет ли?
 
 ### Dockefiles
 * `PYTHONPATH` переменная окружения
@@ -1280,11 +1273,23 @@
   + все файлы и папки из указанной директории будут доступны для Docker в процессе сборки (исходный код, конфигурационные файлы, ...)
   + только те файлы, которые явно указаны в Dockerfile (COPY, ADD, ...), будут скопированы в контейнер
   
+### Organisation
+* https://miro.com/app/board/uXjVLAphyh8=/
+* https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
+  + https://befitting-chili-056.notion.site/Branch-management-171a80978370805f8faedeadcb86e35d?pvs=4 
+* У нас на всю линейку продуктов от JetBrains бесплатная студенческая лицензия, для фронта WebStorm
+* git
+  + создать dev ветку и работать с ней, потом смерджить в main
+  + в dev-ветке создавать суб-ветки под каждую фичу или фикс
+  + оформлять в пул реквест
+  + не пушить код большими и хаотичными кусками
+* the password for the django admin panel ...
+* the docker **extension in vscode**
+  + you can launch bash inside a container from gui
+
 ### to do
 * pop-up windows : login, chat, profile
 * страница comptetition, profile, настройки
-* написовать стол, чтобы реагировал на клавиатуру и мышку
-  + потом туда подсоединим вебсокеты, базовый дизайн
 * Б
   + структуры данных
   + Django REST Framework
@@ -1306,7 +1311,8 @@
   + фронт-энд
   + накидать в Figma шаблоны страничек (часть есть в Миро) страницы: страница с логином, с самой игрой (пока без игры), профиль пользователя, страница с турниром
   + писать код, делать шаблончики  
-  + обсудить с Л. структуры страничек, API с бэкэнда
+  + структуры страничек
+  + API с бэкэнда
 * Амин
   + вебсокеты для модуля remote players
     - обмен информацией между игроками и сервером о локации ракетки и мяча
@@ -1317,43 +1323,29 @@
   + some sort of **anticheat** to be sure that the users mouvement are normal
     - my code will be easy, it'd just gonne output two players position and the ball and then you can render it however you want
   + I'll update you soon on the game websocket
+* basic requirements 20.01.2025 
+  + All pong game part will be done by Amine? Do you need help with front-end (table, paddles, ball, some activity of JS or someone will do it?
+  + Tournament, registration and matchmaking system by Alexey? Do you need help? 
+  + Basic front-end will be done by Alexey? (profile page, other pages) or you need help?
+  + Security - probably we meet requirements by we need to validate input and follow some basic security rules on the front-end part.
+* Modules (only that needs some response / comment)
+  + User management - I did back-end (almost); but we need profile page with history of games, possibility to change profile data; see statistics of wins and loses - who will be responsible for this part? I can do it but I need template of javascript page (single page structure should be already applied) 
+  + OAuth42 - almost finished by Alexey, please check that all requirements of this module are met/
+  + Remote Players - will do Amine
+  + LiveChat - is the proccess by me and Anna 
+  + AI Opponent - will we do this module? Amine, can you implement it or you need help?
+  + Game Customization Option - do we need this module? Who will do it? 
+  + Multiple language supports - who will implement it? 
+  + Server-side pong  - do we need this module? Is it implemented by Amine? For this module we need API for paddle, ball and other features
+  + User and Game Stats Dashboards - do we need this module? Who will do it?
 
 ### test
 * bakyt: Endpoint that are formed from views.py from different folders
   + `urls.py` связывает эндпоинты (URL-маршруты) с функциями/классами представлений из `views.py`
   + просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
-  + views могут быть в разных директориях и в разных приложениях
-  + `show_urls`: список всех маршрутов, включая те, которые указаны в `urls.py`
 * Если используется DRF - автоматичесая документация эндпоинтов
-  + Browsable API (встроенная документация): в `http://localhost:8000/api/` или `http://localhost:8000/` увидите список эндпоинтов (если DRF настроен корректно)
-* если в проекте подключены библиотеки для документирования API (drf-yasg, ...), то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
-* поиск в файлах: `grep -r "path(" backend/`, `grep -r "re_path(" backend/`
-  +
-  ```
-  login/
-  callback/
-  logout/
-  login/
-  auth/email
-  signup/
-  auth/callback
-  profile/
-  ''
-  ""
-  ws/chat/(?P<room_name>\w+)/$"
-  <str:room_name>/
-  admin/
-  auth/
-  chat/
-  user_42/<int:user_id>/
-  users_42/
-  users/
-  user/<int:id> /
-  tour/<int:id>/
-  game/<int:id>/
-  r"^api-auth/"
-  r"ws/chat/(?P<room_name>\w+)/$
-  ```
+  + Browsable API (встроенная документация): в `http://localhost:8000/api/` или `http://localhost:8000/` список эндпоинтов
+* если подключены библиотеки для документирования API, то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
 * Postman: импортируйте коллекцию эндпоинтов, если она уже создана  
 * использовать Postman для изучения API, отправляя запросы на `/api/`, `/swagger/`, ... и исследуя доступные маршруты
 * test endpoints HTTP (API или страницы) with Postman:
