@@ -8,13 +8,13 @@
 * https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
 * https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
 * наш сайт
+  + https://localhost
+  + https://localhost/chat
+  + https://localhost/chat/1
   + http://127.0.0.1:4444/ basic HTTP connection
   + https://127.0.0.1:4443/ HTTPS connection
-  + http://127.0.0.1:8000/
-  + https://localhost:8000 проверка бэкенда
-    - 502 Bad Gateway = Nginx не смог подключиться к бэкенду или получил от него некорректный ответ
+  + http://127.0.0.1:8000/, https://localhost:8000 бэкенд
   + https://tr.naurzalinov.me/users/
-  + https://localhost
   + // http://95.217.129.132:8000/
   + // http://95.217.129.132:8000/chat/1
   + // http://127.0.0.1:8000/admin/login/?next=/admin/
