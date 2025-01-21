@@ -13,9 +13,9 @@
   + https://localhost:4443/chat
   + http://localhost:8000/
   + http://localhost:8000/chat
-  + http:/localhost:8000/admin
+  + http://localhost:8000/admin
   + https://tr.naurzalinov.me/users/
-  + https://95.217.129.132:8000/
+  + http://95.217.129.132:8000/
 * бэк, фронт, база данных, API https://www.youtube.com/watch?v=XBu54nfzxAQ
 * REST API на DRF в Pycharm https://blog.jetbrains.com/pycharm/2023/09/building-apis-with-django-rest-framework/
 * https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/WebSocket
