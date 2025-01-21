@@ -280,12 +280,11 @@
 * `asgi.py`
   + DJANGO_SETTINGS_MODULE = mysite.settings **настройки** для компонент Django (**ORM**, middleware, ...)
   + `django_asgi_app = get_asgi_application()` создаёт объект ASGI-приложения, exposes the ASGI callable as a **module-level variable**
-    - настройка окружения Django: загрузка приложений из `INSTALLED_APPS`, конфигурация бд, **среда `AppRegistry`**, которая управляет регистрацией приложений и моделей
-    - обеспечивает корректное состояние `AppRegistry`
-    - Initialize Django ASGI application early to ensure the AppRegistry is populated before importing code that may import ORM models
+    - Initialize Django ASGI application: загрузка приложений из `INSTALLED_APPS`, конфигурация бд, **среда `AppRegistry`**
+    - to ensure the AppRegistry is populated before importing ORM models
     - приложение Django инициализирется до использования **ORM**-моделей или других компонентов Django
     - приложения готовы к работе _до_ конфигурации маршрутов WebSocket
-    - если импортировать модели или др компоненты Django до `get_asgi_application()`, будут ошибки, связанные с незарегистрированными приложениями или моделями
+    - если снчала импортировать модели или др компоненты Django, будут ошибки, связанные с незарегистрированными приложениями или моделями
   + URLRouter, ProtocolTypeRouter, маршрутизатор/обработчик ASGI-приложения: протокол (HTTP, WebSocket) для обработки запроса
     - "http": django_asgi_app обрабатывает (обычный обработчик Django, **встроенный?**)
     - "websocket": AllowedHostsOriginValidator(AuthMiddlewareStack(URLRouter(websocket_urlpatterns))) обрабатывает, `websocket_urlpatterns` из `chat/routing.py`: перенаправлять на `ChatConsumer`, обрабатывается через Django Channels
@@ -566,7 +565,7 @@
 * ws user communications
 * можно ли делать live chat с библиотекой channels или надо целиком писать? Какие библиотеки можно использовать?
 * 1. настройка вебсокетов Бэкенд
-  - Убедитесь, что `daphne` или ASGI-сервер настроен для обработки вебсокетов.
+  - `daphne` настроен для обработки вебсокетов
   - Добавьте routing в `asgi.py`, чтобы WebSocket-соединения перенаправлялись в обработчики.
 
     ```python
