@@ -245,7 +245,15 @@
 * django channel создает websocket, слушает запросы
   + отличия от html: непрерывное соединение, стрим
   + new Websocket(127.0.0.1:8000/game, wss)
-    - wss протокол
+* `asgi.py`
+  + URLRouter, ProtocolTypeRouter, маршрутизатор, обработчик ASGI-приложения: какой протокол (HTTP, WebSocket) для обработки запроса
+    - "http": django_asgi_app обрабатывает (обычный обработчик Django, **встроенный?**)
+    - "websocket": AllowedHostsOriginValidator(AuthMiddlewareStack(URLRouter(websocket_urlpatterns))) обрабатывает
+    - `websocket_urlpatterns` из `chat/routing.py`: перенаправлять на `ChatConsumer`
+  + DJANGO_SETTINGS_MODULE = mysite.settings настройки для компонент Django (**ORM**, middleware, ...)
+  + `django_asgi_app = get_asgi_application()` создаёт объект ASGI-приложения, exposes the ASGI callable as a module-level variable named ``application``
+  + Django выполняет HTTP-запросы через **встроенный обработчик**
+    - WebSocket-запросы маршрутизируются через `AuthMiddlewareStack` и `URLRouter`, обрабатывается через Django Channels
 
 ### django в целом
 * Бэкенд-фреймворк
@@ -692,10 +700,6 @@
           proxy_set_header X-Forwarded-Proto $scheme;
       }
       ```
-  + `asgi.py`настроен на поддержку WebSocket с помощью `ProtocolTypeRouter`:
-    - Django выполняет HTTP-запросы через **встроенный обработчик**, работает под управлением ASGI-сервера
-    - HTTP-запросы идут через `django_asgi_app` (обычный обработчик Django)
-    - WebSocket-запросы маршрутизируются через `AuthMiddlewareStack` и `URLRouter`, обрабатывается через Django Channels
   + Тестирование
     - стандартные HTTP-запросы (загрузка HTML-страницы, отправка данных формы)
     - функционал, связанный с WebSocket (чат, ...)
@@ -914,23 +918,20 @@
   + SecurityMiddleware добавление заголовков безопасности
 
 ### WebSockets
-* для реализации функций реального времени: чата, игровой механики
-* Браузер пользователя (JavaScript WebSocket API) ?
+* для функций реального времени: чата, игровой механики
+* Браузер пользователя (JavaScript **WebSocket API**) ?
 * сервер и клиент обмениваются данными в реальном времени
 * создание 
   + клиент загружает страницу чата или игровой комнаты
-  + клиентский код js инициирует соединение через WebSocket API: `const socket = new WebSocket("ws://example.com/ws/chat/room1/");`
-  + запрос на сервер
+  + клиентский код js инициирует соединение через **WebSocket API**: `const socket = new WebSocket("ws://example.com/ws/chat/room1/");`
+  + daphne устанавливает WebSocket-соединение, **передавая его в ASGI-приложение**
+  + запрос от бразуреа -> nginx -> daphne -> через механизм Channels -> Django consummer (обработчик соединений, класс для обработки WebSocket-сообщений)
     ```json
     {
       "type": "chat.message",
       "message": "Hello, World!"
     }
     ```
-  + daphne устанавливает WebSocket-соединение, **передавая его в ASGI-приложение
-  + daphne принимает запрос
-  + daphne передаёт запрос в Django через механизм Channels
-  + запрос направляется в Consumer - обработчик соединений, класс для обработки WebSocket-сообщений
     ```python
     class ChatConsumer(AsyncWebsocketConsumer):
       async def connect(self):
@@ -959,24 +960,10 @@
     ```
 * Django Channels
   + не сервер, не принимает запросы от клиента 
-  + работает через сервер daphne
-  + инструмент для управления асинхронными соединениями внутри Django
-  + расширение Django для обработки асинхронных протоколов, таких как WebSocket
+  + Django настроено через Channels
+  + расширение Django для обработки асинхронных протоколов (WebSocket), для управления асинхронными соединениями внутри Django
   + обработка соединений внутри приложения 
-  + daphne принимает запросы (HTTP или WebSocket) и передаёт их в приложение Django, **настроенное через Channels**
   + Consumers обрабатывают каждое соединение и сообщения, отправленные клиентом
-  + `asgi.py` ProtocolTypeRouter маршрутизатор, какой протокол (HTTP, WebSocket) использовать для обработки запроса
-     - ```python
-      application = ProtocolTypeRouter(
-        {
-          "http": django_asgi_app,
-          "websocket": AllowedHostsOriginValidator(
-            AuthMiddlewareStack(URLRouter(websocket_urlpatterns))
-          ),
-        }
-      )
-     ```
-    - `websocket_urlpatterns` из `chat/routing.py` добавляются в маршрутизатор `URLRouter`, чтобы перенаправлять запросы на `ChatConsumer`
   + `chat/routing.py`
     - для **подключения WebSocket-маршрутов к приложению**
     - ```
