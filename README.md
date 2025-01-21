@@ -8,16 +8,14 @@
 * https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
 * https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
 * наш сайт
-  + https://localhost
-  + https://localhost/chat
-  + https://localhost/chat/1
-  + http://127.0.0.1:4444/ basic HTTP connection
-  + https://127.0.0.1:4443/ HTTPS connection
-  + http://127.0.0.1:8000/, https://localhost:8000 бэкенд
+  + http://localhost:4444/ 
+  + https://localhost:4443/
+  + https://localhost:4443/chat
+  + http://localhost:8000/
+  + http://localhost:8000/chat
+  + http:/localhost:8000/admin
   + https://tr.naurzalinov.me/users/
-  + // http://95.217.129.132:8000/
-  + // http://95.217.129.132:8000/chat/1
-  + // http://127.0.0.1:8000/admin/login/?next=/admin/
+  + https://95.217.129.132:8000/
 * бэк, фронт, база данных, API https://www.youtube.com/watch?v=XBu54nfzxAQ
 * REST API на DRF в Pycharm https://blog.jetbrains.com/pycharm/2023/09/building-apis-with-django-rest-framework/
 * https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/WebSocket
