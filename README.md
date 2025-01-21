@@ -1473,31 +1473,31 @@
   + просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
 * если подключены библиотеки для документирования API, то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
 * Postman: импортируйте коллекцию эндпоинтов, если она уже создана  
-* использовать Postman для изучения API, отправляя запросы на `/api/`, `/swagger/`, ... и исследуя доступные маршруты
-* test endpoints HTTP (API или страницы) with Postman:
+* Postman для изучения API, отправляя запросы на `/api/`, `/swagger/`, ... и исследуя доступные маршруты
+* endpoints HTTP (API или страницы) with Postman:
   + Введите адрес вашего сервера, например:
      - `http://localhost:8000/api/endpoint/`
      - `https://example.com/api/endpoint/`
   + метод (GET, POST, PUT, DELETE и т. д.).
   + если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`).
   + отправьте запрос и проверьте статус ответа (200 OK, 401 Unauthorized и т.д.) и тело ответа
-* test endpoints HTTP (API или страницы) with Curl:
+* endpoints HTTP (API или страницы) with Curl:
   + `curl -X GET http://localhost:8000/api/endpoint/`
   + `curl -X POST http://localhost:8000/api/endpoint/ -H "Content-Type: application/json" -d '{"key": "value"}'`
-* test endpoints HTTP (API или страницы) with browser:
+* endpoints HTTP (API или страницы) with browser:
   + Для эндпоинтов, которые возвращают HTML (главная страница, панель администратора), просто откройте браузер и введите URL
-* test endpoints Websockets with Postman
+* endpoints Websockets with Postman
   + меню `New Request` - `WebSocket`
   + Укажите URL WebSocket-соединения:
      - `ws://localhost:8000/ws/chat/room_name/`
      - `wss://example.com/ws/chat/room_name/`
   + Установите соединение и отправьте тестовые сообщения
   +  Посмотрите, возвращает ли сервер ответы.
-* test endpoints Websockets with Chrome + расширения [Smart WebSocket Client](https://chrome.google.com/webstore/detail/smart-websocket-client/kzhddgcmkfiimcdlddieeoemkbdmgkag) 
+* endpoints Websockets with Chrome + расширения [Smart WebSocket Client](https://chrome.google.com/webstore/detail/smart-websocket-client/kzhddgcmkfiimcdlddieeoemkbdmgkag) 
   + Укажите URL WebSocket: `ws://localhost:8000/ws/chat/room_name/`
   + Нажмите «Connect».
   + Отправьте тестовые сообщения и проверьте, получает ли сервер их.
-* test endpoints Websockets with Python + библиотека `websockets`
+* endpoints Websockets with Python + библиотека `websockets`
   ```python
   import asyncio
   import websockets
@@ -1509,7 +1509,7 @@
           print(f"Response: {response}")
   asyncio.run(test_websocket())
   ```
-* test Redis integration
+* Redis integration
   + `redis-cli`
   + `PING`
     - Ожидаемый ответ: `PONG`.
@@ -1544,6 +1544,8 @@
 * websockets in room page
 * websockets in the game
 * connection
-1. Connection from another computer is working (so local network is working) 
-2. When Ivan tried to login with 42Auth from another computer (not server) - he got error 400; however basic sign up with email is working. 
-3. My login with 42Auth from server computer worked.
+  + Connection from another computer is working (so local network is working) 
+  + When Ivan tried to login with 42Auth from another computer (not server) - he got error 400; however basic sign up with email is working. 
+  + My login with 42Auth from server computer worked.
+* открываю 127.0.0.1:8000/chat/room1/ в двух разных местах и они получаются объдинены в одну комнату, оба видят все сообщения.
+На данный момент только это надо проверять, потому что другое пока не реализовано.
