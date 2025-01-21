@@ -1,5 +1,3 @@
-![1-1](https://github.com/user-attachments/assets/e6a157ea-b278-493e-9649-6a361614deac)
-
 ### do not forget
 * remove убрать settings.py SECRET_KEY, frontend/etc/private.key
 * close ports 800 and 6800 for outside
@@ -33,8 +31,7 @@
 * design https://www.figma.com/design/aWDJYfDmaeCv2NKJ8bJ15n/FT_Transcendence?node-id=109-32&p=f
 * // https://miro.com/app/board/uXjVLAphyh8=/
 
-* `proxy_set_header ...` передает заголовки (Host, IP-адрес клиента, протокол, ...), чтобы **бэкенд понимал, откуда пришел запрос**
-* DPR, Data Processing and Rendering (Обработка и отображение данных) - данные (JSON, ...) обрабатываются на серверной стороне с помощью Django и затем передаются в представление для рендеринга на клиентской стороне с использованием шаблонов и JavaScript
+![1-1](https://github.com/user-attachments/assets/e6a157ea-b278-493e-9649-6a361614deac)
 
 ### протоколы, токены
 * **файл сессии**
@@ -148,6 +145,7 @@
 * Bootstrap toolkit
 * assessibility
 * multiple language
+* `proxy_set_header ...` передает заголовки (Host, IP-адрес клиента, протокол, ...), чтобы **бэкенд понимал, откуда пришел запрос**
   
 ### backend Daphne (ASGI сервер) 
 * обработка запросов и передача их в Django Framework для выполнения бизнес-логики
@@ -290,6 +288,7 @@
   + [rest_framework] **generateschema**
   + [sessions] clearsessions
   + [staticfiles] collectstatic findstatic
+* DPR, Data Processing and Rendering (Обработка и отображение данных) - данные (JSON, ...) обрабатываются на серверной стороне с помощью Django и затем передаются в представление для рендеринга на клиентской стороне с использованием шаблонов и JavaScript
 
 ### приложения Django app - отдельные модульные приложения внутри проекта
 * myapp
