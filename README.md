@@ -4,23 +4,22 @@
 
 ### links
 * https://github.com/bakyt92/14_ft_transendence
-* https://docs.djangoproject.com/en/5.1/ref/contrib/auth/
 * https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
 * https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
-  + https://befitting-chili-056.notion.site/Branch-management-171a80978370805f8faedeadcb86e35d?pvs=4 
 * наш сайт
   + http://127.0.0.1:4444/ basic HTTP connection
   + https://127.0.0.1:4443/ HTTPS connection
   + http://127.0.0.1:8000/
+  + https://tr.naurzalinov.me/users/
+  + https://localhost
   + // http://95.217.129.132:8000/
   + // http://95.217.129.132:8000/chat/1
   + // http://127.0.0.1:8000/admin/login/?next=/admin/
-  + https://tr.naurzalinov.me/users/
-  + https://localhost
-* https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/WebSocket
 * бэк, фронт, база данных, API https://www.youtube.com/watch?v=XBu54nfzxAQ
 * REST API на DRF в Pycharm https://blog.jetbrains.com/pycharm/2023/09/building-apis-with-django-rest-framework/
 * design https://www.figma.com/design/aWDJYfDmaeCv2NKJ8bJ15n/FT_Transcendence?node-id=109-32&p=f
+* https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/WebSocket
+* https://docs.djangoproject.com/en/5.1/ref/contrib/auth/
 * бэкенд
   + Django Tutorial https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/Tutorial_local_library_website
   + https://www.djangoproject.com/start/
