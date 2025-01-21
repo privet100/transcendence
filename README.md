@@ -278,11 +278,18 @@
   + отличия от html: непрерывное соединение, стрим
   + new Websocket(127.0.0.1:8000/game, wss)
 * `asgi.py`
-  + URLRouter, ProtocolTypeRouter, маршрутизатор, обработчик ASGI-приложения: какой протокол (HTTP, WebSocket) для обработки запроса
-    - "http": django_asgi_app обрабатывает (обычный обработчик Django, **встроенный?**), Django выполняет HTTP-запросы через **встроенный обработчик**
-    - "websocket": AllowedHostsOriginValidator(AuthMiddlewareStack(URLRouter(websocket_urlpatterns))) обрабатывает, `websocket_urlpatterns` из `chat/routing.py`: перенаправлять на `ChatConsumer`, обрабатывается через Django Channels
   + DJANGO_SETTINGS_MODULE = mysite.settings **настройки** для компонент Django (**ORM**, middleware, ...)
-  + `django_asgi_app = get_asgi_application()` создаёт объект ASGI-приложения, exposes the ASGI callable as a **module-level variable** named `application`
+  + `django_asgi_app = get_asgi_application()` создаёт объект ASGI-приложения, exposes the ASGI callable as a **module-level variable**
+    - настройка окружения Django: загрузка приложений из `INSTALLED_APPS`, конфигурация бд, **среда `AppRegistry`**, которая управляет регистрацией приложений и моделей
+    - обеспечивает корректное состояние `AppRegistry`
+    - Initialize Django ASGI application early to ensure the AppRegistry is populated before importing code that may import ORM models
+    - приложение Django инициализирется до использования **ORM**-моделей или других компонентов Django
+    - приложения готовы к работе _до_ конфигурации маршрутов WebSocket
+    - если импортировать модели или др компоненты Django до `get_asgi_application()`, будут ошибки, связанные с незарегистрированными приложениями или моделями
+  + URLRouter, ProtocolTypeRouter, маршрутизатор/обработчик ASGI-приложения: протокол (HTTP, WebSocket) для обработки запроса
+    - "http": django_asgi_app обрабатывает (обычный обработчик Django, **встроенный?**)
+    - "websocket": AllowedHostsOriginValidator(AuthMiddlewareStack(URLRouter(websocket_urlpatterns))) обрабатывает, `websocket_urlpatterns` из `chat/routing.py`: перенаправлять на `ChatConsumer`, обрабатывается через Django Channels
+* **среда `AppRegistry`** управляет регистрацией приложений и моделей
 * **Django Debug Toolbar**: интерфейс для отслеживания различных аспектов работы проекта, включая middleware
 
 ### django в целом
@@ -375,7 +382,7 @@
 * конкретный маршрут, связанный с API
 * выполняет определённое действие
 * Endpoints чата:
-  + `GET /chat/rooms/` — получить список комнат
+  + `GET /chat/rooms/` — список комнат
   + `POST /chat/rooms/` — создать комнату
   + `GET /chat/rooms/<room_id>/messages/` — получить сообщения из комнаты
   + `POST /chat/rooms/<room_id>/messages/` — отправить сообщение
@@ -477,7 +484,8 @@
   ```
 
 ### django app chat
-* приложение с реальным временем на WebSocket
+* приложение с реальным временем
+* на WebSocket
 * tuto https://channels.readthedocs.io/en/latest/index.html
 * js обращается к rest api (post) endpoints /history, /users/, /send
 * rest api строит и отдаёт html  
@@ -498,8 +506,9 @@
 * `chat/views.py представление
 * `python manage.py makemigrations`, `python manage.py migrate` создайте и примените миграции для моделей 
 * Django Channels
-  + библиотека, надстройка Django для вебсокетов
-  + добавить поддержку протокола WebSocket
+  + библиотека, надстройка Django для вебсокетов, добавить поддержку протокола WebSocket
+  + полагается на стандартную инициализацию Django для HTTP-запросов
+  + использует дополнительную логику для обработки WebSocket-соединений и других типов протоколов
   + для приложений с функциями реального времени, выходящих за рамки стандартного HTTP-протокола: онлайн-игра, онлайн-статус пользователей
   + WebSocket - постоянное соединение между клиентом и сервером
   + WebSocket - передавать данные в режиме реального времени
@@ -556,6 +565,194 @@
 * ws system msgs
 * ws user communications
 * можно ли делать live chat с библиотекой channels или надо целиком писать? Какие библиотеки можно использовать?
+* 1. настройка вебсокетов Бэкенд
+  - Убедитесь, что `daphne` или ASGI-сервер настроен для обработки вебсокетов.
+  - Добавьте routing в `asgi.py`, чтобы WebSocket-соединения перенаправлялись в обработчики.
+
+    ```python
+    from channels.routing import ProtocolTypeRouter, URLRouter
+    from channels.auth import AuthMiddlewareStack
+    import chat.routing
+
+    application = ProtocolTypeRouter({
+        "http": get_asgi_application(),
+        "websocket": AuthMiddlewareStack(
+            URLRouter(
+                chat.routing.websocket_urlpatterns
+            )
+        ),
+    })
+    ```
+
+  - Пример `routing.py`:
+    ```python
+    from django.urls import re_path
+    from . import consumers
+
+    websocket_urlpatterns = [
+        re_path(r'ws/chat/(?P<room_name>\w+)/$', consumers.ChatConsumer.as_asgi()),
+    ]
+    ```
+
+  - Создайте `ChatConsumer` для обработки сообщений:
+    ```python
+    import json
+    from channels.generic.websocket import AsyncWebsocketConsumer
+
+    class ChatConsumer(AsyncWebsocketConsumer):
+        async def connect(self):
+            self.room_name = self.scope['url_route']['kwargs']['room_name']
+            self.room_group_name = f'chat_{self.room_name}'
+
+            await self.channel_layer.group_add(
+                self.room_group_name,
+                self.channel_name
+            )
+
+            await self.accept()
+
+        async def disconnect(self, close_code):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+
+        async def receive(self, text_data):
+            text_data_json = json.loads(text_data)
+            message = text_data_json['message']
+
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message
+                }
+            )
+
+        async def chat_message(self, event):
+            message = event['message']
+
+            await self.send(text_data=json.dumps({
+                'message': message
+            }))
+    ```
+
+- **Redis:**
+  - Настройте **Redis** как слой для канального взаимодействия (Channel Layer).
+  - Убедитесь, что `CHANNEL_LAYERS` в `settings.py` указывает на Redis.
+
+    ```python
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [("redis", 6379)],
+            },
+        },
+    }
+    ```
+
+---
+
+### 2. **Фронтенд:**
+Взаимодействие с WebSocket для чата:
+- Установите соединение с WebSocket-сервером.
+
+    ```javascript
+    const chatSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/chat/room_name/'
+    );
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        document.querySelector('#chat-log').value += (data.message + '\n');
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    document.querySelector('#chat-message-submit').onclick = function(e) {
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const message = messageInputDom.value;
+        chatSocket.send(JSON.stringify({
+            'message': message
+        }));
+        messageInputDom.value = '';
+    };
+    ```
+
+- Обновите шаблоны HTML:
+    ```html
+    <textarea id="chat-log" cols="100" rows="20" readonly></textarea><br>
+    <input id="chat-message-input" type="text" size="100"><br>
+    <button id="chat-message-submit">Send</button>
+    ```
+
+---
+
+### 3. **База данных:**
+Сохранение сообщений:
+- Создайте модель для хранения сообщений.
+
+    ```python
+    from django.db import models
+    from django.contrib.auth.models import User
+
+    class Message(models.Model):
+        user = models.ForeignKey(User, on_delete=models.CASCADE)
+        room = models.CharField(max_length=255)
+        content = models.TextField()
+        timestamp = models.DateTimeField(auto_now_add=True)
+    ```
+
+- Настройте сохранение сообщений в `ChatConsumer` при получении данных.
+
+    ```python
+    from .models import Message
+
+    async def receive(self, text_data):
+        text_data_json = json.loads(text_data)
+        message = text_data_json['message']
+        user = self.scope['user']
+
+        # Save to database
+        await database_sync_to_async(Message.objects.create)(
+            user=user, room=self.room_name, content=message
+        )
+
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'chat_message',
+                'message': message,
+            }
+        )
+    ```
+
+---
+
+### 4. **Тестирование и отладка:**
+- Проверьте соединения через WebSocket (например, с помощью браузера).
+- Убедитесь, что Redis работает корректно и сообщения передаются через каналы.
+- Проверьте сохранение сообщений в базе данных.
+
+---
+
+### 5. **Развертывание:**
+- Убедитесь, что WebSocket-роутинг правильно настроен на сервере (например, в **nginx**):
+    ```nginx
+    location /ws/ {
+        proxy_pass http://backend:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+    ```
+
+После выполнения этих шагов вы получите базовый функционал чата. При необходимости можно добавить поддержку нескольких комнат, уведомления, шифрование сообщений и другие возможности.
+
+
 
 ### F12 concole
 * лучше всего в chrome
