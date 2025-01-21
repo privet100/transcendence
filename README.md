@@ -1,6 +1,7 @@
 ### do not forget
 * remove убрать settings.py SECRET_KEY, frontend/etc/private.key
 * close ports 800 and 6800 for outside
+* `http://backend:8000` хранить в перменной окружения
 
 ### links
 * https://github.com/bakyt92/14_ft_transendence
@@ -288,10 +289,9 @@
 * Бэкенд-фреймворк
 * ключевые механики (аутентификация, управление базой данных, админка, API), функции и практики из коробки
 * диктует архитектуру (приложения, модели, views, urls, ...)
-* `models.py` структура данных, связь между ними (пользователи, профили, чаты, сообщения, статистика игры, ...)
+* `models.py` структура данных, связи (пользователи, профили, чаты, сообщения, статистика игры, ...)
 * `url.py` какие функции обрабатывают какие пути, какие запросы обрабатывает по адресу endpoint
-* `views.py` функции  для обработки endpoint, обрабатывают логику запросов (отправка сообщения, обновление профиля)
-* `admin.py`
+* `views.py` функции  для обработки endpoint, запросов
 * `apps.py` (регистрация приложения в Django)
 * **`migrations/`** (миграции для моделей)
 * `tests.py`
@@ -304,10 +304,11 @@
   + позволяет набросать интерфейс для управления данными (пользователи, чаты, статистика, ...)
   + /admin встроено в django
 * Безопасность и валидация
-  + инструменты по защите от распространённых уязвимостей (CSRF, XSS, SQL Injection)
-  + благодаря джанговским формам и сериализаторам (в связке с Django REST Framework, если вы его используете), упрощается валидация данных, приходящих от фронтенда
+  + инструменты по защите от распространённых уязвимостей (**CSRF, XSS, SQL Injection**)
+  + благодаря джанговским формам и сериализаторам + Django REST Framework, упрощается валидация данных, приходящих от фронтенда
 * на базе Python
-* `docker exec -it 423c6474989f python manage.py help` список команд django
+* список команд django
+  + `docker exec -it 423c6474989f python manage.py help` 
   + [auth]: changepassword createsuperuser
   + [contenttypes] remove_stale_contenttypes
   + [daphne] runserver
@@ -318,28 +319,25 @@
 
 ### приложения Django app - отдельные модульные приложения внутри проекта
 * myapp
-  + бизнес-логика пользовательских профилей, турниров, историй игр
+  + логика пользовательских профилей, турниров, историй игр
   + модель `UserProfile`: инфо о пользователе, друзьях, аватаре, дате последней активности, ...
   + модель `Tournament`: список участников (many-to-many к `UserProfile`)
-    - даёт возможность собирать игры в рамках конкретного соревнования, управлять списком участников
   + модель `Game` история матчей, кто участвовал, какой турнир, счёт, победитель
   + `friends = models.ManyToManyField("self")` пользователи могут быть друзьями 
-  + расширить профили (добавить рейтинг, биографию, статистику), турнирную логику (сетка турнира, раунды), механику игр (разные типы игр):
+  + расширить профили (рейтинг, биографию, статистику), турнирную логику (сетка турнира, раунды), механику игр:
      - добавлять поля
      - добавтиь **миграции** в соответствующие модели
 * **встроенное `django.contrib.messages`**
-  + API для работы с сообщениями
-  + интеграция уведомлений в веб-приложения, чтобы взаимодействовать с пользователем
-  + для временных сообщений (**flash messages**)
+  + **API** для работы с сообщениями
+  + для временных сообщений
   + сообщения пользователю **между запросами** (об успешной регистрации, показать ошибку при неверном вводе данных, о сохранении изменений)
-  + **хранятся в сессии**
-    - но можете изменить бэкэнд для хранения сообщений: `settings.py`: `MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'`
+ + **flash messages**
+  + **хранятся в сессии**, но можете изменить бэкэнд для хранения сообщений: `settings.py`: `MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'`
   + сообщения автоматически удаляются после отображения
   + уровни важности сообщений: `messages.debug`, `messages.info`, `messages.success`, `messages.warning`, `messages.error`
-  + работает через HTTP-запросы, добавляя сообщения во время перенаправлений или в шаблоны  
-    - В проекте с использованием WebSocket обмен данными происходит в реальном времени через WebSocket соединения, а не через традиционные HTTP-запросы  
+  + работает **через HTTP-запросы**, добавляя сообщения во время перенаправлений или в шаблоны  
+    - В проекте с использованием WebSocket обмен данными происходит **через WebSocket соединения**, а не через HTTP-запросы  
   + хранит сообщения временно (в сессии или cookies)
-    - это не удобно, если вам нужно отображать историю уведомлений и хранить сообщения для аналитики или повторного использования
 * Используем **стандартные структуры юзера для авторизации и для моделей данных**
 * **какие есть встроенные**
 
@@ -480,90 +478,33 @@
 
 ### django app chat
 * приложение с реальным временем на WebSocket
-* dj channels библиотека для чата
-* API создать через REST: endpoint -> func
 * tuto https://channels.readthedocs.io/en/latest/index.html
 * js обращается к rest api (post) endpoints /history, /users/, /send
 * rest api строит и отдаёт html  
 * js получает ответ (get)
 * логика в views.py
 * с каждым пользователем у бэкенда 2 вебсовета: чат, положение ракетки
-* история хранится **в бд**
+* **история в бд**
 * ws login new WS connexion
 * ws system msg
 * ws user communications
 * INSTALLED_APPS 'channels'
 * CHANNEL_LAYERS 'BACKEND': 'channels.layers.InMemoryChannelLayer', **in-memory ?**
 * `asgi.py`
-* `python manage.py startapp chat`
 * `chat/models.py` модели сообщений и комнат
 * `chat/consumers.py` WebSocket consumer 
-  ```python
-  class ChatConsumer(AsyncWebsocketConsumer):
-      async def connect(self):
-          self.room_name = self.scope['url_route']['kwargs']['room_name']
-          self.room_group_name = f'chat_{self.room_name}'
-          await self.channel_layer.group_add(             # Присоединиться к группе комнаты
-              self.room_group_name,
-              self.channel_name
-          )
-          await self.accept()
-      async def disconnect(self, close_code):
-          await self.channel_layer.group_discard(                  # Отключиться от группы комнаты
-              self.room_group_name,
-              self.channel_name
-          )
-      async def receive(self, text_data):            # сообщение от WebSocket
-          text_data_json = json.loads(text_data)
-          message = text_data_json['message']
-          await self.channel_layer.group_send(             # Отправить сообщение группе
-              self.room_group_name, {
-                  'type': 'chat_message',
-                  'message': message
-              }
-          )
-      async def chat_message(self, event):       # Получение сообщения от группы
-          message = event['message']
-          await self.send(text_data=json.dumps({            # Отправить сообщение в WebSocket
-              'message': message
-          }))
-  ```
-* `chat/routing.py маршруты WebSocket 
-  ```python
-    websocket_urlpatterns = [
-        path('ws/chat/<str:room_name>/', consumers.ChatConsumer.as_asgi()),
-    ]
-  ```
-* `chat/urls.py` настройте маршруты для комнаты чата
-  ```python
-  urlpatterns = [
-      path('<str:room_name>/', views.chat_room, name='chat_room'),
-  ]
-  ```
+* `chat/routing.py маршрут
+* `chat/urls.py` маршрут для комнаты чата
 * `chat/views.py представление
-  ```python
-  def chat_room(request, room_name):
-      return render(request, 'chat/room.html', {'room_name': room_name})
-  ```
 * `python manage.py makemigrations`, `python manage.py migrate` создайте и примените миграции для моделей 
-* можно ли делать live chat с библиотекой channels или надо целиком писать
-  + Какие библиотеки можно использовать?
 * Django Channels
   + библиотека, надстройка Django для вебсокетов
-  + добавить поддержку протоколов, отличных от HTTP (WebSocket, ...)
+  + добавить поддержку протокола WebSocket
   + для приложений с функциями реального времени, выходящих за рамки стандартного HTTP-протокола: онлайн-игра, онлайн-статус пользователей
   + WebSocket - постоянное соединение между клиентом и сервером
-  + WebSocket - передавать данные между сервером и клиентом в режиме реального времени
+  + WebSocket - передавать данные в режиме реального времени
   + подходит для чата
-* **RabbitMQ**
-  + брокер сообщений
-  + для системных сообщений (уведомление о начале турнира, уведомление о добавлении в друзья)_
-  + **нужны ли оба?** Channels library / RabbitMQ 
-* чат в формате поп-ап окна сбоку
-* to set up the database **для чего?**
-  + `python manage.py makemigrations`, `python manage.py migrate`
-  + create a superuser `python manage.py createsuperuser`
-  + reload the server in Docker
+* RabbitMQ брокер сообщений для системных сообщений (уведомление о начале турнира, уведомление о добавлении в друзья), не нужен
 * класс router обрабатывает перемещения по сайту
   + popstate кнопки назад вперёд в брузере
 * на место .app подставляется div
@@ -614,6 +555,7 @@
 * login = new ws connexion
 * ws system msgs
 * ws user communications
+* можно ли делать live chat с библиотекой channels или надо целиком писать? Какие библиотеки можно использовать?
 
 ### F12 concole
 * лучше всего в chrome
@@ -1238,7 +1180,6 @@
   + `fetch('http://backend:8000/api/user-data/')`: HTTP-запрос к эндпоинту бекенда `/api/user-data/`, получить данные JSON о пользователе
   + `response => response.json()` конвертирует ответ JSON от сервера в объект JavaScript
   + после получения данных пользовательский интерфейс (UI) (отображение имени пользователя, аватарка, настройки) обновляется без перезагрузки страницы
-  + `http://backend:8000` лушче хранить в перменной окружения
   + улушение: динамически изменять DOM:
     ```
     fetch('http://backend:8000/api/user-data/')
@@ -1274,6 +1215,9 @@
 * virtual environment не нужно, потому что у нас докер
 * pass reset будет ли?
 * change username, email будет ли?
+* to set up the database **для чего?**
+  + `python manage.py makemigrations`, `python manage.py migrate`
+  + create a superuser `python manage.py createsuperuser`
 
 ### Dockefiles
 * `PYTHONPATH` переменная окружения
