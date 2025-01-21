@@ -5,6 +5,9 @@
 ### links
 * https://github.com/bakyt92/14_ft_transendence
 * https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
+* https://miro.com/app/board/uXjVLAphyh8=/
+* https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
+  + https://befitting-chili-056.notion.site/Branch-management-171a80978370805f8faedeadcb86e35d?pvs=4 
 * http://127.0.0.1:4444/ basic HTTP connection
 * https://127.0.0.1:4443/ HTTPS connection
 * http://127.0.0.1:8000/
@@ -1324,18 +1327,12 @@
   + только те файлы, которые явно указаны в Dockerfile (COPY, ADD, ...), будут скопированы в контейнер
   
 ### Organisation
-* https://miro.com/app/board/uXjVLAphyh8=/
-* https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
-  + https://befitting-chili-056.notion.site/Branch-management-171a80978370805f8faedeadcb86e35d?pvs=4 
-* У нас на всю линейку продуктов от JetBrains бесплатная студенческая лицензия, для фронта WebStorm
-* git
-  + создать dev ветку и работать с ней, потом смерджить в main
-  + в dev-ветке создавать суб-ветки под каждую фичу или фикс
-  + оформлять в пул реквест
-  + не пушить код большими и хаотичными кусками
+* на всю линейку продуктов от JetBrains бесплатная студенческая лицензия, для фронта WebStorm
 * the password for the django admin panel ...
-* the docker **extension in vscode**
-  + you can launch bash inside a container from gui
+* docker vscode extension 
+  + launch bash inside a container from gui
+* Django Debug Toolbar
+  + интерфейс для отслеживания различных аспектов работы проекта, включая middleware
 
 ### to do
 * pop-up windows : login, chat, profile
