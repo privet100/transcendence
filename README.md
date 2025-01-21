@@ -1,9 +1,3 @@
-### do not forget
-* remove убрать settings.py SECRET_KEY, frontend/etc/private.key
-* close ports 800 and 6800 for outside
-* `http://backend:8000` хранить в перменной окружения
-
-### links
 * https://github.com/bakyt92/14_ft_transendence
 * https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
 * https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
@@ -1547,3 +1541,8 @@
   + My login with 42Auth from server computer worked.
 * открываю 127.0.0.1:8000/chat/room1/ в двух разных местах и они получаются объдинены в одну комнату, оба видят все сообщения.
 На данный момент только это надо проверять, потому что другое пока не реализовано.
+
+### DO NOT FORGET
+* remove убрать settings.py SECRET_KEY, frontend/etc/private.key
+* close ports 800 and 6800 for outside
+* `http://backend:8000` хранить в перменной окружения
