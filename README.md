@@ -458,6 +458,26 @@
   r"^api-auth/"
   r"ws/chat/(?P<room_name>\w+)/$
   ```
+* Using the URLconf defined in myproject.urls, Django tried these URL patterns, in this order:
+  ```
+  admin/
+  auth/
+  chat/
+  [name='index']
+  callback/ [name='callback']
+  logout/ [name='logout_view']
+  login/ [name='loginemail']
+  auth/email/ [name='authemail']
+  signup/ [name='signup']
+  auth/callback [name='oauth_callback']
+  profile/ [name='profile']
+  user_42/<int:user_id>/ [name='get_user_42']
+  users_42/ [name='get_all_users_42']
+  users/ [name='get_all_userprofiles']
+  user/<int:id>/ [name='user-detail']
+  tour/<int:id>/ [name='tournament-detail']
+  game/<int:id>/ [name='game-detail']
+  ```
 
 ### django app chat
 * приложение с реальным временем
