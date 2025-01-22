@@ -462,22 +462,30 @@
 * логика в views.py
 
 ### обмен сообщениями
+| **Method**                | **Real-Time** | **Message Persistence**  | **Use Case**                           | **Complexity** |
+|---------------------------|---------------|--------------------------|----------------------------------------|----------------|
+| WebSocket (chat)          | Yes           | No                       | Real-time chats, games                 | High           |
+| Redis (Pub/Sub, WebSocket)| Yes           | No                       | Notifications, chats                   | High           |
+| Django Messages           | No            | Yes                      | System notifications, confirmations    | Low            |
+| REST API                  | No            | Yes                      | Simple notifications, data requests    | Low            |
+| Email                     | No            | Yes                      | Important notifications, confirmations | Medium         |
+| Push Notifications        | Yes           | Yes (by service)         | Mobile device notifications            | Medium         |
 
-| **Method**                | **Real-Time**     | **Message Persistence**  | **Use Case**                          | **Complexity** |
-|---------------------------|--------------------|---------------------------|----------------------------------------|----------------|
-| Redis (Pub/Sub, WebSocket)| Yes               | No                        | Notifications, chats                  | High           |
-| Django Messages           | No                | Yes                       | System notifications, confirmations   | Low            |
-| WebSocket (chat)          | Yes               | No                        | Real-time chats, games                | High           |
-| Email                     | No                | Yes                       | Important notifications, confirmations | Medium         |
-| Push Notifications        | Yes               | Yes (by service)          | Mobile device notifications           | Medium         |
-| REST API                  | No                | Yes                       | Simple notifications, data requests   | Low            |
-
+* REST API
+  + обмено данных через API в формате REST
+  + авторизация с помощью токенов (JWT) и другие механизмы для обработки запросов и откликов между клиентом и сервером
+  + уведомления и сообщения могут быть частью бизнес-логики
+  + реализуются
+    - через события
+    - через статусы в ответах API
+    - не через механизм сообщений Django
 * 'django.contrib.messages'
   + приложение
   + фреймворк
   + предоставляет API для работы с flash-сообщениями
   + сообщения удаляются после отображения
   + сообщения пользователю **между запросами** (об регистрации, ошибка при неверном вводе данных, ...)
+  + реализуется через механизм сообщений Django
   + хранит сообщения временно (в сессии или cookies)
     - бэкэнд для хранения сообщений `MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'`
   + уровни важности сообщений: `messages.debug`, `messages.info`, `messages.success`, `messages.warning`, `messages.error`
@@ -1037,6 +1045,9 @@
 * для сервера middleware приложение
 * для приложения middleware сервер
 * обрабатывают HTTP-запросы и HTTP-ответы, **а сокеты?**
+* Daphne (с помощью Channels) использует ASGI-протокол, который позволяет обрабатывать как HTTP-запросы, так и WebSocket-соединения
+  + HTTP-запрос передается через обычный Django HTTP middleware
+  + WebSocket-запрос обрабатывается через WebSocket middleware
 * запускаются внутри Django-приложения
 * не являются серверами
 * часть логики Django-приложения
