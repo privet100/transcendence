@@ -303,10 +303,21 @@
      - добавтиь **миграции** в соответствующие модели
     + **API** для работы с сообщениями
 * 'django.contrib.messages'
-  + приложение, предоставляющее API для работы с flash-сообщениями
-  + для временных сообщений
-    - сообщения удаляются после отображения
-  + **flash messages**
+* 'django.contrib.admin',
+* 'django.contrib.auth',
+* 'django.contrib.contenttypes',
+* 'django.contrib.sessions',
+* 'django.contrib.staticfiles'
+* Используем **стандартные структуры юзера для авторизации и для моделей данных**
+* **какие есть встроенные**
+* логика в views.py
+
+### обмен сообщениями
+* 'django.contrib.messages'
+  + приложение
+  + фреймворк
+  + предоставляет API для работы с flash-сообщениями
+  + сообщения удаляются после отображения
   + сообщения пользователю **между запросами** (об регистрации, ошибка при неверном вводе данных, ...)
   + хранит сообщения временно (в сессии или cookies)
     - бэкэнд для хранения сообщений `MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'`
@@ -318,178 +329,29 @@
     - сообщения сохраняются между запросами и автоматически удаляются после первого отображения
     - без `MessageMiddleware` только для сообщений **внутри одного запроса**, сообщения не сохраняются между запросами
     - `MessageMiddleware` без `django.contrib.messages` невозможно использовать
-* 'django.contrib.admin',
-* 'django.contrib.auth',
-* 'django.contrib.contenttypes',
-* 'django.contrib.sessions',
-* 'django.contrib.staticfiles'
-* Используем **стандартные структуры юзера для авторизации и для моделей данных**
-* **какие есть встроенные**
-
-### API (Application Programming Interface)
-* интерфейс или набор правил, позволяет приложениям взаимодействовать друг с другом
-* группа маршрутов (эндпоинтов), которые клиент может использовать для взаимодействия с сервером
-* определяются в `urls.py`
-* определяются в View-классах или функциях
-  + классы, которые наследуют от `APIView`, `GenericViewSet`, `ViewSet`
-* `routing.py` маршруты WebSocket
-  + Каждый WebSocket-путь можно считать отдельным API
-  + WebSocket - часть API
-* могут быть
-  + стандартными REST (GET, POST, PUT, DELETE)
-  + асинхронными WebSocket (через Django Channels)
-* несколько эндпоинтов реализуют функциональность API
-  + приложение `api_42`
-  + приложение `chat`
-  + приложение `auth_app`, для каждого из них 5–10 эндпоинтов
-  + для аутентификации/авторизации (École 42, ...)
-  + для работы с чатом (отправка, получение сообщений)
-  + для обработки пользовательских данных (профиль, друзья, статистика)
-  + для игры (управление матчами, таблицы лидеров)
-  + для управления пользователями 
-    - маршрут `GET /users/` список пользователей
-    - маршрут `POST /users/` создать нового пользователя
-    - маршрут `GET /users/<id>/`
-    - маршрут `DELETE /users/<id>/`
-    - маршрут API чата = группа всех маршрутов, связанных с чатом
-* **создаются с помощью Django REST Framework (DRF)**
-* список API http://localhost:8000/swagger/, http://localhost:8000/redoc/
-  + если настроена автоматическая документация (Swagger, Redoc)  
-
-### Endpoint 
-* конкретный маршрут, связанный с API
-* выполняет определённое действие
-* Endpoints чата:
-  + `GET /chat/rooms/` — список комнат
-  + `POST /chat/rooms/` — создать комнату
-  + `GET /chat/rooms/<room_id>/messages/` — получить сообщения из комнаты
-  + `POST /chat/rooms/<room_id>/messages/` — отправить сообщение
-* endpoints:
-  + Откройте каждый `urls.py`
-  + callback/
-    logout/
-    login/
-    auth/email/
-    signup/
-    auth/callback
-    profile/
-    ...
-* команда Django `python manage.py show_urls` список эндпоинтов
-  ```
-  /       
-  /admin/ 
-  /admin/<app_label>/
-  /admin/<url>    
-  /admin/auth/group/
-  /admin/auth/group/<path:object_id>/
-  /admin/auth/group/<path:object_id>/change/
-  /admin/auth/group/<path:object_id>/delete/
-  /admin/auth/group/<path:object_id>/history/
-  /admin/auth/group/add/
-  /admin/autocomplete/
-  /admin/jsi18n/
-  /admin/login/
-  /admin/logout/
-  /admin/myapp/game/
-  /admin/myapp/game/<path:object_id>/
-  /admin/myapp/game/<path:object_id>/change/
-  /admin/myapp/game/<path:object_id>/delete/
-  /admin/myapp/game/<path:object_id>/history/
-  /admin/myapp/game/add/
-  /admin/myapp/tournament/
-  /admin/myapp/tournament/<path:object_id>/
-  /admin/myapp/tournament/<path:object_id>/change/
-  /admin/myapp/tournament/<path:object_id>/delete/
-  /admin/myapp/tournament/<path:object_id>/history/
-  /admin/myapp/tournament/add/
-  /admin/myapp/userprofile/
-  /admin/myapp/userprofile/<path:object_id>/
-  /admin/myapp/userprofile/<path:object_id>/change/
-  /admin/myapp/userprofile/<path:object_id>/delete/
-  /admin/myapp/userprofile/<path:object_id>/history/
-  /admin/myapp/userprofile/add/
-  /admin/password_change/
-  /admin/password_change/done/
-  /admin/r/<int:content_type_id>/<path:object_id>/
-  /auth/auth/callback
-  /auth/auth/email/
-  /auth/callback
-  /auth/callback/ 
-  /auth/email/
-  /auth/login/
-  /auth/logout/
-  /auth/profile/
-  /auth/signup/
-  /callback/
-  /chat/
-  /chat/<str:room_name>/
-  /game/<int:id>/
-  /login/
-  /logout/
-  /profile/
-  /signup/
-  /tour/<int:id>/
-  /user/<int:id>/
-  /user_42/<int:user_id>/
-  /users/
-  /users_42/
-  ```
-* `grep -r "path(" backend/`, `grep -r "re_path(" backend/`
-  ```
-  login/
-  callback/
-  logout/
-  login/
-  auth/email
-  signup/
-  auth/callback
-  profile/
-  ''
-  ""
-  ws/chat/(?P<room_name>\w+)/$"
-  <str:room_name>/
-  admin/
-  auth/
-  chat/
-  user_42/<int:user_id>/
-  users_42/
-  users/
-  user/<int:id> /
-  tour/<int:id>/
-  game/<int:id>/
-  r"^api-auth/"
-  r"ws/chat/(?P<room_name>\w+)/$
-  ```
-* Using the URLconf defined in myproject.urls, Django tried these URL patterns, in this order:
-  ```
-  admin/
-  auth/
-  chat/
-  [name='index']
-  callback/ [name='callback']
-  logout/ [name='logout_view']
-  login/ [name='loginemail']
-  auth/email/ [name='authemail']
-  signup/ [name='signup']
-  auth/callback [name='oauth_callback']
-  profile/ [name='profile']
-  user_42/<int:user_id>/ [name='get_user_42']
-  users_42/ [name='get_all_users_42']
-  users/ [name='get_all_userprofiles']
-  user/<int:id>/ [name='user-detail']
-  tour/<int:id>/ [name='tournament-detail']
-  game/<int:id>/ [name='game-detail']
-  You’re seeing this error because you have DEBUG = True in your Django settings file. Change that to False, and Django will display a standard 404 page.
-  ```
+  + flash-messages
+    - временные уведомления
+    - отображаются пользователю после выполнения действия и исчезают после отображения
+    - не используются для функций реального времени, как в чате
+    - не асинхронны
+    - одноразовые сообщения через **редиректы** (например, после POST-запросов)
+    - работают благодаря связке `django.contrib.messages` + `MessageMiddleware`
+    - результ действия: "Ваше сообщение отправлено", "Неверный пароль"
+    - Операции в чате: уведомления о добавлении нового участника в группу
+    - Управление игровыми процессами: Ваш запрос на матч отправлен
+    - Администрирование: Настройки сохранены, Ошибка при обновлении параметров"
+    - Передачи статуса операций между страницами: После успешного сохранения формы пользователю показывается сообщение на новой странице
+* Реальное время (WebSocket/Push)
+  + для отправки сообщений в чате
+  + для **обновлений интерфейса** в режиме реального времени
 
 ### django app chat
-* приложение с реальным временем
+* с реальным временем
 * на WebSocket
 * tuto https://channels.readthedocs.io/en/latest/index.html
 * js обращается к rest api (post) endpoints /history, /users/, /send
 * rest api строит и отдаёт html  
 * js получает ответ (get)
-* логика в views.py
 * с каждым пользователем у бэкенда 2 вебсовета: чат, положение ракетки
 * **история в бд**
 * ws login new WS connexion
@@ -631,18 +493,166 @@
         )
     ```
   + Проверьте соединения через WebSocket (например, с помощью браузера)
-  + Убедитесь, что Redis работает корректно и сообщения передаются через каналы
+  + Убедитесь, что Redis корректно и сообщения передаются через каналы
   + Проверьте сохранение сообщений в базе данных
-  + Развертывание:
-- WebSocket-роутинг в nginx:
-    ```nginx
-    location /ws/ {
-        proxy_pass http://backend:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-    ```
+  + Развертывание `nginx.conf` location /ws/ 
+
+### API (Application Programming Interface)
+* интерфейс
+* набор правил, позволяет приложениям взаимодействовать друг с другом
+* группа маршрутов (эндпоинтов), клиент использует для взаимодействия с сервером
+* определяются в `urls.py`
+* определяются в View-классах или функциях
+  + классы, которые наследуют от `APIView`, `GenericViewSet`, `ViewSet`
+* `routing.py` маршруты WebSocket
+  + каждый WebSocket-путь = отдельное API
+  + WebSocket - часть API
+* могут быть
+  + стандартными REST (GET, POST, PUT, DELETE)
+  + асинхронными WebSocket (через Django Channels)
+* несколько эндпоинтов реализуют функциональность API
+  + приложение `api_42`
+  + приложение `chat`
+  + приложение `auth_app`, для каждого из них 5–10 эндпоинтов
+  + для аутентификации/авторизации (École 42, ...)
+  + для работы с чатом (отправка, получение сообщений)
+  + для обработки пользовательских данных (профиль, друзья, статистика)
+  + для игры (управление матчами, таблицы лидеров)
+  + для управления пользователями 
+    - маршрут `GET /users/` список пользователей
+    - маршрут `POST /users/` создать нового пользователя
+    - маршрут `GET /users/<id>/`
+    - маршрут `DELETE /users/<id>/`
+    - маршрут API чата = группа всех маршрутов, связанных с чатом
+* **создаются с помощью Django REST Framework (DRF)**
+* список API http://localhost:8000/swagger/, http://localhost:8000/redoc/
+  + если настроена автоматическая документация (Swagger, Redoc)  
+
+### Endpoint 
+* конкретный маршрут, связанный с API
+* выполняет определённое действие
+* Endpoints чата:
+  + `GET /chat/rooms/` — список комнат
+  + `POST /chat/rooms/` — создать комнату
+  + `GET /chat/rooms/<room_id>/messages/` — получить сообщения из комнаты
+  + `POST /chat/rooms/<room_id>/messages/` — отправить сообщение
+* endpoints в `urls.py`:
+  + callback/
+    logout/
+    login/
+    auth/email/
+    signup/
+    auth/callback
+    profile/
+    ...
+* команда Django `python manage.py show_urls` список эндпоинтов
+  ```
+  /       
+  /admin/ 
+  /admin/<app_label>/
+  /admin/<url>    
+  /admin/auth/group/
+  /admin/auth/group/<path:object_id>/
+  /admin/auth/group/<path:object_id>/change/
+  /admin/auth/group/<path:object_id>/delete/
+  /admin/auth/group/<path:object_id>/history/
+  /admin/auth/group/add/
+  /admin/autocomplete/
+  /admin/jsi18n/
+  /admin/login/
+  /admin/logout/
+  /admin/myapp/game/
+  /admin/myapp/game/<path:object_id>/
+  /admin/myapp/game/<path:object_id>/change/
+  /admin/myapp/game/<path:object_id>/delete/
+  /admin/myapp/game/<path:object_id>/history/
+  /admin/myapp/game/add/
+  /admin/myapp/tournament/
+  /admin/myapp/tournament/<path:object_id>/
+  /admin/myapp/tournament/<path:object_id>/change/
+  /admin/myapp/tournament/<path:object_id>/delete/
+  /admin/myapp/tournament/<path:object_id>/history/
+  /admin/myapp/tournament/add/
+  /admin/myapp/userprofile/
+  /admin/myapp/userprofile/<path:object_id>/
+  /admin/myapp/userprofile/<path:object_id>/change/
+  /admin/myapp/userprofile/<path:object_id>/delete/
+  /admin/myapp/userprofile/<path:object_id>/history/
+  /admin/myapp/userprofile/add/
+  /admin/password_change/
+  /admin/password_change/done/
+  /admin/r/<int:content_type_id>/<path:object_id>/
+  /auth/auth/callback
+  /auth/auth/email/
+  /auth/callback
+  /auth/callback/ 
+  /auth/email/
+  /auth/login/
+  /auth/logout/
+  /auth/profile/
+  /auth/signup/
+  /callback/
+  /chat/
+  /chat/<str:room_name>/
+  /game/<int:id>/
+  /login/
+  /logout/
+  /profile/
+  /signup/
+  /tour/<int:id>/
+  /user/<int:id>/
+  /user_42/<int:user_id>/
+  /users/
+  /users_42/
+  ```
+* `grep -r "path(" backend/`, `grep -r "re_path(" backend/`
+  ```
+  login/
+  callback/
+  logout/
+  login/
+  auth/email
+  signup/
+  auth/callback
+  profile/
+  ''
+  ""
+  ws/chat/(?P<room_name>\w+)/$"
+  <str:room_name>/
+  admin/
+  auth/
+  chat/
+  user_42/<int:user_id>/
+  users_42/
+  users/
+  user/<int:id> /
+  tour/<int:id>/
+  game/<int:id>/
+  r"^api-auth/"
+  r"ws/chat/(?P<room_name>\w+)/$
+  ```
+* `myproject.urls` - `URLconf` - Django tried these URL patterns, in this order:
+  ```
+  admin/
+  auth/
+  chat/
+  [name='index']
+  callback/ [name='callback']
+  logout/ [name='logout_view']
+  login/ [name='loginemail']
+  auth/email/ [name='authemail']
+  signup/ [name='signup']
+  auth/callback [name='oauth_callback']
+  profile/ [name='profile']
+  user_42/<int:user_id>/ [name='get_user_42']
+  users_42/ [name='get_all_users_42']
+  users/ [name='get_all_userprofiles']
+  user/<int:id>/ [name='user-detail']
+  tour/<int:id>/ [name='tournament-detail']
+  game/<int:id>/ [name='game-detail']
+  You’re seeing this error because you have DEBUG = True in your Django settings file.
+  Change that to False, and Django will display a standard 404 page
+  ```
 
 ### F12 concole
 * лучше всего в chrome
