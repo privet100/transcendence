@@ -4,8 +4,26 @@
 * game customization it's just gonna be front
   + like custom colors custom map
   + it's easy
-docker-compose up --build
-  + чтобы пересобрать образы -> Django подхватывает изменения (если настроен **hot-reload**), фронтенд тоже
+* Live pong game on website
+  + users must have the ability to participate in a live Pong game against another player directly on the website
+  + Both players will use the same keyboard
+  + The Remote players module can enhance this functionality with remote players.
+* Rules of Pong
+  + All players must adhere to the same rules, which includes having identical paddle speed
+  + This requirement also applies when using AI; the AI must exhibit the same speed as a regular player
+* Tournament
+  + A player must be able to play against another player
+  + it should also be possible to propose a tournament
+  + This tournament will consist of multiple players who can take turns playing against each other
+  + it must display who is playing against whom and the order of the players
+* A registration system
+  + at the start of a tournament, each player must input their alias name
+  + The aliases will be reset when a new tournament begins
+  + this requirement can be modified using the Standard User Management module
+* Matchmaking system for Tournament
+  + the tournament system organize the matchmaking of the participants, and announce the next fight
+* docker-compose up --build
+  + пересобрать образы -> Django подхватывает изменения (если настроен **hot-reload**), фронтенд тоже
 * https://github.com/bakyt92/14_ft_transendence
 * https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
 * https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
