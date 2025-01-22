@@ -2,6 +2,8 @@
   + `sudo sysctl vm.overcommit_memory=1` настройка системы, чтобы Redis мог эффективно сохранять данные в условиях низкой памяти
   + `vm.overcommit_memory = 1` в `/etc/sysctl.conf`, чтобы сохранить настройку после перезагрузки
 * **server side rendering is not a good idea**
+  + 42 it's just gonna take a lot of time and I have no idea how to do it
+  + but if we do it in the front it's easy
 * https://github.com/bakyt92/14_ft_transendence
 * https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
 * https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
