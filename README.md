@@ -1335,6 +1335,11 @@
 * `./context`
   + все файлы доступны для Docker в процессе сборки
   + только те файлы, которые явно указаны в Dockerfile (COPY, ADD, ...), будут скопированы в контейнер
+* the volumes directive is only applied at runtime and does not affect the build stage
+* If you want to avoid using COPY, you can change the pip install command to point to the mounted volume
+  + this assumes that the requirements.txt file exists in the mounted /app folder at runtime
+  + you need to skip installing dependencies during the build process
+  + install them at runtime instead
   
 ### разное
 * Vanilla JS (без фреймворков)
