@@ -477,6 +477,7 @@
   user/<int:id>/ [name='user-detail']
   tour/<int:id>/ [name='tournament-detail']
   game/<int:id>/ [name='game-detail']
+  You’re seeing this error because you have DEBUG = True in your Django settings file. Change that to False, and Django will display a standard 404 page.
   ```
 
 ### django app chat
