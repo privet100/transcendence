@@ -4,6 +4,11 @@
 * **server side rendering is not a good idea**
   + 42 it's just gonna take a lot of time and I have no idea how to do it
   + but if we do it in the front it's easy
+* game customization it's just gonna be front
+  + like custom colors custom map
+  + it's easy
+docker-compose up --build
+  + чтобы пересобрать образы -> Django подхватывает изменения (если настроен **hot-reload**), фронтенд тоже
 * https://github.com/bakyt92/14_ft_transendence
 * https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
 * https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
@@ -155,6 +160,9 @@
   + если соединение идёт через HTTPS, Nginx управляет SSL и передаёт расшифрованный запрос вашему бэкенду
   + клиент отправляет запрос на wss://localhost/ws/ -> nginx проксирует запрос на бэкенд, **сохраняя заголовки WebSocket**
   + location /wss/ понадобится, только если вы хотите явно выделить другой маршрут для зашифрованных WebSocket-запросов, если вы хотите отделить шифрованные соединения (например, для разных приложений)
+* Vanilla JS (без фреймворков)
+  + фронт самописный или с использованием минимальных библиотек (jQuery, Bootstrap, ...)
+  + не на SPA-фреймворке
 
 ### backend Daphne (ASGI сервер) 
 * обработка запросов и передача их в Django Framework для выполнения бизнес-логики
@@ -538,7 +546,6 @@
   + в js фенкция post - в header токен CSRF
   + session id приязывает сессия + юзер в приложении
 * сначала выполняется header, потом подгружаются стили
-* CSS-OM = дереао как DOM
 * incognito
 * в django новая функция: python manage.py statup, migrations, INSTALLED_APS ... 'chat'
 * 1 эндпоинт слушает чат
@@ -635,8 +642,6 @@
 ### F12 concole
 * лучше всего в chrome
 * colsole.log для отладки
-* bootstrap готовые стили
-  - можно сосдавать кастомные на основе н их
 * кнопка квадратик со стрелкой слево вверх - смотреть код элемента html
 * js менять параметры html, class = стиль
 * open chat
@@ -942,6 +947,9 @@
 
 ### подключить статические файлы
 * CSS, JavaScript, изображения
+* CSS-OM = дереао как DOM
+* bootstrap готовые стили
+  - можно создавать кастомные на основе н их
 * могут располагаться в разных местах
   + некоторые стили автоматически приносят сторонние **пакеты** (Django Admin, Django REST Framework)
   + некоторые — ваши файлы (bootstrap.min.css во фронтенде)
@@ -1103,21 +1111,6 @@
 * Use a web server of your choice to serve the files
   + How to deploy static files covers some common deployment strategies for static files
 
-### index.html
-* `{% extends "base.html" %}` расширение базового шаблона
-  + Шаблон наследует структуру из базового файла base.html
-  + всё из ({% block body %}) будет вставлено в base.html на место тега `{% block body %}`
-*  `<p class="text-center">База данных: {{ db_version }}</p>` // Шаблонная переменная `{{ db_version }}`, значение передаётся в шаблон из представления Django (view)
-* `class="btn btn-primary` задаёт стиль кнопки
-* ```
-  {% if user.is_authenticated %}                             // Шаблонное условие
-    <p>Пользователь: <strong>{{ user.username }}</strong> (авторизован)</p> // user - Стандартная переменная, доступная в шаблоне, содержащая информацию о текущем пользователе
-  {% else %}
-    <p>Вы не авторизованы. Пожалуйста, <a href="/login/">войдите</a> в систему.</p>
-  {% endif %}
-  ```
-* **Карточка Bootstrap**  
-
 ### некоторые файлы
 * .map (Source Map) для отладки кода в браузере
   + При минификации или транспиляции CSS/JS (например, при сборке проекта) ваш изначальный код (в данном случае CSS) превращается в более оптимизированную сжатую версию
@@ -1187,8 +1180,7 @@
   + install them at runtime instead
   
 ### разное
-* Vanilla JS (без фреймворков)
-  + фронт самописный или с использованием минимальных библиотек (jQuery, Bootstrap, ...), не на SPA-фреймворке
+* **Карточка Bootstrap**  
 * в модели пользователя сохраняю аватарки
   + у фронт энда есть требования какие нибудь к аватаркам или они могут сами отрисовывать?
   + вдруг пользователь сохранит свою фотографию 1000 х 1000 пикселей, на фронте вы сможете сами отрисовать аватарку ?
@@ -1198,9 +1190,6 @@
   + **js на фронте читает инпут, проверяет с помощью regex**
   + функция make password django шифрует на сервере ?
   + бэк ещё раз валидирует (проверяет пароль и почту, ...) **зачем два раза** 
-* update_docker.sh обновление и пересборку Docker-контейнеров (docker-compose pull, docker-compose build, docker-compose up -d)
-* docker-compose up --build (или update_docker.sh)
-  + чтобы пересобрать образы -> Django подхватывает изменения (если настроен hot-reload), фронтенд тоже
 * change the post requests to a websocket. The idea was to make the game and chat using websockets (native browser api), it’s beneficial in terms of continuous data streaming
 * `frontend/static/app.js`
   + вызывает fetch к бэкенду и затем динамически обновляет DOM, это не делает приложение SPA-фреймворком — это обычная логика на чистом JS
