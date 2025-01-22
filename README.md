@@ -1,3 +1,4 @@
+* Redis предупреждение — настройте vm.overcommit_memory для стабильной работы Redis
 * https://github.com/bakyt92/14_ft_transendence
 * https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
 * https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
