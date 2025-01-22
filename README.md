@@ -12,6 +12,10 @@
   + https://localhost:4443/chat
   + http://localhost:8000/
   + http://localhost:8000/chat
+    - HTTP-запрос для загрузки веб-страницы чата (HTML, CSS, JavaScript)
+  + ws://localhost:8000/ws/chat/<roomName>/
+    - WebSocket-запрос для работы реального времени внутри чата
+    - WebSocket-запросы отправляются на другой URL (/ws/chat/), который настроен в routing.py
   + http://localhost:8000/admin
   + https://tr.naurzalinov.me/users/
   + http://95.217.129.132:8000/
@@ -143,7 +147,16 @@
 * assessibility
 * multiple language
 * `proxy_set_header ...` передает заголовки (Host, IP-адрес клиента, протокол, ...), чтобы **бэкенд понимал, откуда пришел запрос**
-  
+* Nginx не нужноlocation /wss/
+  + wss:// — зашифрованный WebSocket, работает через тот же путь, что и ws://, используя тот же location-блок
+  + Протоколы ws и wss используют один и тот же маршрут
+  + В Nginx нет разделения маршрутов между ws и wss
+  + если вы уже настроили location /ws/, он будет работать и для wss://
+    - если правильно настроен HTTPS.
+  + если соединение идёт через HTTPS, Nginx управляет SSL и передаёт расшифрованный запрос вашему бэкенду
+  + клиент отправляет запрос на wss://localhost/ws/ -> nginx проксирует запрос на бэкенд, **сохраняя заголовки WebSocket**
+  + location /wss/ понадобится, только если вы хотите явно выделить другой маршрут для зашифрованных WebSocket-запросов, если вы хотите отделить шифрованные соединения (например, для разных приложений)
+
 ### backend Daphne (ASGI сервер) 
 * обработка запросов и передача их в Django Framework для выполнения бизнес-логики
 * управляет обработкой логики приложения
@@ -532,12 +545,10 @@
 * 1. настройка вебсокетов Бэкенд
   - `daphne` настроен для обработки вебсокетов
   - Добавьте routing в `asgi.py`, чтобы WebSocket-соединения перенаправлялись в обработчики.
-
     ```python
     from channels.routing import ProtocolTypeRouter, URLRouter
     from channels.auth import AuthMiddlewareStack
     import chat.routing
-
     application = ProtocolTypeRouter({
         "http": get_asgi_application(),
         "websocket": AuthMiddlewareStack(
@@ -715,8 +726,6 @@
     ```
 
 После выполнения этих шагов вы получите базовый функционал чата. При необходимости можно добавить поддержку нескольких комнат, уведомления, шифрование сообщений и другие возможности.
-
-
 
 ### F12 concole
 * лучше всего в chrome
@@ -1003,66 +1012,28 @@
   + SecurityMiddleware добавление заголовков безопасности
 
 ### WebSockets
-* для функций реального времени: чата, игровой механики
+* сервер и клиент обмениваются данными в реальном времени: чата, игровой механики
 * Браузер пользователя (JavaScript **WebSocket API**) ?
-* сервер и клиент обмениваются данными в реальном времени
 * создание 
   + клиент загружает страницу чата или игровой комнаты
   + клиентский код js инициирует соединение через **WebSocket API**: `const socket = new WebSocket("ws://example.com/ws/chat/room1/");`
   + daphne устанавливает WebSocket-соединение, **передавая его в ASGI-приложение**
-  + запрос от бразуреа -> nginx -> daphne -> через механизм Channels -> Django consummer (обработчик соединений, класс для обработки WebSocket-сообщений)
-    ```json
-    {
-      "type": "chat.message",
-      "message": "Hello, World!"
-    }
-    ```
-    ```python
-    class ChatConsumer(AsyncWebsocketConsumer):
-      async def connect(self):
-        self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
-        self.room_group_name = f"chat_{self.room_name}"
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-        await self.accept()
-      async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-      async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json["message"]
-        await self.channel_layer.group_send(
-          self.room_group_name, {"type": "chat.message", "message": message}
-        )
-      async def chat_message(self, event):
-        message = event["message"]
-        await self.send(text_data=json.dumps({"message": message}))
-     ```
-  + от сервера к клиенту:
-    ```json
-    {
-      "type": "chat.message",
-      "message": "Hi there!"
-    }
-    ```
+  + `{ "type": "chat.message", "message": "Hello, World!" }` браузер -> nginx -> daphne -> механизм Channels -> Django consummer
+  + `{ "type": "chat.message", "message": "Hi there!" }` от сервера к клиенту
 * Django Channels
+  + расширение Django
+  + для обработки асинхронных протоколов (WebSocket), управления асинхронными соединениями внутри Django
   + не сервер, не принимает запросы от клиента 
-  + Django настроено через Channels
-  + расширение Django для обработки асинхронных протоколов (WebSocket), для управления асинхронными соединениями внутри Django
   + обработка соединений внутри приложения 
-  + Consumers обрабатывают каждое соединение и сообщения, отправленные клиентом
-  + `chat/routing.py`
-    - для **подключения WebSocket-маршрутов к приложению**
-    - ```
-      from . import consumers
-      websocket_urlpatterns = [
-          re_path(r"ws/chat/(?P<room_name>\w+)/$", consumers.ChatConsumer.as_asgi()),
-      ]
-      ```
-    - связывает URL, по которым поступают запросы, с обработчиками Consumers
-    - запросы, начинающиеся с `ws/chat/`
-    - `<room_name>` переменная, динамически извлекается из URL, в данном случае любое слово (`\w+`): `ws/chat/room1/`, `room_name = "room1"`
-    - `consumers.ChatConsumer.as_asgi()` связывает запросы с Consumer-классом `ChatConsumer`, `as_asgi()` позволяет Consumer работать в асинхронной среде 
-  + канальный слой (Channel Layers) для взаимодействия между обработчиками (Consumers) и для передачи сообщений между процессами
-   - **Redis = backend для Channel Layers**
+  + `websocket_urlpatterns = [ re_path(r"ws/chat/(?P<room_name>\w+)/$", consumers.ChatConsumer.as_asgi()) ]` связывает URL, по которым поступают запросы, с обработчиками Consumers
+    - `<room_name>` динамически извлекается из URL, тут любое слово (`\w+`) 
+  + `consumers.ChatConsumer.as_asgi()` связывает запрос с Consumer-классом
+    - `as_asgi()` позволяет Consumer работать в асинхронной среде 
+  + Channel Layers для взаимодействия между Consumers и для передачи сообщений между **процессами**
+    - **Redis = backend для Channel Layers**
+* для работы с wss://
+  + сервер использует HTTPS с действительным SSL-сертификатом
+    - если сертификат отсутствует или самоподписан, браузер может блокировать подключение WebSocket
 
 ### подключить css
 * статические файлы Django (table.css) должны быть настроены для загрузки через тег {% static %}
@@ -1469,6 +1440,21 @@
   + Multiple language supports - who will implement it? 
   + Server-side pong  - do we need this module? Is it implemented by Amine? For this module we need API for paddle, ball and other features
   + User and Game Stats Dashboards - do we need this module? Who will do it?
+* settings.py logging.basicConfig
+  + глобальные настройки логирования в Python
+  + влияет на все логгеры, включая те, которые используются Django и Channels
+  + Django и Channels используют свои логгеры (настроенные через LOGGING), может конфликтовать с их внутренними настройками
+  + не предоставляет тонкого контроля над логгерами (раздельное управление для django и channels)
+  + не рекомендуется для Django, так как может игнорировать встроенные настройки логирования
+* settings.py LOGGING
+  + настраивает Django и все его зависимости через встроенную систему логирования
+  + можете настроить разные обработчики, уровни логирования и форматы для отдельных логгеров:
+    - django — для стандартных событий Django (запросы, ответы, ошибки).
+    - channels — для событий, связанных с WebSocket и канальным слоем.
+  + гибкий подход, позволяет разделять логи
+  + Позволяет управлять логированием для разных компонентов (например, django, channels, django.db)
+  + Совместимо с встроенной системой Django, которая использует LOGGING
+  + Рекомендуется для Django-проектов, особенно если вы хотите гибко управлять логами и выводить разные сообщения для компонентов
 
 ### test
 * bakyt: Endpoint that are formed from views.py from different folders
