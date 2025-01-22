@@ -1357,3 +1357,4 @@ docker-compose up --build
 * close ports 800 and 6800 for outside
 * `http://backend:8000` хранить в перменной окружения
 * close http://localhost/backend:8000/chat
+* to justify your choices during the evaluation
