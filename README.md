@@ -1,8 +1,7 @@
-* Redis предупреждение — настройте vm.overcommit_memory для стабильной работы Redis
-* WARNING Memory overcommit must be enabled!
-  + включить `vm.overcommit_memory=1` в настройках системы, чтобы Redis мог эффективно сохранять данные в условиях низкой памяти
-  + `sudo sysctl vm.overcommit_memory=1`
-  + Добавьте строку `vm.overcommit_memory = 1` в `/etc/sysctl.conf`, чтобы сохранить настройку после перезагрузки:
+* Redis WARNING Memory overcommit must be enabled!
+  + `sudo sysctl vm.overcommit_memory=1` настройка системы, чтобы Redis мог эффективно сохранять данные в условиях низкой памяти
+  + `vm.overcommit_memory = 1` в `/etc/sysctl.conf`, чтобы сохранить настройку после перезагрузки
+* **server side rendering is not a good idea**
 * https://github.com/bakyt92/14_ft_transendence
 * https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
 * https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
@@ -10,12 +9,10 @@
   + http://localhost:4444/ 
   + https://localhost:4443/
   + https://localhost:4443/chat
-  + http://localhost:8000/
-  + http://localhost:8000/chat
     - HTTP-запрос для загрузки веб-страницы чата (HTML, CSS, JavaScript)
-  + ws://localhost:8000/ws/chat/<roomName>/
-    - WebSocket-запрос для работы реального времени внутри чата
-    - WebSocket-запросы отправляются на другой URL (/ws/chat/), который настроен в routing.py
+  + ws://localhost:4443/ws/chat/<roomName>/
+    - ws-запрос для работы реального времени внутри чата
+    - Ws-запрос отправляется на URL /ws/chat/ (настроен в routing.py)
   + http://localhost:8000/admin
   + https://tr.naurzalinov.me/users/
   + http://95.217.129.132:8000/
@@ -1545,3 +1542,4 @@
 * remove убрать settings.py SECRET_KEY, frontend/etc/private.key
 * close ports 800 and 6800 for outside
 * `http://backend:8000` хранить в перменной окружения
+* close http://localhost/backend:8000/chat
