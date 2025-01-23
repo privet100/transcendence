@@ -896,10 +896,28 @@
     - клиент подключаетсся к ws:// или wss://
 
 ### db (PostgreSQL)
-* СУБД (база данных) для хранения пользователей, сообщений, данных о матчах в Pong, статистики и т.д.
-* Создаёт базу данных mydatabase с логином/паролем myuser / mypassword
+* СУБД (база данных) для хранения пользователей, сообщений, данных о матчах в Pong, статистики, ...
 * том db_data, чтобы не терять БД при перезапуске
 * доступен внутри сети Docker по адресу db:5432
+* `psql -U myuser -d mydatabase` `\dt`
+  ```
+   Schema |                Name                | Type  | Owner  
+  --------+------------------------------------+-------+--------
+   public | auth_group                         | table | myuser
+   public | auth_group_permissions             | table | myuser
+   public | auth_permission                    | table | myuser
+   public | django_admin_log                   | table | myuser
+   public | django_content_type                | table | myuser
+   public | django_migrations                  | table | myuser
+   public | django_session                     | table | myuser
+   public | myapp_game                         | table | myuser
+   public | myapp_tournament                   | table | myuser
+   public | myapp_tournament_players           | table | myuser
+   public | myapp_userprofile                  | table | myuser
+   public | myapp_userprofile_friends          | table | myuser
+   public | myapp_userprofile_groups           | table | myuser
+   public | myapp_userprofile_user_permissions | table | myuser
+  ```
 
 ### redis (Remote Dictionary Server) 
 * инструмент управления данными
@@ -1344,7 +1362,7 @@
   RUN pip install --no-cache-dir -r requirements.txt
   COPY . .
   ```
-  + Docker кэширует каждый слой (каждую команду). Если вы копируете только `requirements.txt` перед установкой зависимостей, то (`RUN pip install ...`) будет повторно использовать кэш, если файл `requirements.txt` не изменился.
+  + Docker кэширует каждый слой (команду). Если вы копируете только `requirements.txt` перед установкой зависимостей, `RUN pip install ...` будет повторно использовать кэш, если файл `requirements.txt` не изменился
   - Если вы измените код приложения (например, Python-файлы), установка зависимостей не будет повторяться.
   + Если вы сначала копируете весь код (`COPY . .`), то любые изменения в файлах приложения (например, в коде Python) приведут к тому, что Docker заново выполнит `RUN pip install ...`, даже если `requirements.txt` не изменялся.
   + Кэширование нарушается
