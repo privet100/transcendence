@@ -1589,3 +1589,4 @@
 * close http://localhost/backend:8000/chat
 * to justify your choices during the evaluation
 * настроить раздачу статики
+* remove volumes: - ./backend:/app
