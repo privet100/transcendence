@@ -2,6 +2,8 @@
   + it's just gonna take a lot of time
   + I have no idea how to do it
   + if we do it in the front it's easy
+  + it is almost front-end
+  + if we do this module - power-ups for AI are obligatory (so it is back end part)
 * game customization it's just gonna be front
   + like custom colors custom map
 * Live pong game on website
