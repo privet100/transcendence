@@ -1,29 +1,3 @@
-* **server side rendering is not a good idea**
-  + it's just gonna take a lot of time
-  + I have no idea how to do it
-  + if we do it in the front it's easy
-  + it is almost front-end
-  + if we do this module - power-ups for AI are obligatory (so it is back end part)
-* game customization it's just gonna be front
-  + like custom colors custom map
-* Live pong game on website
-  + users must have the ability to participate in a live Pong game against another player directly on the website
-  + Both players will use the same keyboard
-  + The Remote players module can enhance this functionality with remote players.
-* Rules of Pong
-  + All players must adhere to the same rules, which includes having identical paddle speed
-  + This requirement also applies when using AI; the AI must exhibit the same speed as a regular player
-* Tournament
-  + A player must be able to play against another player
-  + it should also be possible to propose a tournament
-  + This tournament will consist of multiple players who can take turns playing against each other
-  + it must display who is playing against whom and the order of the players
-* A registration system
-  + at the start of a tournament, each player must input their alias name
-  + The aliases will be reset when a new tournament begins
-  + this requirement can be modified using the Standard User Management module
-* Matchmaking system for Tournament
-  + the tournament system organize the matchmaking of the participants, and announce the next fight
 * docker-compose up --build
   + пересобрать образы -> Django подхватывает изменения (если настроен **hot-reload**), фронтенд тоже
 * https://github.com/bakyt92/14_ft_transendence
@@ -299,11 +273,19 @@
       - не связаны с аутентификацией или авторизацией пользователя
 
 ### frontend nginx server
+* try using **bolt.new** it's better at frontend
+  + the ui is fire here
+* **server side rendering is not a good idea**
+  + it's just gonna take a lot of time
+  + I have no idea how to do it
+  + if we do it in the front it's easy
+  + it is almost front-end
+  + if we do this module - power-ups for AI are obligatory (so it is back end part)
+* **game customization** it's just gonna be front
+  + like custom colors custom map
 * слушает и обрабатывает HTTPS-соединения  
 * подписывается на **WebSocket-каналы**
 * обработка WebSocket-запросов
-* try using **bolt.new** it's better at frontend
-  + the ui is fire here
 * proxy_set_header передаёт заголовки (IP клиента, протоколь Host, X-Forwarded-For, ...) для Django
 * Пользователь открывает https://tr.naurzalinov.me/
   + приходит запрос к http://95.217.129.132 на контейнер Nginx
@@ -350,9 +332,9 @@
 * слушает внутри контейнера на порту 8000 в сети Docker
 * Django через ASGI
 * папка `backend/`: код Django, настройки, requirements, миграции, ...
-* обработка **API-запросов** через Django REST Framework (DRF)
+* обработка API-запросов через Django REST Framework (DRF)
 * валидация CSRF-токенов для защиты от атак
-* ваимодействие с базами данных и другими внешними сервисами (например, API École 42 для авторизации)
+* ваимодействие с базами данных и другими внешними сервисами (API École 42 для авторизации)
 * game logic in backed, backend because we need it to do the multiplayer
 * runserver 0.0.0.0:8000 => запустили Django-приложение
 * обрабатывает запросы фронтенда: аутентификация, чат (через Channels), API для фронтенда, авторизация, API, игровая логика, аутентификация
@@ -436,29 +418,11 @@
   + схожие задачи: обработка запросов и аутентификация пользователей
   + работают с разными протоколами
   + аналогичные концепции для работы с запросами и аутентификацией можно найти в обоих
-
-### **Django Channels (WebSockets)
-- **Протокол:** WebSocket, который используется для двухсторонней связи в реальном времени (например, чаты, уведомления).
-- **Middleware:** В Channels используются специальные middleware для обработки WebSocket-соединений:
-  - **SessionMiddleware** – управляет сессионными данными (хранит информацию о пользователе, сессии и т.д.).
-  - **AuthenticationMiddleware** – выполняет аутентификацию пользователей, связывая их с подключением WebSocket.
-- **Consumer:** Обработчик для работы с WebSocket-соединениями, аналогичный представлению в DRF, но предназначенный для работы с асинхронными запросами через WebSocket.
-  - Пример consumer-а:
-    ```python
-    class ChatConsumer(AsyncWebsocketConsumer):
-        async def connect(self):
-            # Handle connection
-            pass
-
-        async def disconnect(self, close_code):
-            # Handle disconnection
-            pass
-
-        async def receive(self, text_data):
-            # Handle message reception
-            pass
-    ```
-- **Использование:** Channels работает с асинхронными запросами и WebSocket-соединениями, поддерживая реальное время.
+  + протокол WebSocket, используется для двухсторонней связи в реальном времени (чаты, уведомления)
+  + специальные middleware для обработки WebSocket-соединений:
+    - SessionMiddleware – управляет сессионными данными (хранит информацию о пользователе, сессии, ...)
+    - AuthenticationMiddleware – выполняет аутентификацию пользователей, связывая их с подключением WebSocket
+  + Consumer обработчик для работы с ws-соединениями, аналогичный представлению в DRF, для работы с асинхронными запросами через WebSocket
 
 ### **Django REST Framework (HTTP API)
 * **есть ли он у нас?**
@@ -1663,79 +1627,6 @@ async def send_chat_message(self, event):
 * DRF - автоматичесая документация эндпоинтов
   + Browsable API (встроенная документация): в `http://localhost:8000/api/` или `http://localhost:8000/` список эндпоинтов
 
-### Organisation
-* на всю линейку продуктов от JetBrains бесплатная студенческая лицензия, для фронта WebStorm
-* the password for the django admin panel ...
-* docker vscode extension 
-  + launch bash inside a container from gui
-
-### to do
-* pop-up windows : login, chat, profile
-* страница comptetition, profile, настройки
-* Б
-  + структуры данных
-  + Django REST Framework
-  + модуль с сокетами и чатом (live chat, уведомления о турнирах, и проч)
-  + API, эндпоинты и методы для API
-  + live chat
-  + **rabbitMQ модуль сообщение от сервера**
-  + google doc: status which modules are chosen and which modules are done
-  + to finish APIS
-  + live chat, ws
-* Л
-  + авторизация
-  + фронт-энд
-  + шаблон для фронт энда
-  + profile
-  + game page
-  + auth issue
-* Ан
-  + фронт-энд
-  + накидать в Figma шаблоны страничек (часть есть в Миро) страницы: страница с логином, с самой игрой (пока без игры), профиль пользователя, страница с турниром
-  + писать код, делать шаблончики  
-  + структуры страничек
-  + API с бэкэнда
-* Амин
-  + вебсокеты для модуля remote players
-    - обмен информацией между игроками и сервером о локации ракетки и мяча
-  + game logic
-    - whether we want to follow basic ping pong rules?
-    - the ball should speed up when paddle hits the ball ?
-    - https://stackoverflow.com/questions/54796089/python-ping-pong-game-speeding-up-the-ball-after-paddle-hit 
-  + some sort of **anticheat** to be sure that the users mouvement are normal
-    - my code will be easy, it'd just gonne output two players position and the ball and then you can render it however you want
-  + I'll update you soon on the game websocket
-* basic requirements 20.01.2025 
-  + All pong game part will be done by Amine? Do you need help with front-end (table, paddles, ball, some activity of JS or someone will do it?
-  + Tournament, registration and matchmaking system by Alexey? Do you need help? 
-  + Basic front-end will be done by Alexey? (profile page, other pages) or you need help?
-  + Security - probably we meet requirements by we need to validate input and follow some basic security rules on the front-end part.
-* Modules (only that needs some response / comment)
-  + User management - I did back-end (almost); but we need profile page with history of games, possibility to change profile data; see statistics of wins and loses - who will be responsible for this part? I can do it but I need template of javascript page (single page structure should be already applied) 
-  + OAuth42 - almost finished by Alexey, please check that all requirements of this module are met/
-  + Remote Players - will do Amine
-  + LiveChat - is the proccess by me and Anna 
-  + AI Opponent - will we do this module? Amine, can you implement it or you need help?
-  + Game Customization Option - do we need this module? Who will do it? 
-  + Multiple language supports - who will implement it? 
-  + Server-side pong  - do we need this module? Is it implemented by Amine? For this module we need API for paddle, ball and other features
-  + User and Game Stats Dashboards - do we need this module? Who will do it?
-* settings.py logging.basicConfig
-  + глобальные настройки логирования в Python
-  + влияет на все логгеры, включая те, которые используются Django и Channels
-  + Django и Channels используют свои логгеры (настроенные через LOGGING), может конфликтовать с их внутренними настройками
-  + не предоставляет тонкого контроля над логгерами (раздельное управление для django и channels)
-  + не рекомендуется для Django, так как может игнорировать встроенные настройки логирования
-* settings.py LOGGING
-  + настраивает Django и все его зависимости через встроенную систему логирования
-  + можете настроить разные обработчики, уровни логирования и форматы для отдельных логгеров:
-    - django — для стандартных событий Django (запросы, ответы, ошибки).
-    - channels — для событий, связанных с WebSocket и канальным слоем.
-  + гибкий подход, позволяет разделять логи
-  + Позволяет управлять логированием для разных компонентов (например, django, channels, django.db)
-  + Совместимо с встроенной системой Django, которая использует LOGGING
-  + Рекомендуется для Django-проектов, особенно если вы хотите гибко управлять логами и выводить разные сообщения для компонентов
-
 ### test
 * bakyt: Endpoint that are formed from views.py from different folders
   + `urls.py` связывает эндпоинты (URL-маршруты) с функциями/классами представлений из `views.py`
@@ -1821,12 +1712,100 @@ async def send_chat_message(self, event):
 * Убедитесь, что WebSocket работает: проверьте консоль браузера (F12) на наличие ошибок
 * Проверьте `docker-compose logs`
 
-### DO NOT FORGET
-* remove убрать settings.py SECRET_KEY, frontend/etc/private.key
-* close ports 800 and 6800 for outside
-* `http://backend:8000` хранить в перменной окружения
-* close http://localhost/backend:8000/chat
-* to justify your choices during the evaluation
-* настроить раздачу статики
-* remove volumes: - ./backend:/app
-* We set DJANGO_SETTINGS_MODULE in the .env, docker-compose and Dockerfile. Then, we set it again: os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings'). This appears to protect us from forgetting to set this variable in the .env, but it seems redundant in our case. May I remove os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')?
+### Organisation
+* на всю линейку продуктов от JetBrains бесплатная студенческая лицензия, для фронта WebStorm
+* the password for the django admin panel ...
+* docker vscode extension 
+  + launch bash inside a container from gui
+* pop-up windows : login, chat, profile
+* страница comptetition, profile, настройки
+* Б
+  + структуры данных
+  + Django REST Framework
+  + модуль с сокетами и чатом (live chat, уведомления о турнирах, и проч)
+  + API, эндпоинты и методы для API
+  + live chat
+  + **rabbitMQ модуль сообщение от сервера**
+  + google doc: status which modules are chosen and which modules are done
+  + to finish APIS
+  + live chat, ws
+* Л
+  + авторизация
+  + фронт-энд
+  + шаблон для фронт энда
+  + profile
+  + game page
+  + auth issue
+* Ан
+  + фронт-энд
+  + накидать в Figma шаблоны страничек (часть есть в Миро) страницы: страница с логином, с самой игрой (пока без игры), профиль пользователя, страница с турниром
+  + писать код, делать шаблончики  
+  + структуры страничек
+  + API с бэкэнда
+* Амин
+  + вебсокеты для модуля remote players
+    - обмен информацией между игроками и сервером о локации ракетки и мяча
+  + game logic
+    - whether we want to follow basic ping pong rules?
+    - the ball should speed up when paddle hits the ball ?
+    - https://stackoverflow.com/questions/54796089/python-ping-pong-game-speeding-up-the-ball-after-paddle-hit 
+  + some sort of **anticheat** to be sure that the users mouvement are normal
+    - my code will be easy, it'd just gonne output two players position and the ball and then you can render it however you want
+  + I'll update you soon on the game websocket
+* basic requirements 20.01.2025 
+  + All pong game part will be done by Amine? Do you need help with front-end (table, paddles, ball, some activity of JS or someone will do it?
+  + Tournament, registration and matchmaking system by Alexey? Do you need help? 
+  + Basic front-end will be done by Alexey? (profile page, other pages) or you need help?
+  + Security - probably we meet requirements by we need to validate input and follow some basic security rules on the front-end part.
+* Modules (only that needs some response / comment)
+  + User management - I did back-end (almost); but we need profile page with history of games, possibility to change profile data; see statistics of wins and loses - who will be responsible for this part? I can do it but I need template of javascript page (single page structure should be already applied) 
+  + OAuth42 - almost finished by Alexey, please check that all requirements of this module are met/
+  + Remote Players - will do Amine
+  + LiveChat - is the proccess by me and Anna 
+  + AI Opponent - will we do this module? Amine, can you implement it or you need help?
+  + Game Customization Option - do we need this module? Who will do it? 
+  + Multiple language supports - who will implement it? 
+  + Server-side pong  - do we need this module? Is it implemented by Amine? For this module we need API for paddle, ball and other features
+  + User and Game Stats Dashboards - do we need this module? Who will do it?
+* settings.py logging.basicConfig
+  + глобальные настройки логирования в Python
+  + влияет на все логгеры, включая те, которые используются Django и Channels
+  + Django и Channels используют свои логгеры (настроенные через LOGGING), может конфликтовать с их внутренними настройками
+  + не предоставляет тонкого контроля над логгерами (раздельное управление для django и channels)
+  + не рекомендуется для Django, так как может игнорировать встроенные настройки логирования
+* settings.py LOGGING
+  + настраивает Django и все его зависимости через встроенную систему логирования
+  + можете настроить разные обработчики, уровни логирования и форматы для отдельных логгеров:
+    - django — для стандартных событий Django (запросы, ответы, ошибки).
+    - channels — для событий, связанных с WebSocket и канальным слоем.
+  + гибкий подход, позволяет разделять логи
+  + Позволяет управлять логированием для разных компонентов (например, django, channels, django.db)
+  + Совместимо с встроенной системой Django, которая использует LOGGING
+  + Рекомендуется для Django-проектов, особенно если вы хотите гибко управлять логами и выводить разные сообщения для компонентов
+* Live pong game on website
+  + users must have the ability to participate in a live Pong game against another player directly on the website
+  + Both players will use the same keyboard
+  + The Remote players module can enhance this functionality with remote players.
+* Rules of Pong
+  + All players must adhere to the same rules, which includes having identical paddle speed
+  + This requirement also applies when using AI; the AI must exhibit the same speed as a regular player
+* Tournament
+  + A player must be able to play against another player
+  + it should also be possible to propose a tournament
+  + This tournament will consist of multiple players who can take turns playing against each other
+  + it must display who is playing against whom and the order of the players
+* A registration system
+  + at the start of a tournament, each player must input their alias name
+  + The aliases will be reset when a new tournament begins
+  + this requirement can be modified using the Standard User Management module
+* Matchmaking system for Tournament
+  + the tournament system organize the matchmaking of the participants, and announce the next fight
+* **DO NOT FORGET**
+  + remove убрать settings.py SECRET_KEY, frontend/etc/private.key
+  + close ports 800 and 6800 for outside
+  + `http://backend:8000` хранить в перменной окружения
+  + close http://localhost/backend:8000/chat
+  + to justify your choices during the evaluation
+  + настроить раздачу статики
+  + remove volumes: - ./backend:/app
+  + We set DJANGO_SETTINGS_MODULE in the .env, docker-compose and Dockerfile. Then, we set it again: os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings'). This appears to protect us from forgetting to set this variable in the .env, but it seems redundant in our case. May I remove os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')?
