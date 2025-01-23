@@ -404,7 +404,7 @@
     - "http": django_asgi_app обрабатывает (обычный обработчик Django, **встроенный?**)
     - "websocket": AllowedHostsOriginValidator(AuthMiddlewareStack(URLRouter(websocket_urlpatterns))) обрабатывает, `websocket_urlpatterns` из `chat/routing.py`: перенаправлять на `ChatConsumer`, обрабатывается через Django Channels
 * **среда `AppRegistry`** управляет регистрацией приложений и моделей
-* **Django Debug Toolbar**: интерфейс для отслеживания различных аспектов работы проекта, включая middleware
+* **Django Debug Toolbar**: отслеживание работы проекта, включая middleware
 * **включить HTTP/2 ?**
  
 ### django в целом
