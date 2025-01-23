@@ -670,7 +670,7 @@
 * группа маршрутов (эндпоинтов), клиент использует для взаимодействия с сервером
 * определяются в `urls.py`
 * определяются в View-классах или функциях
-  + классы, которые наследуют от `APIView`, `GenericViewSet`, `ViewSet`
+  + классы, наследущие от `APIView`, `GenericViewSet`, `ViewSet`
 * `routing.py` маршруты WebSocket
   + каждый WebSocket-путь = отдельное API
   + WebSocket - часть API
@@ -1123,7 +1123,7 @@
     - если сертификат отсутствует или самоподписан, браузер может блокировать подключение WebSocket
 
 ### подключить статические файлы
-* CSS, JavaScript, изображения
+* CSS, JavaScript, изображения, шрифты
 * CSS-OM = дереао как DOM
 * bootstrap готовые стили
   - можно создавать кастомные на основе н их
@@ -1185,8 +1185,8 @@
       - ./frontend/static:/app/frontend/static
   ```
 * В разработке (DEBUG = True), статика обслуживается самим Django
-  + достаточно просто запустить python manage.py runserver
-* В продакшене (DEBUG = False)
+  + достаточно запустить python manage.py runserver
+* В **продакшене (DEBUG = False)**
   + настроить раздачу статики через collectstatic и веб-сервер Nginx
   + сделать collectstatic
   + настроить сервер для раздачи статических файлов
@@ -1209,10 +1209,16 @@
   - CSS будет находиться внутри этой папки
   - а Django отдаёт или проксирует статику (или Nginx)
   - settings.py: STATIC_URL = '/static/', STATICFILES_DIRS = [ # ... ]: статика берётся из папки frontend/dist или build
-  -Django подхватывает статические файлы из фронтенд
+  - Django подхватывает статические файлы из фронтенд
   - в Django-шаблоне либо нет упоминания о стилях, либо там просто <div id="root"></div> (для React)
   - стили приходят с фронтенда (собранный **бандл**)
   - Запустите приложение, DevTools, Network, запрос к файлу .css: http://localhost:3000/... = отдельный дев-сервер фронтенда  
+* `{% load static %}` загружает статические файлы, помогает Django найти и сгенерировать путь к файлам
+  + из STATICFILES_DIRS = [BASE_DIR / "static"] (у нас нету)
+  + STATIC_ROOT = BASE_DIR / "staticfiles"
+    - для продакшена
+    - **nginx обслуживает статические файлы из этой директории**
+  + в папке `app/static/` каждого зарегистрированного приложения Django
 
 ### manage static files (e.g. images, JavaScript, CSS)
 * https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -1327,10 +1333,9 @@
     - подключиться к другому компьютеру в кластере через его внутреннее доменное имя школы, добавить это в nginx.conf, чтобы веб-сервер разрешал связываться с вами в этом домене, а также на стороне django
 
 ### Dockefiles
-* `PYTHONPATH` переменная окружения
+* `PYTHONPATH` переменная окружения - удалили
   + где Python ищет директории с модулями, кастомные библиотеки, пакеты при импорте
   + `PYTHONPATH` `export PYTHONPATH="/mnt/md0/42/14_ft_transendence/backend:$PYTHONPATH"`
-  + удалили
 + PYTHONUNBUFFERED нужна
 * не рекомендуется 
   ```dockerfile
@@ -1581,3 +1586,4 @@
 * `http://backend:8000` хранить в перменной окружения
 * close http://localhost/backend:8000/chat
 * to justify your choices during the evaluation
+* настроить раздачу статики
