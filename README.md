@@ -31,15 +31,29 @@
 
 ![1-1](https://github.com/user-attachments/assets/e6a157ea-b278-493e-9649-6a361614deac)
 
+### устройствыо проекта
+* CSR client-side rendering / SSR server-side rendering
+  + CSR данные загружаются на клиентскую сторону, HTML генерируется динамически с помощью JavaScript
+  + SSR сервер генерирует и отправляет готовый HTML на клиентскую сторону, каждый запрос требует пересоздания всей страницы на сервере
+  + server side rendering is not a good idea: генерация HTML на сервере не является хорошей идеей
+  + SSR может быть медленным, сервер должен выполнить обработку данных и сгенерировать страницу каждый раз, когда поступает запрос 
+  + if we do it in the front it's easy:
+    - сервер отправляет данные (JSON, ...)
+    - клиент с помощью JavaScript генерирует HTML на основе полученных данных
+    - не требуется повторная генерация страниц на сервере для каждого запроса
+  + it is almost front-end
+  + if we do this module - power-ups for AI are obligatory (so it is back end part)
+    - для модуля AI требуется бэкенд (сложная обработка данных, вычисления, доступ к серверным ресурсам)
+* rendering
+  + для фронтенда: = рендеринг HTML-шаблонов или динамически обновляемых данных через JavaScript, процесс генерации и отображения контента на веб-странице
+  + для Django Views: обработка запросов и отправка ответов в разных форматах (JSON, ...) через API
+  + в Django REST Framework (API): процесс обработки запросов и создания ответов в виде JSON, XML или других форматов
+    - DRF автоматически обрабатывает рендеринг
+  + для Django Channels: передача данных пользователю в реальном времени через протокол WebSocket
+
 ### frontend nginx server
 * try using **bolt.new** it's better at frontend
   + the ui is fire here
-* **server side rendering is not a good idea**
-  + it's just gonna take a lot of time
-  + I have no idea how to do it
-  + if we do it in the front it's easy
-  + it is almost front-end
-  + if we do this module - power-ups for AI are obligatory (so it is back end part)
 * **game customization** it's just gonna be front
   + like custom colors custom map
 * подписывается на **WebSocket-каналы**
@@ -57,12 +71,6 @@
 * фронт самописный или с использованием минимальных библиотек (jQuery, Bootstrap, ...), не на SPA-фреймворке
 * балансировщик нагрузки (если много сообщений, **что будет**?)
 * **Bootstrap toolkit**
-* rendering
-  + для фронтенда: = рендеринг HTML-шаблонов или динамически обновляемых данных через JavaScript, процесс генерации и отображения контента на веб-странице
-  + для Django Views: обработка запросов и отправка ответов в разных форматах (JSON, ...) через API
-  + в Django REST Framework (API): процесс обработки запросов и создания ответов в виде JSON, XML или других форматов
-    - DRF автоматически обрабатывает рендеринг
-  + для Django Channels: передача данных пользователю в реальном времени через протокол WebSocket
 
 ### backend Daphne 
 * runserver 0.0.0.0:8000 => запустили Django-приложение
