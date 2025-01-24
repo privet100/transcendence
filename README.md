@@ -9,9 +9,8 @@
   + http://localhost:4444/ 
   + https://localhost:4443/
   + https://localhost:4443/chat
-    - HTTP-запрос для загрузки веб-страницы чата (HTML, CSS, JavaScript)
+    - HTTP-запрос для загрузки страницы (HTML, CSS, JavaScript)
   + ws://localhost:4443/ws/chat/<roomName>/
-    - ws-запрос для работы реального времени внутри чата
     - Ws-запрос отправляется на URL /ws/chat/ (настроен в routing.py)
   + http://localhost:8000/admin
   + https://tr.naurzalinov.me/users/
