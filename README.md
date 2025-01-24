@@ -592,122 +592,8 @@
   + `GET /chat/rooms/<room_id>/messages/` — получить сообщения из комнаты
   + `POST /chat/rooms/<room_id>/messages/` — отправить сообщение
 * endpoints в `urls.py`:
-  + callback/
-    logout/
-    login/
-    auth/email/
-    signup/
-    auth/callback
-    profile/
-    ...
 * команда Django `python manage.py show_urls` список эндпоинтов
-  ```
-  /       
-  /admin/ 
-  /admin/<app_label>/
-  /admin/<url>    
-  /admin/auth/group/
-  /admin/auth/group/<path:object_id>/
-  /admin/auth/group/<path:object_id>/change/
-  /admin/auth/group/<path:object_id>/delete/
-  /admin/auth/group/<path:object_id>/history/
-  /admin/auth/group/add/
-  /admin/autocomplete/
-  /admin/jsi18n/
-  /admin/login/
-  /admin/logout/
-  /admin/myapp/game/
-  /admin/myapp/game/<path:object_id>/
-  /admin/myapp/game/<path:object_id>/change/
-  /admin/myapp/game/<path:object_id>/delete/
-  /admin/myapp/game/<path:object_id>/history/
-  /admin/myapp/game/add/
-  /admin/myapp/tournament/
-  /admin/myapp/tournament/<path:object_id>/
-  /admin/myapp/tournament/<path:object_id>/change/
-  /admin/myapp/tournament/<path:object_id>/delete/
-  /admin/myapp/tournament/<path:object_id>/history/
-  /admin/myapp/tournament/add/
-  /admin/myapp/userprofile/
-  /admin/myapp/userprofile/<path:object_id>/
-  /admin/myapp/userprofile/<path:object_id>/change/
-  /admin/myapp/userprofile/<path:object_id>/delete/
-  /admin/myapp/userprofile/<path:object_id>/history/
-  /admin/myapp/userprofile/add/
-  /admin/password_change/
-  /admin/password_change/done/
-  /admin/r/<int:content_type_id>/<path:object_id>/
-  /auth/auth/callback
-  /auth/auth/email/
-  /auth/callback
-  /auth/callback/ 
-  /auth/email/
-  /auth/login/
-  /auth/logout/
-  /auth/profile/
-  /auth/signup/
-  /callback/
-  /chat/
-  /chat/<str:room_name>/
-  /game/<int:id>/
-  /login/
-  /logout/
-  /profile/
-  /signup/
-  /tour/<int:id>/
-  /user/<int:id>/
-  /user_42/<int:user_id>/
-  /users/
-  /users_42/
-  ```
 * `grep -r "path(" backend/`, `grep -r "re_path(" backend/`
-  ```
-  login/
-  callback/
-  logout/
-  login/
-  auth/email
-  signup/
-  auth/callback
-  profile/
-  ''
-  ""
-  ws/chat/(?P<room_name>\w+)/$"
-  <str:room_name>/
-  admin/
-  auth/
-  chat/
-  user_42/<int:user_id>/
-  users_42/
-  users/
-  user/<int:id> /
-  tour/<int:id>/
-  game/<int:id>/
-  r"^api-auth/"
-  r"ws/chat/(?P<room_name>\w+)/$
-  ```
-* `myproject.urls` - `URLconf` - Django tried these URL patterns, in this order:
-  ```
-  admin/
-  auth/
-  chat/
-  [name='index']
-  callback/ [name='callback']
-  logout/ [name='logout_view']
-  login/ [name='loginemail']
-  auth/email/ [name='authemail']
-  signup/ [name='signup']
-  auth/callback [name='oauth_callback']
-  profile/ [name='profile']
-  user_42/<int:user_id>/ [name='get_user_42']
-  users_42/ [name='get_all_users_42']
-  users/ [name='get_all_userprofiles']
-  user/<int:id>/ [name='user-detail']
-  tour/<int:id>/ [name='tournament-detail']
-  game/<int:id>/ [name='game-detail']
-  You’re seeing this error because you have DEBUG = True in your Django settings file.
-  Change that to False, and Django will display a standard 404 page
-  ```
 
 ### F12 concole
 * лучше всего в chrome
@@ -746,11 +632,8 @@
     - сначала пришло как спам, а потом появилось само по себе после нескольких писем
     - со стороны Django это происходит, Gmail изменил условия две недели назад, с тех пор это стало проблемой
 
-
-### db (PostgreSQL)
-* СУБД (база данных) для хранения пользователей, сообщений, данных о матчах в Pong, статистики, ...
-* том db_data, чтобы не терять БД при перезапуске
-* доступен внутри сети Docker по адресу db:5432
+### db PostgreSQL
+* СУБД для хранения пользователей, сообщений, данных о матчах в Pong, статистики, ...
 * `psql -U myuser -d mydatabase` `\dt`
   ```
    Schema |                Name                | Type  | Owner  
@@ -898,6 +781,33 @@
   + **сохраняет** данные на диск для предотвращения потери данных после перезапуска, чего нет в `LocMemCache`
   + Поддержка TTL (времени жизни записей)
   + Подходит не только для кэширования, но **и для других задач (сессии, Pub/Sub, очереди)**
+* django cahce framework
+  Django API для кэширования данных
+  ```
+  cache.set('my_key', 'some_value', timeout=60)
+  value = cache.get('my_key')
+  ```
+* django REST Framework
+  + кэшировать ответы API, особенно если API возвращает одинаковые данные для множества пользователей
+  + можно использовать кэширование на уровне вьюх или сериализаторов
+  + настроить кэширование для представлений API: если данные уже есть в кэше, они будут возвращены из Redis, если данных нет в кэше, они будут получены из базы данных и затем кэшированы
+    ```
+    class MyAPI(APIView):
+        def get(self, request):
+            data = cache.get('my_api_data')
+            if not data:
+                data = expensive_query_to_db()  # Долгий запрос к базе данных
+                cache.set('my_api_data', data, timeout=60*15)  # Кэшируем на 15 минут
+            return Response(data)
+     ```
+* django channels
+  + redis = брокер сообщений для передачи сообщений между различными экземплярами Django
+  + redis = брокер сообщений для обмена данными между клиентом и сервером
+  + CHANNEL_LAYERS: позволяет Django Channels использовать Redis для обмена сообщениями через WebSocket или другие каналы
+    - redis= очередь для сообщений, которые могут быть отправлены клиентам
+    - reids = механизм синхронизации для разных процессов или серверов
+  + redis для создания очередей задач (для обмена задачами между различными частями приложения, такими как обработка сообщений или фоновые задачи)
+  + redis для кэширования промежуточных результатов в асинхронных операциях (промежуточные результаты обработки WebSocket-соединений)
 
 ### Channel Layers 
 * использует Redis (или другой бэкенд) для обмена сообщениями между экземплярами Django
