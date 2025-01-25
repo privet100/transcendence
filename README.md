@@ -1,6 +1,7 @@
 
 * **WORKDIR /app** не нужно
 * **Use ARG to define build-time variables ARG API_KEY**
+* **webhook cerf**
 * docker-compose up --build
   + пересобрать образы -> Django подхватывает изменения (если настроен **hot-reload**), фронтенд тоже
 * https://github.com/bakyt92/14_ft_transendence
@@ -88,8 +89,7 @@
   + код внутри {} исполняется в django, он выполняет и заново отправляет html
   + не надо: в завимисости от какого-то условия, показываем или нет какие-то части страницы
 * проверить: в контейнере `nginx -t`
-  + увидите
-    ```
+  + ```
     nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
     nginx: configuration file /etc/nginx/nginx.conf test is successful
     ```
@@ -98,7 +98,7 @@
 * SSL Labs - проверить корректность настройки SSL
 * убедитесь, что перенаправления работают как ожидается:
   + `curl -I http://localhost:4444` должен вернуть статус 301 с заголовком Location: https://localhost:4443/...
-  + `curl -I https://localhost:4443` должен вернуть `HTTP/1.1 200 OK`
+  + `curl -I --insecure https://localhost:4443` должен вернуть `HTTP/1.1 200 OK`
 
 ### backend Daphne 
 * runserver 0.0.0.0:8000 => запустили Django-приложение
