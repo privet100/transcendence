@@ -86,6 +86,12 @@
   + меняется с помощью js
   + код внутри {} исполняется в django, он выполняет и заново отправляет html
   + не надо: в завимисости от какого-то условия, показываем или нет какие-то части страницы
+* проверить: в контейнере `nginx -t`
+  + увидите
+    ```
+    nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+    nginx: configuration file /etc/nginx/nginx.conf test is successful
+    ```
 
 ### backend Daphne 
 * runserver 0.0.0.0:8000 => запустили Django-приложение
