@@ -1,4 +1,5 @@
 
+* **WORKDIR /app** не нужно
 * docker-compose up --build
   + пересобрать образы -> Django подхватывает изменения (если настроен **hot-reload**), фронтенд тоже
 * https://github.com/bakyt92/14_ft_transendence
