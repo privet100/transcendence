@@ -69,6 +69,22 @@
 * фронт самописный или с использованием минимальных библиотек (jQuery, Bootstrap, ...), не на SPA-фреймворке
 * балансировщик нагрузки (если много сообщений, **что будет**?)
 * **Bootstrap toolkit**
+* в модели пользователя сохраняю аватарки
+  + у фронтэнда есть требования какие нибудь к аватаркам или они могут сами отрисовывать?
+  + вдруг пользователь сохранит свою фотографию 1000 х 1000 пикселей, на фронте вы сможете сами отрисовать аватарку ?
+* `frontend/static/app.js`
+  + вызывает fetch к бэкенду
+    + `fetch('http://backend:8000/api/user-data/')`: HTTP-запрос к эндпоинту `/api/user-data/`, получить данные JSON 
+  + динамически обновляет DOM, это не делает приложение SPA-фреймворком — это обычная логика на чистом JS
+  + динамическое обновления пользовательского интерфейса с использованием данных, полученных от бэка 
+  + `response => response.json()` конвертирует ответ JSON от сервера в объект JavaScript
+  + после получения данных пользовательский интерфейс (UI) обновляется без перезагрузки страницы
+  + `async/await` для упрощения чтения
+* single-page (SPA)
+  + один html
+  + меняется с помощью js
+  + код внутри {} исполняется в django, он выполняет и заново отправляет html
+  + не надо: в завимисости от какого-то условия, показываем или нет какие-то части страницы
 
 ### backend Daphne 
 * runserver 0.0.0.0:8000 => запустили Django-приложение
@@ -121,20 +137,17 @@
 * `settings.py` конфиг Django на высоком уровне
   + `BASE_DIR` корневая папка проекта  
   + `SECRET_KEY` 
-  + `ALLOWED_HOSTS` список доменов/IP, с которых разрешён доступ к этому Django-приложению (когда `DEBUG=False`)
-  + `INSTALLED_APPS` список приложений: стандартные (admin, auth, sessions), кастомные: `myapp`, `chat`, `api_42`, ...
+  + `ALLOWED_HOSTS` список доменов/IP, с которых разрешён доступ к Django-приложению (когда `DEBUG=False`)
+  + `INSTALLED_APPS`
   + `ROOT_URLCONF` главный файл роутов `myproject/urls.py`, роутинг для всего проекта
   + `TEMPLATES` настройки для системы шаблонов Django (**HTML-шаблоны**, какие контекстные процессоры использовать)
   + `REST_FRAMEWORK` **рендеры**, по умолчанию JSON и **Browsable API**
   + `AUTH_PASSWORD_VALIDATORS` валидаторы сложности паролейл (минимальная длина, отсутствие совпадений с логином, ...)
 * myproject/
-  + конфигурация проекта Django, настройки, корневой маршрутизатор, запуск, управление проектом
-  + `asgi.py` точка входа Django для запуска приложения
+  + конфигурация Django, корневой маршрутизатор, запуск, управление проектом
   + `__init__.py` делает папку пакетом Python
 * `models.py` структура данных, связи (пользователи, профили, чаты, сообщения, статистика игры, ...)
-* `url.py` какие функции обрабатывают какие пути, какие запросы обрабатывает по адресу endpoint
-* `views.py` функции  для обработки endpoint, запросов
-* `apps.py` (регистрация приложения в Django)
+* `apps.py` регистрация приложения в Django
 * **`migrations/`** (миграции для моделей)
 * Управление пользователями и аутентификацией
   + встроенная система аутентификации и модель пользователей
@@ -289,6 +302,8 @@
     - APIView, ViewSet и связанные с ними классы
     - DefaultRouter и маршрутизация
     - Стандартные модули сериализации и аутентификации DRF
+* автоматичесая документация эндпоинтов
+  + **Browsable API** в `http://localhost:8000/api/` или `http://localhost:8000/` список эндпоинтов **не работает**
    
 ### django channels framework
 * Django Channels и Django REST Framework (DRF)
@@ -358,7 +373,8 @@
 * не требует добавления приложения в INSTALLED_APPS
 * настраивается в файле settings.py, CACHES
 
-### приложения Django app - отдельные модульные приложения внутри проекта INSTALLED_APPS
+### приложения Django app 
+* отдельные модульные приложения внутри проекта INSTALLED_APPS
 * myapp
   + логика пользовательских профилей, турниров, историй игр
   + модель `UserProfile`: инфо о пользователе, друзьях, аватаре, дате последней активности, ...
@@ -581,14 +597,8 @@
 * `routing.py` маршруты WebSocket
   + каждый WebSocket-путь = отдельное API
   + WebSocket - часть API
-* могут быть
-  + стандартными REST (GET, POST, PUT, DELETE)
-  + асинхронными WebSocket (через Django Channels)
 * несколько эндпоинтов реализуют функциональность API
-  + приложение `api_42`
-  + приложение `chat`
   + приложение `auth_app`, для каждого из них 5–10 эндпоинтов
-  + для аутентификации/авторизации (École 42, ...)
   + для работы с чатом (отправка, получение сообщений)
   + для обработки пользовательских данных (профиль, друзья, статистика)
   + для игры (управление матчами, таблицы лидеров)
@@ -598,9 +608,9 @@
     - маршрут `GET /users/<id>/`
     - маршрут `DELETE /users/<id>/`
     - маршрут API чата = группа всех маршрутов, связанных с чатом
-* **создаются с помощью Django REST Framework (DRF)**
 * список API http://localhost:8000/swagger/, http://localhost:8000/redoc/
   + если настроена автоматическая документация (Swagger, Redoc)  
+* с точки зрения реализации api есть **class based views** (не сильно сложнее) / functions based views (проще)
 
 ### Endpoint 
 * конкретный маршрут, связанный с API
@@ -1557,64 +1567,20 @@ pip show django
     - через Django sessions - как только юзер делает какое либо действие, Джанго сохраняет в базу данных дату этого действия 
     - через redis - но не понял как это работает
 * **Карточка Bootstrap**  
-* в модели пользователя сохраняю аватарки
-  + у фронт энда есть требования какие нибудь к аватаркам или они могут сами отрисовывать?
-  + вдруг пользователь сохранит свою фотографию 1000 х 1000 пикселей, на фронте вы сможете сами отрисовать аватарку ?
-* с точки зрения реализации api есть **class based views** (не сильно сложнее) / functions based views (проще)
 * предупредить клиента, что его ждет игра, даже если он в чате
 * валидация данных
   + **js на фронте читает инпут, проверяет с помощью regex**
   + функция make password django шифрует на сервере ?
   + бэк ещё раз валидирует (проверяет пароль и почту, ...) **зачем два раза** 
-* change the post requests to a websocket. The idea was to make the game and chat using websockets (native browser api), it’s beneficial in terms of continuous data streaming
-* `frontend/static/app.js`
-  + вызывает fetch к бэкенду и затем динамически обновляет DOM, это не делает приложение SPA-фреймворком — это обычная логика на чистом JS
-  + связь между бекендом и фронтендом
-  + получать информацию о пользователе (имя, статус, аватар, результаты игр)
-  + динамическое обновления пользовательского интерфейса с использованием данных, полученных от бэка 
-  + `fetch('http://backend:8000/api/user-data/')`: HTTP-запрос к эндпоинту бекенда `/api/user-data/`, получить данные JSON о пользователе
-  + `response => response.json()` конвертирует ответ JSON от сервера в объект JavaScript
-  + после получения данных пользовательский интерфейс (UI) (отображение имени пользователя, аватарка, настройки) обновляется без перезагрузки страницы
-  + улушение: динамически изменять DOM:
-    ```
-    fetch('http://backend:8000/api/user-data/')
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('username').innerText = data.username;
-            document.getElementById('avatar').src = data.avatar_url;
-        })
-        .catch(error => console.error('Error:', error));
-    ```
-  + улучшене: `async/await` для упрощения чтения:
-     ```
-     async function fetchUserData() {
-         try {
-             const response = await fetch('http://backend:8000/api/user-data/');
-             const data = await response.json();
-             console.log('User Data:', data);
-         } catch (error) {
-             console.error('Error fetching user data:', error);
-         }
-     }
-     fetchUserData();
-* вы должны предупредить клиента о том, что его ждет игра, даже если он в чате
-* single-page (SPA)
-  + сайт одностраничный
-  + один html файл
-  + этот html меняется с помощью js
-  + не надо: server side rendering подход
-  + не надо: django html - server-side code
-  + не надо: в завимисости от какого-то условия, показываем или нет какие-то части страницы
-  + надо: js
-  + надо: код внутри {} исполняется в django, если условие выполняется (например, есть юзер), он выполняет и заново отправляет html
+* change the post requests to a websocket
+  + to make the game and chat using websockets (**native browser api**)
+  + it’s beneficial in terms of continuous data streaming
 * virtual environment не нужно, потому что у нас докер
 * pass reset будет ли?
 * change username, email будет ли?
 * to set up the database **для чего?**
   + `python manage.py makemigrations`, `python manage.py migrate`
   + create a superuser `python manage.py createsuperuser`
-* DRF - автоматичесая документация эндпоинтов
-  + Browsable API (встроенная документация): в `http://localhost:8000/api/` или `http://localhost:8000/` список эндпоинтов
 
 ### test
 * bakyt: Endpoint that are formed from views.py from different folders
@@ -1795,6 +1761,4 @@ pip show django
   + `http://backend:8000` хранить в перменной окружения
   + close http://localhost/backend:8000/chat
   + to justify your choices during the evaluation
-  + настроить раздачу статики
-  + remove volumes: - ./backend:/app
   + We set DJANGO_SETTINGS_MODULE in the .env, docker-compose and Dockerfile. Then, we set it again: os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings'). This appears to protect us from forgetting to set this variable in the .env, but it seems redundant in our case. May I remove os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')?
