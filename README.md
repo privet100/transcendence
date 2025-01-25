@@ -1,5 +1,6 @@
 
 * **Use ARG to define build-time variables ARG API_KEY**
+* **ASGI_APPLICATION = "myproject.asgi.application" установили, зачем CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]**
 * docker-compose up --build
   + пересобрать образы -> Django подхватывает изменения (если настроен **hot-reload**), фронтенд тоже
 * https://github.com/bakyt92/14_ft_transendence
@@ -140,6 +141,37 @@
     - если снчала импортировать модели или др компоненты Django, будут ошибки, связанные с незарегистрированными приложениями или моделями
 * AllowedHostsOriginValidator проверяет допустимые хосты для WebSocket-соединений
 * DJANGO_SETTINGS_MODULE = mysite.settings **настройки** для компонент Django (**ORM**, middleware, ...)
+* обрабатывать статические файлы
+  + `runserver` автоматически
+  + Daphne не обслуживает статические файлы
+    - это ASGI-сервер, который предназначен для работы в production или в связке с Nginx
+    - `settings.py` `STATIC_URL = '/static/'`
+    - `settings.py` `STATIC_ROOT = '/path/to/staticfiles/'`
+    - `python manage.py collectstatic`
+    - убедитесь, что собранные файлы попали в `STATIC_ROOT`
+    - Daphne может обрабатывать статические файлы без внешнего сервера: добавьте WhiteNoise
+    - убедитесь, что `myproject/asgi.py` корректно ссылается на проект
+  + часто Nginx обрабатывает статические файлы
+
+#### Пример конфигурации Nginx:
+```nginx
+server {
+    listen 80;
+
+    location /static/ {
+        alias /app/staticfiles/;  # Путь к STATIC_ROOT
+    }
+
+    location / {
+        proxy_pass http://backend:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+Собрав все файлы через `collectstatic` и настроив либо WhiteNoise, либо Nginx, проблема с CSS будет решена.
+
 
 ### django в целом
 * Бэкенд-фреймворк
