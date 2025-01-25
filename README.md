@@ -1,5 +1,6 @@
 
 * **WORKDIR /app** не нужно
+* **Use ARG to define build-time variables ARG API_KEY**
 * docker-compose up --build
   + пересобрать образы -> Django подхватывает изменения (если настроен **hot-reload**), фронтенд тоже
 * https://github.com/bakyt92/14_ft_transendence
@@ -92,6 +93,12 @@
     nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
     nginx: configuration file /etc/nginx/nginx.conf test is successful
     ```
+* логи `docker logs your-nginx-container`
+  + или внутри контейнера `tail -f /var/log/nginx/error.log`
+* SSL Labs - проверить корректность настройки SSL
+* убедитесь, что перенаправления работают как ожидается:
+  + `curl -I http://localhost:4444` должен вернуть статус 301 с заголовком Location: https://localhost:4443/...
+  + `curl -I https://localhost:4443` должен вернуть `HTTP/1.1 200 OK`
 
 ### backend Daphne 
 * runserver 0.0.0.0:8000 => запустили Django-приложение
