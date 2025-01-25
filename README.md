@@ -1442,6 +1442,7 @@ pip show django
   + в кеше, настроенном в `CACHES`
   + кеш с fallback на базу данных: сначала пишутся в кеш, а при его недоступности — в базу данных
   + на стороне клиента в зашифрованных cookie
+* **http2**
 
 ### cookie, localStorage, sessionStorage
 | **Свойство**        | **Cookie**                            | **LocalStorage**      | **SessionStorage**             |
