@@ -626,30 +626,6 @@
   + Проверьте сохранение сообщений в базе данных
   + Развертывание `nginx.conf` location /ws/ 
 
-### F12 concole
-* лучше всего в chrome
-* colsole.log для отладки
-* кнопка квадратик со стрелкой слево вверх - смотреть код элемента html
-* js менять параметры html, class = стиль
-* open chat
-  + на странице login, profile, решгистрация нету
-  + во время игры - статистика, другой user
-  + приложение, отправлятть сообщение через js !!
-  + django channel = framework для сокетов
-* прямо в консоли можно писать js и пробовать
-  + ndetermined - то, что ыернула функция
-  + можно создать переменные (let)
-    - они сохраняются в обхекте window (window = браузер)
-    - x или window.x досутп к этой переменной
-  + api браузера - геолокация, звук, 
-* Application - хранилище:
-  + куки
-  + local storage
-  + ... storage
-* Netrwork
-  + запросы от фронта
-  + document = html
-
 ### db PostgreSQL
 * СУБД для хранения пользователей, сообщений, данных о матчах в Pong, статистики, ...
 * `psql -U myuser -d mydatabase` `\dt`
@@ -965,22 +941,20 @@ Channel Layers предоставляют готовую инфраструкт�
   + сервер использует HTTPS с действительным SSL-сертификатом
     - если сертификат отсутствует или самоподписан, браузер может блокировать подключение WebSocket
 
-### подключить статические файлы (html, js, CSS, bootstrap.min.css,изображения, шрифты)
-* чтобы все CSS-файлы находились/отдавались там, где ожидает браузер
-* Django при DEBUG = True during development 
+### статические файлы (html, js, CSS, bootstrap.min.css,изображения, шрифты)
+* чтобы все файлы находились/отдавались там, где ожидает браузер
+* Django при DEBUG = True (development) 
   + you use django.contrib.staticfiles
   + `python manage.py runserver`
-* manually serve user-uploaded media files from MEDIA_ROOT during development
+* manually serve user-uploaded media files from MEDIA_ROOT (development)
   + use django.views.static.serve() view
   + don’t have django.contrib.staticfiles in INSTALLED_APPS
-  + if STATIC_URL = static/, you can do this by adding urlpatterns = [ ] to your urls.py `static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)`
-    - works only if the given prefix is local (e.g. static/) and not a URL (e.g. http://static.example.com/)
-    - only serves the actual STATIC_ROOT folder
-    - doesn’t perform static files discovery like django.contrib.staticfiles
-    - served the static files via a wrapper at the WSGI application layer => static files requests do not pass through the normal middleware chain
-* `Daphne` не обслуживает статические файлы по умолчанию
-  + может делать это без внешнего сервера с библиотекой WhiteNoise
-* в production через Nginx
+  + if STATIC_URL = static/, addi urlpatterns = [ ] to your urls.py `static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)`
+    - works only if the prefix is local (static/) and not a URL (http://static.example.com/)
+  + only serves STATIC_ROOT folder
+  + doesn’t perform static files discovery like django.contrib.staticfiles
+  + serves static files via a wrapper at the WSGI application layer => static files requests do not pass through the middleware chain
+* Nginx (production)
   + Django looks for static files in static/ directory inside your apps and in STATICFILES_DIRS
   + STATICFILES_DIRS = os.path.join(BASE_DIR, '../frontend/static') a list of directories
   + INSTALLED_APPS: 'django.contrib.staticfiles'
@@ -1000,38 +974,35 @@ Channel Layers предоставляют готовую инфраструкт�
     - собирает статические файлы, включая админку и DRF, в директорию STATIC_ROOT, staticfiles/admin/
     - **при подготовке к продакшн**
     - **не трекается гитом**
+  + при разработке можете напрямую ссылаться на файлы через URL
   + в Django-шаблоне либо нет упоминания о стилях, стили приходят с фронтенда (собранный **бандл**)
   + настроить nginx и `docker-compose.yml`
   + файлы в `staticfiles` имеют права доступа, доступны для **чтения** Nginx
-* {% load static %}
-  + загрузка стат файлов Django (table.css)
-  + у нас кажется не будет этого
+* `Daphne` не обслуживает статические файлы по умолчанию
+  + может делать это без внешнего сервера с библиотекой WhiteNoise
 * проверка 
-  + `https://localhost:4443/staticfiles/base.css` (Статические файлы обслуживаются чер Daphne) публичный, стат файлы доступны на сайте (`STATIC_URL = '/static/'`)
-  + перейдите по адресу приложения, оно работает (Динамические запросы проксируются через Nginx к Daphne)
+  + `https://localhost:4443/staticfiles/base.css` (стат файлы обслуживаются чер Daphne) публичный, файлы доступны на сайте (`STATIC_URL = '/static/'`)
+  + перейдите по адресу приложения (Динамические запросы проксируются через Nginx к Daphne)
   + `https://localhost:4443/admin/`
-  + загружается ли CSS в браузере (`F12 → Network → CSS`).
   + убедитесь, что собранные файлы попали в `STATIC_ROOT` `/usr/share/nginx/html/staticfiles/`
     - `docker exec -it <backend_container> ls /app/staticfiles/`
   + порпобовать `python manage.py collectstatic` внутри контейнера  
   + `docker exec -it <frontend_container> nginx -t` корректность конфигурации Nginx перед перезапуском
-  + при разработке можете напрямую ссылаться на файлы через URL
   + `docker-compose logs frontend`
   + `docker-compose logs backend`
-  + Иногда, если CSS-файл уже кэшировался, браузер может залипать на устаревшей версии
-    - проверьте, обновляется ли версия CSS (добавить некий ?v=123 в конце ссылки или очистить кэш браузера)
+  + если CSS-файл уже кэшировался, браузер может залипать на устаревшей версии
+    - проверьте, обновляется ли версия CSS (добавить ?v=123 в конце ссылки или очистить кэш браузера)
   + `python manage.py findstatic css/popUpChat.css`
   + DevTools → Network
     - какой путь к CSS-файлу пытается загрузить браузер
     - код ответа 200 = OK
     - код ответа 404: Django не может найти файл, конечный URL, по которому файл запрашивается
-  + Запустите приложение, DevTools, Network, запрос к файлу .css: http://localhost:3000/... = отдельный дев-сервер фронтенда  
-  + running tests that use actual HTTP requests instead of the built-in testing client
-    - i.e. when using the built-in LiveServerTestCase
-    - the static assets need to be served along the rest of the content so the test environment reproduces the real one as faithfully as possible
-    - LiveServerTestCase has only very basic static file-serving functionality: It assumes the static content has already been collected under STATIC_ROOT
+  + запрос к http://localhost:3000/...css. = отдельный дев-сервер фронтенда  
+  + running tests that use actual HTTP requests instead of the **built-in testing client** (the built-in LiveServerTestCase)
+    - the test environment reproduces the real one as faithfully as possible
+    - LiveServerTestCase only assumes the static content has been collected under STATIC_ROOT
     - staticfiles ships its own django.contrib.staticfiles.testing.StaticLiveServerTestCase, a subclass of the built-in one that has the ability to transparently serve all the assets during execution of these tests in a way very similar to what we get at development time with DEBUG = True, i.e. without having to collect them using collectstatic first
-* creating my_app subdirectory, don not put static files in my_app/static/
+* creating my_app subdirectory, do not put static files in my_app/static/
   + Django uses the first static file it finds whose name matches
   + if you had a static file with the same name in a different application, Django is unable to distinguish between them
 * CSS-OM = дереао как DOM
@@ -1549,7 +1520,36 @@ Channel Layers предоставляют готовую инфраструкт�
 * Убедитесь, что WebSocket работает: проверьте консоль браузера (F12) на наличие ошибок
 * Проверьте `docker-compose logs`
 
+### js
+* js менять параметры html, class = стиль
+* open chat
+  + на странице login, profile, решгистрация нету
+  + во время игры - статистика, другой user
+  + приложение, отправлятть сообщение через js !!
+  + django channel = framework для сокетов
+* {% load static %}
+  + загрузка стат файлов Django (table.css)
+  + у нас кажется не будет этого
+
 ### Organisation
+* F12 concole
+  + лучше всего в chrome
+  + colsole.log отладка
+  + кнопка квадратик со стрелкой слево вверх - код элемента html
+* прямо в консоли можно писать js и пробовать
+  + гndetermined - что вернула функция
+  + можно создать переменные (let)
+    - они сохраняются в объекте window (window = браузер)
+    - x или window.x досутп к этой переменной
+  + api браузера - геолокация, звук
+* Application - хранилище:
+  + куки
+  + local storage
+  + ... storage
+* Netrwork
+  + запросы от фронта
+  + document = html
+
 * на всю линейку продуктов от JetBrains бесплатная студенческая лицензия, для фронта WebStorm
 * the password for the django admin panel ...
 * docker vscode extension 
