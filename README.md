@@ -1,4 +1,3 @@
-
 * **ASGI_APPLICATION = "myproject.asgi.application" установили, зачем CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]**
 * docker-compose up --build
   + пересобрать образы -> Django подхватывает изменения (если настроен **hot-reload**), фронтенд тоже
@@ -985,6 +984,7 @@ Channel Layers предоставляют готовую инфраструкт�
     - помогает корректно обслуживать статические файлы для /admin
     - позволяет на фронтенд добавлять версии или хеши в имена файлов, чтобы избежать кеширования старых версий
     - можно убрать `django.contrib.staticfiles`, если cтат файлы обслуживаются  через `/static` через Nginx без Django, нет потребности в `collectstatic`, SPA, фронтенд отделен от бэкенда
+    - для простоты настройки и администрирования оставляют `django.contrib.staticfiles`, даже если обслуживание статических файлов будет происходить через Nginx
   + пути к статическим файлам в `nginx.conf` и `settings.py` совпадают
     - `STATIC_URL = '/staticfiles/'`
     - `STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')`
@@ -997,6 +997,23 @@ Channel Layers предоставляют готовую инфраструкт�
     - копируются в staticfiles/admin/…
     - **при подготовке проекта к продакшн**
     - **не трекается гитом**
+  + в Django-шаблоне либо нет упоминания о стилях, стили приходят с фронтенда (собранный **бандл**)
+* Serving static files during development
+  + If you use django.contrib.staticfiles as explained above, runserver will do this automatically when DEBUG = True
+  + If you don’t have django.contrib.staticfiles in INSTALLED_APPS, you can manually serve static files using the django.views.static.serve() view
+    - not suitable for production use
+    - For some common deployment strategies, see How to deploy static files
+    - if STATIC_URL = static/, you can do this by adding the following snippet to your urls.py:
+      ```
+      from django.conf import settings
+      from django.conf.urls.static import static
+      urlpatterns = [
+          # ... the rest of your URLconf goes here ...
+      ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+      ```
+    - This helper function works only in debug mode and only if the given prefix is local (e.g. static/) and not a URL (e.g. http://static.example.com/).
+   - this helper function only serves the actual STATIC_ROOT folder; it doesn’t perform static files discovery like django.contrib.staticfiles
+    - static files are served via a wrapper at the WSGI application layer. As a consequence, static files requests do not pass through the normal middleware chain
 * проверка 
   + `https://localhost:4443/staticfiles/base.css` (Статические файлы обслуживаются чер Daphne) публичный, стат файлы доступны на сайте (`STATIC_URL = '/static/'`)
   + перейдите по адресу приложения, оно работает (Динамические запросы проксируются через Nginx к Daphne)
@@ -1016,6 +1033,11 @@ Channel Layers предоставляют готовую инфраструкт�
     - какой путь к CSS-файлу пытается загрузить браузер
     - код ответа 200 = OK
     - код ответа 404: Django не может найти файл, конечный URL, по которому файл запрашивается
+  + Запустите приложение, DevTools, Network, запрос к файлу .css: http://localhost:3000/... = отдельный дев-сервер фронтенда  
+  + When running tests that use actual HTTP requests instead of the built-in testing client (i.e. when using the built-in LiveServerTestCase) the static assets need to be served along the rest of the content so the test environment reproduces the real one as faithfully as possible, but LiveServerTestCase has only very basic static file-serving functionality: It doesn’t know about the finders feature of the staticfiles application and assumes the static content has already been collected under STATIC_ROOT.
+    - Because of this, staticfiles ships its own django.contrib.staticfiles.testing.StaticLiveServerTestCase, a subclass of the built-in one that has the ability to transparently serve all the assets during execution of these tests in a way very similar to what we get at development time with DEBUG = True, i.e. without having to collect them using collectstatic first.
+* putting our static files directly in my_app/static/ (rather than creating another my_app subdirectory) - a bad idea
+  + Django will use the first static file it finds whose name matches, and if you had a static file with the same name in a different application, Django would be unable to distinguish between them. We need to be able to point Django at the right one, and the best way to ensure this is by namespacing them. That is, by putting those static files inside another directory named for the application itself
 
 * STATICFILES_DIRS
   + Если используете нестандартную структуру (**папка статических файлов во фронтенде**), пропишите:
@@ -1023,76 +1045,18 @@ Channel Layers предоставляют готовую инфраструкт�
   + STATICFILES_DIRS = os.path.join(BASE_DIR, '../frontend/static') Путь к статическим файлам
   + STATICFILES_DIRS = родительская директория, содержит статические файлы
   + STATICFILES_DIRS = os.path.join(BASE_DIR, '..', 'frontend', 'static')  # путь до frontend/static
+  + In addition to using a static/ directory inside your apps, you can define a list of directories (STATICFILES_DIRS) in your settings file where Django will also look for static files. For example:
 * {% load static %}, чтобы Django обработал ссылку {% static ... %}
   + статические файлы Django (table.css) настроены для загрузки через {% static %}
-* фронтенд 
-  - хранятся и собираются логика, стили и ресурсы (CSS,...)
-  - фронтенд — отдельное SPA
-  - результат сборки (папка build или dist) может отдаёся отдельным сервером (Nginx), либо «прокидываться» через бэкенд, если вы используете Django для статики (чаще Nginx)
-  - в бэкенде только делаете API (Django REST **или** Channels)
-  - после сборки CSS окажется в итоговых бандлах (или отдельных .css файлах)
-  - Django будет их отдавать или (чаще) их будет отдавать Nginx
-  - бэкенд отдает данные (API)
-  - frontend/ (с package.json, src/, node_modules/ и т.п.)
-  - CSS будет находиться внутри этой папки
-  - а Django отдаёт или проксирует статику (или Nginx)
-  - settings.py: STATIC_URL = '/static/', STATICFILES_DIRS = [ # ... ]: статика берётся из папки frontend/dist или build
-  - Django подхватывает статические файлы из фронтенд
-  - в Django-шаблоне либо нет упоминания о стилях, либо там просто <div id="root"></div> (для React)
-  - стили приходят с фронтенда (собранный **бандл**)
-  - Запустите приложение, DevTools, Network, запрос к файлу .css: http://localhost:3000/... = отдельный дев-сервер фронтенда  
 * `{% load static %}` загружает статические файлы, помогает Django найти и сгенерировать путь к файлам
   + из STATICFILES_DIRS = [BASE_DIR / "static"] (у нас нету)
   + STATIC_ROOT = BASE_DIR / "staticfiles"
     - для продакшена
     - **nginx обслуживает статические файлы из этой директории**
   + в папке `app/static/` каждого зарегистрированного приложения Django
-* для простоты настройки и администрирования часто оставляют `django.contrib.staticfiles`, даже если обслуживание статических файлов будет происходить через Nginx
 * CSS-OM = дереао как DOM
 * bootstrap готовые стили, можно создавать кастомные на основе н их
 
-#### Configuring static files
-  + settings file: `STATIC_URL = "static/"`
-  + templates: use the static template tag to build the URL for the given relative path using the configured staticfiles STORAGES alias:
-      ```
-      {% load static %}
-      <img src="{% static 'my_app/example.jpg' %}" alt="My image">
-      ```
-  + Store your static files in a folder called static in your app. For example my_app/static/my_app/example.jpg
-  + You’ll also need to actually serve the static files.
-    - During development, if you use django.contrib.staticfiles, this will be done automatically by runserver when DEBUG is set to True (see django.contrib.staticfiles.views.serve()). 
-    - This method is inefficient and insecure, so it is unsuitable for production.
-    - See How to deploy static files for proper strategies to serve static files in production environments.
-* Your project will probably also have static assets that aren’t tied to a particular app
-  + In addition to using a static/ directory inside your apps, you can define a list of directories (STATICFILES_DIRS) in your settings file where Django will also look for static files. For example:
-  ```
-  STATICFILES_DIRS = [
-      BASE_DIR / "static",
-      "/var/www/static/",
-  ]
-  ```
-  + See the documentation for the STATICFILES_FINDERS setting for details on how staticfiles finds your files
-
-#### Static file namespacing
-  + Now we might be able to get away with putting our static files directly in my_app/static/ (rather than creating another my_app subdirectory), but it would actually be a bad idea. Django will use the first static file it finds whose name matches, and if you had a static file with the same name in a different application, Django would be unable to distinguish between them. We need to be able to point Django at the right one, and the best way to ensure this is by namespacing them. That is, by putting those static files inside another directory named for the application itself.
-  + You can namespace static assets in STATICFILES_DIRS by specifying prefixes
-
-#### Serving static files during development
-* If you use django.contrib.staticfiles as explained above, runserver will do this automatically when DEBUG = True
-* If you don’t have django.contrib.staticfiles in INSTALLED_APPS, you can manually serve static files using the django.views.static.serve() view
-  + This is not suitable for production use
-  + For some common deployment strategies, see How to deploy static files
-  + if STATIC_URL = static/, you can do this by adding the following snippet to your urls.py:
-    ```
-    from django.conf import settings
-    from django.conf.urls.static import static
-    urlpatterns = [
-        # ... the rest of your URLconf goes here ...
-    ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    ```
-  + This helper function works only in debug mode and only if the given prefix is local (e.g. static/) and not a URL (e.g. http://static.example.com/).
-  + this helper function only serves the actual STATIC_ROOT folder; it doesn’t perform static files discovery like django.contrib.staticfiles
-  + static files are served via a wrapper at the WSGI application layer. As a consequence, static files requests do not pass through the normal middleware chain
 
 #### Serving files uploaded by a user during development
 * During development, you can serve user-uploaded media files from MEDIA_ROOT using the django.views.static.serve() view
@@ -1108,9 +1072,6 @@ Channel Layers предоставляют готовую инфраструкт�
     ```
   + This helper function works only in debug mode and only if the given prefix is local (e.g. media/) and not a URL (e.g. http://media.example.com/).
 
-#### Testing
-* When running tests that use actual HTTP requests instead of the built-in testing client (i.e. when using the built-in LiveServerTestCase) the static assets need to be served along the rest of the content so the test environment reproduces the real one as faithfully as possible, but LiveServerTestCase has only very basic static file-serving functionality: It doesn’t know about the finders feature of the staticfiles application and assumes the static content has already been collected under STATIC_ROOT.
-* Because of this, staticfiles ships its own django.contrib.staticfiles.testing.StaticLiveServerTestCase, a subclass of the built-in one that has the ability to transparently serve all the assets during execution of these tests in a way very similar to what we get at development time with DEBUG = True, i.e. without having to collect them using collectstatic first.
 
 #### Deployment
 * django.contrib.staticfiles provides a convenience management command for gathering static files in a single directory
@@ -1121,16 +1082,13 @@ Channel Layers предоставляют готовую инфраструкт�
 
 ### некоторые файлы
 * .map (Source Map) для отладки кода в браузере
-  + При минификации или транспиляции CSS/JS (например, при сборке проекта) ваш изначальный код (в данном случае CSS) превращается в более оптимизированную сжатую версию
+  + При минификации или транспиляции CSS/JS (например, при сборке) ваш код CSS превращается в более оптимизированную сжатую версию
   + Source Map хранит сопоставление (mapping) между сжатым (скомпилированным) кодом и исходным кодом
-  + позволяет браузерным DevTools (Chrome, Firefox и др.) «понимать», какой изначальный CSS, SCSS или другой препроцессор соответствует конкретной строчке в минифицированном файле
-  + bootstrap-grid.css — часть Bootstrap, отвечающая за сетку (Grid system)
-  + соответствующий bootstrap-grid.css.map нужен, чтобы при отладке вы видели правильные номера строк и селекторы из исходных файлов Bootstrap, а не из минифицированной (или объединённой) версии
-  + .map-файлы нужны при разработке или отладке, чтобы видеть исходный код
-  + в продакшен версии многие отключают генерацию .map-файлов, чтобы уменьшить вес приложения и не раскрывать детали исходного кода
-  + иногда их оставляют, чтобы упрощать диагностику проблем прямо на продакшен-сервере
+  + информация о соответствии строк исходного и минифицированного кода
+  + чтобы видеть исходный код
+  + позволяет браузерным DevTools (Chrome, Firefox и др.) понимать, какой изначальный CSS или другой препроцессор соответствует конкретной строчке в минифицированном файле
+  + в продакшен отключают генерацию .map-файлов, чтобы уменьшить вес приложения и не раскрывать детали исходного кода (иногда оставляют, чтобы упрощать диагностику проблем прямо на продакшен-сервере)
   + если не хотите, чтобы пользователи имели доступ к отладочной информации, .map-файлы можно не заливать на сервер или закрывать их от внешнего доступа
-  + в большинстве случаев там только информация о соответствии строк исходного и минифицированного кода
 
 ### запуск проекта
 * For Ecole42 computers, I've updated settings of docker file in DEV branch 
@@ -1421,6 +1379,7 @@ Channel Layers предоставляют готовую инфраструкт�
   + кеш с fallback на базу данных: сначала пишутся в кеш, а при его недоступности — в базу данных
   + на стороне клиента в зашифрованных cookie
 * **http2**
+
 ### autorisation
 * При каждом запросе клиент отправляет токен в заголовке Authorization: Bearer <token>
 * Сервер декодирует токен, проверяет его подпись, использует данные для авторизации (например, проверяет роль пользователя)
