@@ -980,6 +980,9 @@ Channel Layers предоставляют готовую инфраструкт�
   + настроить nginx
   + настроить `docker-compose.yml`
   + файлы в `staticfiles` имеют правильные права доступа и доступны для чтения Nginx
+  + STATICFILES_DIRS = os.path.join(BASE_DIR, '../frontend/static') Путь к статическим файлам frontend/static
+    - a list of directories
+    - where Django will also look for static files in addition to using a static/ directory inside your apps, you can define 
   + INSTALLED_APPS:  'django.contrib.staticfiles'
     - помогает корректно обслуживать статические файлы для /admin
     - позволяет на фронтенд добавлять версии или хеши в имена файлов, чтобы избежать кеширования старых версий
@@ -998,6 +1001,18 @@ Channel Layers предоставляют готовую инфраструкт�
     - **при подготовке проекта к продакшн**
     - **не трекается гитом**
   + в Django-шаблоне либо нет упоминания о стилях, стили приходят с фронтенда (собранный **бандл**)
+* During development, you can serve user-uploaded media files from MEDIA_ROOT using the django.views.static.serve() view
+  + This is not suitable for production use
+  + For some common deployment strategies, see How to deploy static files
+  + For example, if MEDIA_URL = media/, you can do this by adding the following snippet to your ROOT_URLCONF:
+    ```
+    from django.conf import settings
+    from django.conf.urls.static import static
+    urlpatterns = [
+        # ... the rest of your URLconf goes here ...
+    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    ```
+  + This helper function works only in debug mode and only if the given prefix is local (e.g. media/) and not a URL (e.g. http://media.example.com/).
 * Serving static files during development
   + If you use django.contrib.staticfiles as explained above, runserver will do this automatically when DEBUG = True
   + If you don’t have django.contrib.staticfiles in INSTALLED_APPS, you can manually serve static files using the django.views.static.serve() view
@@ -1036,61 +1051,31 @@ Channel Layers предоставляют готовую инфраструкт�
   + Запустите приложение, DevTools, Network, запрос к файлу .css: http://localhost:3000/... = отдельный дев-сервер фронтенда  
   + When running tests that use actual HTTP requests instead of the built-in testing client (i.e. when using the built-in LiveServerTestCase) the static assets need to be served along the rest of the content so the test environment reproduces the real one as faithfully as possible, but LiveServerTestCase has only very basic static file-serving functionality: It doesn’t know about the finders feature of the staticfiles application and assumes the static content has already been collected under STATIC_ROOT.
     - Because of this, staticfiles ships its own django.contrib.staticfiles.testing.StaticLiveServerTestCase, a subclass of the built-in one that has the ability to transparently serve all the assets during execution of these tests in a way very similar to what we get at development time with DEBUG = True, i.e. without having to collect them using collectstatic first.
-* putting our static files directly in my_app/static/ (rather than creating another my_app subdirectory) - a bad idea
+
+* putting our static files in my_app/static/ (rather than creating another my_app subdirectory) - a bad idea
   + Django will use the first static file it finds whose name matches, and if you had a static file with the same name in a different application, Django would be unable to distinguish between them. We need to be able to point Django at the right one, and the best way to ensure this is by namespacing them. That is, by putting those static files inside another directory named for the application itself
 
-* STATICFILES_DIRS
-  + Если используете нестандартную структуру (**папка статических файлов во фронтенде**), пропишите:
-  BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-  + STATICFILES_DIRS = os.path.join(BASE_DIR, '../frontend/static') Путь к статическим файлам
-  + STATICFILES_DIRS = родительская директория, содержит статические файлы
-  + STATICFILES_DIRS = os.path.join(BASE_DIR, '..', 'frontend', 'static')  # путь до frontend/static
-  + In addition to using a static/ directory inside your apps, you can define a list of directories (STATICFILES_DIRS) in your settings file where Django will also look for static files. For example:
-* {% load static %}, чтобы Django обработал ссылку {% static ... %}
+* {% load static %}
+  + чтобы Django обработал ссылку {% static ... %}
   + статические файлы Django (table.css) настроены для загрузки через {% static %}
-* `{% load static %}` загружает статические файлы, помогает Django найти и сгенерировать путь к файлам
+  + загружает статические файлы, помогает Django найти и сгенерировать путь к файлам
   + из STATICFILES_DIRS = [BASE_DIR / "static"] (у нас нету)
   + STATIC_ROOT = BASE_DIR / "staticfiles"
     - для продакшена
-    - **nginx обслуживает статические файлы из этой директории**
   + в папке `app/static/` каждого зарегистрированного приложения Django
+
 * CSS-OM = дереао как DOM
 * bootstrap готовые стили, можно создавать кастомные на основе н их
-
-
-#### Serving files uploaded by a user during development
-* During development, you can serve user-uploaded media files from MEDIA_ROOT using the django.views.static.serve() view
-  + This is not suitable for production use
-  + For some common deployment strategies, see How to deploy static files
-  + For example, if MEDIA_URL = media/, you can do this by adding the following snippet to your ROOT_URLCONF:
-    ```
-    from django.conf import settings
-    from django.conf.urls.static import static
-    urlpatterns = [
-        # ... the rest of your URLconf goes here ...
-    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    ```
-  + This helper function works only in debug mode and only if the given prefix is local (e.g. media/) and not a URL (e.g. http://media.example.com/).
-
-
-#### Deployment
-* django.contrib.staticfiles provides a convenience management command for gathering static files in a single directory
-*  `STATIC_ROOT = "/var/www/example.com/static/"`where you’d like to serve these files
-* `python manage.py collectstatic` copy all files from your static folders into the STATIC_ROOT
-* Use a web server of your choice to serve the files
-  + How to deploy static files covers some common deployment strategies for static files
-
-### некоторые файлы
-* .map (Source Map) для отладки кода в браузере
+* .map (Source Map) 
   + При минификации или транспиляции CSS/JS (например, при сборке) ваш код CSS превращается в более оптимизированную сжатую версию
   + Source Map хранит сопоставление (mapping) между сжатым (скомпилированным) кодом и исходным кодом
   + информация о соответствии строк исходного и минифицированного кода
-  + чтобы видеть исходный код
-  + позволяет браузерным DevTools (Chrome, Firefox и др.) понимать, какой изначальный CSS или другой препроцессор соответствует конкретной строчке в минифицированном файле
+  + видеть исходный код для отладки кода в браузере
+  + позволяет DevTools понимать, какой изначальный CSS или другой препроцессор соответствует конкретной строчке в минифицированном файле
   + в продакшен отключают генерацию .map-файлов, чтобы уменьшить вес приложения и не раскрывать детали исходного кода (иногда оставляют, чтобы упрощать диагностику проблем прямо на продакшен-сервере)
-  + если не хотите, чтобы пользователи имели доступ к отладочной информации, .map-файлы можно не заливать на сервер или закрывать их от внешнего доступа
+  + если не хотите, чтобы пользователи имели доступ к отладочной информации, .map-файлы можно не заливать на сервер или закрывать от внешнего доступа
 
-### запуск проекта
+### запуск
 * For Ecole42 computers, I've updated settings of docker file in DEV branch 
   + порт, который нужен для django, занят
   + поменять номера портов в docker и в nginx
@@ -1690,3 +1675,4 @@ Channel Layers предоставляют готовую инфраструкт�
   + to justify your choices during the evaluation
   + We set DJANGO_SETTINGS_MODULE in the .env, docker-compose and Dockerfile. Then, we set it again: os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings'). This appears to protect us from forgetting to set this variable in the .env, but it seems redundant in our case. May I remove os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')?
   + DEBUG = False
+  + в продакшен отключают генерацию .map-файлов
