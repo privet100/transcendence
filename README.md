@@ -143,7 +143,9 @@
 * DJANGO_SETTINGS_MODULE = mysite.settings **настройки** для компонент Django (**ORM**, middleware, ...)
 * обрабатывать статические файлы
   + `runserver` автоматически
-  + Daphne не обслуживает статические файлы
+  + обычно статические файлы обслуживаются Nginx
+    - эффективно
+   + Daphne не обслуживает статические файлы
     - это ASGI-сервер, который предназначен для работы в production или в связке с Nginx
     - `settings.py` `STATIC_URL = '/static/'`
     - `settings.py` `STATIC_ROOT = '/path/to/staticfiles/'`
@@ -151,7 +153,380 @@
     - убедитесь, что собранные файлы попали в `STATIC_ROOT`
     - Daphne может обрабатывать статические файлы без внешнего сервера: добавьте WhiteNoise
     - убедитесь, что `myproject/asgi.py` корректно ссылается на проект
-  + часто Nginx обрабатывает статические файлы
+    - . Однако, если вы всё же хотите, чтобы **Daphne** (ASGI-сервер) отвечал за обработку статических файлов, вы можете воспользоваться библиотекой **WhiteNoise**. Она позволяет вашему Django-приложению обслуживать статические файлы напрямую через ASGI-сервер.
+
+## Шаги для Настройки Daphne для Обработки Статических Файлов с Помощью WhiteNoise
+
+### 1. Установка WhiteNoise
+
+Добавьте **WhiteNoise** в ваши зависимости. В файле `requirements.txt` добавьте строку:
+
+```
+whitenoise
+```
+
+Или установите его напрямую с помощью `pip`:
+
+```bash
+pip install whitenoise
+```
+
+### 2. Настройка Django для Использования WhiteNoise
+
+#### a. Обновите `settings.py`
+
+Добавьте `WhiteNoiseMiddleware` в список `MIDDLEWARE` вашего Django-проекта. Обычно это делается сразу после `SecurityMiddleware`.
+
+```python
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Добавьте эту строку
+    # ... остальные middleware ...
+]
+```
+
+#### b. Настройте Пути для Статических Файлов
+
+Убедитесь, что в вашем `settings.py` правильно настроены переменные `STATIC_URL` и `STATIC_ROOT`:
+
+```python
+STATIC_URL = '/staticfiles/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+```
+
+#### c. Включите Сжатие и Кэширование (Опционально)
+
+Для оптимизации производительности вы можете включить сжатие и кэширование статических файлов:
+
+```python
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+```
+
+### 3. Сборка Статических Файлов
+
+В вашем Dockerfile уже присутствует команда для сбора статических файлов:
+
+```dockerfile
+RUN python manage.py collectstatic --noinput
+```
+
+Убедитесь, что эта команда выполняется успешно при сборке образа Docker.
+
+### 4. Обновление Dockerfile (Оптимизированный Пример)
+
+Ваш текущий Dockerfile для Nginx можно оптимизировать, объединяя несколько инструкций `COPY` для уменьшения количества слоёв. Однако, поскольку вы хотите, чтобы Daphne обслуживал статические файлы, убедитесь, что Nginx не перекрывает запросы к `/staticfiles/`. Ниже приведён оптимизированный Dockerfile для вашего Backend (Django + Daphne):
+
+#### Dockerfile для Backend (Django + Daphne)
+
+```dockerfile
+# Используем официальный образ Python 3.10
+FROM python:3.10
+
+# Устанавливаем переменные окружения
+ENV PYTHONUNBUFFERED=1
+ENV DJANGO_SETTINGS_MODULE=myproject.settings
+
+# Устанавливаем рабочую директорию внутри контейнера
+WORKDIR /app
+
+# Копируем только requirements.txt для установки зависимостей
+COPY requirements.txt .
+
+# Устанавливаем зависимости и удаляем requirements.txt после установки
+RUN pip install --no-cache-dir -r requirements.txt && rm requirements.txt
+
+# Копируем остальные файлы проекта
+COPY . .
+
+# Собираем статические файлы Django
+RUN python manage.py collectstatic --noinput
+
+# Открываем порт 8000
+EXPOSE 8000
+
+# Указываем команду для запуска приложения через Daphne (ASGI сервер)
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]
+```
+
+### 5. Обновление Dockerfile для Nginx (Оптимизированный Пример)
+
+Если вы всё же хотите, чтобы Nginx обслуживал только динамические запросы, убедитесь, что он **не** перехватывает запросы к `/staticfiles/`. Однако, в вашем случае вы хотите, чтобы Daphne обрабатывал эти запросы, поэтому оставьте Nginx как прокси для динамических запросов.
+
+Вот оптимизированный Dockerfile для Nginx:
+
+```dockerfile
+FROM nginx:latest
+
+# Копируем конфигурационный файл Nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Копируем статические файлы (если необходимо)
+COPY static/ /usr/share/nginx/html/static/
+
+# Копируем SSL-сертификаты и ключи
+COPY etc/nginx/ssl/ /etc/nginx/ssl/
+
+# Открываем порты 80 и 443
+EXPOSE 80 443
+```
+
+### 6. Обновление Конфигурации Nginx
+
+Чтобы Nginx не обрабатывал запросы к `/staticfiles/`, убедитесь, что ваш `nginx.conf` не содержит блоков, перехватывающих этот путь. Вместо этого, Nginx будет проксировать все запросы к Daphne, за исключением тех, что касаются статических файлов, которые будут обрабатываться WhiteNoise.
+
+#### Пример `nginx.conf`:
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name yourdomain.com;
+
+    ssl_certificate /etc/nginx/ssl/certificate.crt;
+    ssl_certificate_key /etc/nginx/ssl/private.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'HIGH:!aNULL:!MD5';
+    ssl_prefer_server_ciphers on;
+
+    location /ws/ {
+        proxy_pass http://backend:8000;  # ASGI-server
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        access_log /var/log/nginx/ws_access.log;
+        error_log /var/log/nginx/ws_error.log debug;
+    }
+
+    location / {
+        proxy_pass http://backend:8000;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# Redirect HTTP to HTTPS
+server {
+    listen 80;
+    server_name yourdomain.com;
+    return 301 https://$host$request_uri;
+}
+```
+
+**Важно:** В данном конфигурационном файле **не** указан блок `location /staticfiles/`, поэтому запросы к `/staticfiles/` будут обрабатываться вашим Django-приложением через Daphne и WhiteNoise.
+
+### 7. Обновление `docker-compose.yml`
+
+Убедитесь, что ваш `docker-compose.yml` правильно настроен для взаимодействия между Frontend, Backend, Redis и Database. Ниже приведён пример с учётом оптимизированных Dockerfile:
+
+```yaml
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    networks:
+      - pingpong-network
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    restart: always
+    ports: 
+      - "8000:8000"  # Для разработки, закройте в продакшене
+    # volumes:
+    #  - ./backend:/app
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4444:80"
+      - "4443:443"
+    depends_on:
+      - backend
+    networks:
+      - pingpong-network
+    restart: always
+
+  redis:
+    image: redis:latest
+    networks:
+      - pingpong-network
+    restart: always
+    # ports:
+    #  - '6800:6379'
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - pingpong-network
+    restart: always
+
+volumes:
+  db_data:
+
+networks:
+  pingpong-network:
+    driver: bridge
+```
+
+### 8. Проверка и Тестирование
+
+После внесения всех изменений необходимо проверить, что:
+
+1. **Статические файлы обслуживаются через Daphne:**
+   - Откройте браузер и перейдите по адресу `https://localhost:4443/staticfiles/your_static_file.css` (замените на актуальный путь к файлу).
+   - Убедитесь, что файл загружается корректно.
+
+2. **Динамические запросы проксируются через Nginx к Daphne:**
+   - Перейдите по адресу вашего приложения и убедитесь, что оно работает как ожидается.
+
+3. **Логи не содержат ошибок:**
+   - Проверьте логи Nginx и Daphne для выявления возможных ошибок:
+     ```bash
+     docker-compose logs frontend
+     docker-compose logs backend
+     ```
+
+### 9. Альтернативный Подход: Использование Nginx для Обслуживания Статических Файлов
+
+Хотя можно настроить Daphne для обслуживания статических файлов, **рекомендуется использовать Nginx** для этой цели в производственной среде. Это обеспечит лучшую производительность и безопасность. Если вы всё же хотите использовать Nginx для обслуживания статических файлов, выполните следующие шаги:
+
+#### a. Обновите `nginx.conf`, чтобы обслуживать `/staticfiles/` через Nginx
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name yourdomain.com;
+
+    ssl_certificate /etc/nginx/ssl/certificate.crt;
+    ssl_certificate_key /etc/nginx/ssl/private.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'HIGH:!aNULL:!MD5';
+    ssl_prefer_server_ciphers on;
+
+    location /staticfiles/ {
+        alias /usr/share/nginx/html/staticfiles/;
+    }
+
+    location /ws/ {
+        proxy_pass http://backend:8000;  # ASGI-server
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        access_log /var/log/nginx/ws_access.log;
+        error_log /var/log/nginx/ws_error.log debug;
+    }
+
+    location / {
+        proxy_pass http://backend:8000;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# Redirect HTTP to HTTPS
+server {
+    listen 80;
+    server_name yourdomain.com;
+    return 301 https://$host$request_uri;
+}
+```
+
+#### b. Обновите Dockerfile для Nginx
+
+Убедитесь, что статические файлы копируются в `/usr/share/nginx/html/staticfiles/`:
+
+```dockerfile
+FROM nginx:latest
+
+# Копируем конфигурационный файл Nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Копируем статические файлы
+COPY staticfiles/ /usr/share/nginx/html/staticfiles/
+
+# Копируем SSL-сертификаты и ключи
+COPY etc/nginx/ssl/ /etc/nginx/ssl/
+
+# Открываем порты 80 и 443
+EXPOSE 80 443
+```
+
+#### c. Обновите Docker Compose для Frontend
+
+Убедитесь, что статические файлы доступны в правильной директории:
+
+```yaml
+frontend:
+  build:
+    context: ./frontend
+    dockerfile: Dockerfile
+  ports:
+    - "4444:80"
+    - "4443:443"
+  depends_on:
+    - backend
+  networks:
+    - pingpong-network
+  restart: always
+```
+
+#### d. Сборка и Развёртывание
+
+Соберите и запустите контейнеры:
+
+```bash
+docker-compose down
+docker-compose up -d --build
+```
+
+### 10. Итог
+
+Хотя вы можете настроить **Daphne** для обслуживания статических файлов с помощью **WhiteNoise**, **рекомендуется использовать Nginx** для этой задачи в производственной среде. Это обеспечит лучшую производительность и безопасность вашего приложения.
+
+**Если вы всё же хотите, чтобы Daphne обрабатывал статические файлы:**
+
+1. **Установите и настройте WhiteNoise в вашем Django-приложении.**
+2. **Убедитесь, что Nginx не перехватывает запросы к `/staticfiles/`.**
+3. **Проверьте, что все статические файлы корректно собираются и доступны через Daphne.**
+
+**Если вы решите использовать Nginx для обслуживания статических файлов:**
+
+1. **Настройте Nginx для обслуживания статических файлов из соответствующей директории.**
+2. **Обновите Dockerfile и `docker-compose.yml` для правильного копирования и размещения статических файлов.**
+3. **Убедитесь, что Nginx корректно проксирует только динамические запросы к Daphne.**
+
+В любом случае, **тщательно протестируйте** вашу конфигурацию после внесения изменений, чтобы убедиться, что все части вашего приложения работают корректно.
+
+Если у вас возникнут дополнительные вопросы или потребуется помощь с конкретными аспектами настройки, пожалуйста, дайте знать!
+
+
 
 #### Пример конфигурации Nginx:
 ```nginx
@@ -172,6 +547,695 @@ server {
 
 Собрав все файлы через `collectstatic` и настроив либо WhiteNoise, либо Nginx, проблема с CSS будет решена.
 
+### проблема бакыта
+* `runserver` Django самостоятельно обслуживает статические файлы, включая CSS
+* `Daphne` не обслуживает статические файлы по умолчанию, CSS не загружается
+* Вариант 1: Использование Nginx для Обслуживания Статических Файлов
+
+server {
+    listen 443 ssl;
+    server_name yourdomain.com;
+
+    ssl_certificate /etc/nginx/ssl/certificate.crt;
+    ssl_certificate_key /etc/nginx/ssl/private.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'HIGH:!aNULL:!MD5';
+    ssl_prefer_server_ciphers on;
+
+    # Обслуживание статических файлов Django
+
+**Пояснения:**
+- **`location /staticfiles/`**: Обслуживает статические файлы из директории `/app/staticfiles/`, куда они были собраны командой `collectstatic`.
+- **`proxy_pass http://backend:8000;`**: Проксиирует все остальные запросы к Daphne.
+
+### 5. Обновите `docker-compose.yml`
+
+Настройте `docker-compose.yml` так, чтобы Nginx мог обслуживать статические файлы и проксировать запросы к Backend.
+
+#### Пример `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    networks:
+      - pingpong-network
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    restart: always
+    expose: 
+      - "8000"  # Доступно только внутри сети
+    volumes:
+      - static_volume:/app/staticfiles
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4444:80"
+      - "4443:443"
+    depends_on:
+      - backend
+    networks:
+      - pingpong-network
+    volumes:
+      - static_volume:/app/staticfiles  # Общий volume для статических файлов
+    restart: always
+
+  redis:
+    image: redis:latest
+    networks:
+      - pingpong-network
+    restart: always
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - pingpong-network
+    restart: always
+
+volumes:
+  db_data:
+  static_volume:
+
+networks:
+  pingpong-network:
+    driver: bridge
+```
+
+**Пояснения:**
+- **`static_volume`**: Создаёт общий volume для статических файлов, доступный как Backend, так и Frontend (Nginx).
+- **`expose: "8000"`**: Делает порт `8000` Backend доступным только внутри Docker-сети, предотвращая прямой доступ извне.
+- **`ports` в Frontend**: Публикует порты `80` и `443` Nginx на хост-машине через `4444` и `4443` соответственно.
+
+### 6. Перезапустите Docker Compose
+
+После внесения всех изменений выполните:
+
+```bash
+docker-compose down
+docker-compose up -d --build
+```
+
+### 7. Проверка Работы
+
+1. **Проверьте Статические Файлы:**
+
+   Перейдите по адресу `https://localhost:4443/staticfiles/admin/css/base.css` (замените на актуальный путь) и убедитесь, что CSS-файл доступен и загружается без ошибок.
+
+2. **Проверьте Админку:**
+
+   Перейдите по адресу `https://localhost:4443/admin/` и убедитесь, что админка отображается корректно с применёнными стилями.
+
+3. **Проверьте Другие Страницы:**
+
+   Убедитесь, что все страницы вашего приложения отображаются корректно и статические файлы загружаются без ошибок.
+
+4. **Проверьте Логи:**
+
+   Просмотрите логи Nginx и Backend для выявления возможных ошибок:
+
+   ```bash
+   docker-compose logs frontend
+   docker-compose logs backend
+   ```
+
+---
+
+## Вариант 2: Использование WhiteNoise для Обслуживания Статических Файлов через Daphne
+
+Если вы предпочитаете, чтобы **Daphne** обслуживал статические файлы без использования Nginx, можно использовать библиотеку **WhiteNoise**. Однако этот подход менее эффективен по сравнению с использованием Nginx и рекомендуется только для небольших проектов или для упрощённых конфигураций.
+
+### Шаги:
+
+### 1. Установите WhiteNoise
+
+Добавьте `whitenoise` в ваши зависимости. В файле `requirements.txt` добавьте строку:
+
+```
+whitenoise
+```
+
+Или установите его напрямую с помощью `pip`:
+
+```bash
+pip install whitenoise
+```
+
+### 2. Настройте Django для Использования WhiteNoise
+
+#### a. Обновите `settings.py`
+
+Добавьте `WhiteNoiseMiddleware` в список `MIDDLEWARE` вашего Django-проекта. Обычно это делается сразу после `SecurityMiddleware`.
+
+```python
+# settings.py
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Добавьте эту строку
+    # ... остальные middleware ...
+]
+
+STATIC_URL = '/staticfiles/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Опционально: включите сжатие и кэширование
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+```
+
+#### b. Соберите Статические Файлы
+
+Убедитесь, что команда `collectstatic` выполняется корректно и все статические файлы находятся в `STATIC_ROOT` (`staticfiles`).
+
+### 3. Обновите Dockerfile для Backend (Django + Daphne)
+
+Ваш Dockerfile уже подходит для использования WhiteNoise. Убедитесь, что `staticfiles` собираются и доступны.
+
+```dockerfile
+FROM python:3.10
+
+ENV PYTHONUNBUFFERED=1
+ENV DJANGO_SETTINGS_MODULE=myproject.settings
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Копируем только requirements.txt для установки зависимостей
+COPY requirements.txt .
+
+# Устанавливаем зависимости и удаляем requirements.txt после установки
+RUN pip install --no-cache-dir -r requirements.txt && rm requirements.txt
+
+# Копируем остальные файлы проекта
+COPY . .
+
+# Собираем статические файлы Django
+RUN python manage.py collectstatic --noinput
+
+# Открываем порт 8000
+EXPOSE 8000
+
+# Запускаем Daphne (ASGI сервер)
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]
+```
+
+### 4. Обновите Конфигурацию Nginx (Frontend)
+
+Если вы используете Nginx как прокси для Frontend, убедитесь, что он **не обрабатывает** запросы к `/staticfiles/`, чтобы они проходили через Daphne и обслуживались WhiteNoise.
+
+#### Пример `nginx.conf`:
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name yourdomain.com;
+
+    ssl_certificate /etc/nginx/ssl/certificate.crt;
+    ssl_certificate_key /etc/nginx/ssl/private.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'HIGH:!aNULL:!MD5';
+    ssl_prefer_server_ciphers on;
+
+    # Прокси для WebSocket и остальных запросов к Daphne
+    location /ws/ {
+        proxy_pass http://backend:8000;  # ASGI-server
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        access_log /var/log/nginx/ws_access.log;
+        error_log /var/log/nginx/ws_error.log debug;
+    }
+
+    # Прокси для всех остальных запросов к Daphne
+    location / {
+        proxy_pass http://backend:8000;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# Перенаправление HTTP на HTTPS
+server {
+    listen 80;
+    server_name yourdomain.com;
+    return 301 https://$host$request_uri;
+}
+```
+
+**Пояснения:**
+- **Отсутствие блока `location /staticfiles/`:** Это означает, что запросы к `/staticfiles/` будут проксироваться к Daphne, который обслуживает их через WhiteNoise.
+
+### 5. Обновите `docker-compose.yml`
+
+Убедитесь, что ваш `docker-compose.yml` настроен для совместной работы Frontend и Backend.
+
+#### Пример `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    networks:
+      - pingpong-network
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    restart: always
+    expose: 
+      - "8000"  # Доступно только внутри сети
+    volumes:
+      - static_volume:/app/staticfiles
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4444:80"
+      - "4443:443"
+    depends_on:
+      - backend
+    networks:
+      - pingpong-network
+    volumes:
+      - static_volume:/app/staticfiles  # Общий volume для статических файлов
+    restart: always
+
+  redis:
+    image: redis:latest
+    networks:
+      - pingpong-network
+    restart: always
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - pingpong-network
+    restart: always
+
+volumes:
+  db_data:
+  static_volume:
+
+networks:
+  pingpong-network:
+    driver: bridge
+```
+
+**Пояснения:**
+- **`static_volume`**: Создаёт общий volume для статических файлов, доступный как Backend, так и Frontend (Nginx).
+- **`expose: "8000"`**: Делает порт `8000` Backend доступным только внутри Docker-сети, предотвращая прямой доступ извне.
+
+### 6. Перезапустите Docker Compose
+
+После внесения всех изменений выполните:
+
+```bash
+docker-compose down
+docker-compose up -d --build
+```
+
+### 7. Проверка Работы
+
+1. **Проверьте Статические Файлы:**
+
+   Перейдите по адресу `https://localhost:4443/staticfiles/admin/css/base.css` (замените на актуальный путь) и убедитесь, что CSS-файл доступен и загружается без ошибок.
+
+2. **Проверьте Админку:**
+
+   Перейдите по адресу `https://localhost:4443/admin/` и убедитесь, что админка отображается корректно с применёнными стилями.
+
+3. **Проверьте Другие Страницы:**
+
+   Убедитесь, что все страницы вашего приложения отображаются корректно и статические файлы загружаются без ошибок.
+
+4. **Проверьте Логи:**
+
+   Просмотрите логи Nginx и Backend для выявления возможных ошибок:
+
+   ```bash
+   docker-compose logs frontend
+   docker-compose logs backend
+   ```
+
+---
+
+## Вариант 2: Использование WhiteNoise для Обслуживания Статических Файлов через Daphne
+
+Если вы предпочитаете, чтобы **Daphne** обслуживал статические файлы напрямую, можно использовать библиотеку **WhiteNoise**. Однако, этот подход менее эффективен и рекомендуется только для небольших проектов или для упрощённых конфигураций.
+
+### Шаги:
+
+### 1. Установите WhiteNoise
+
+Добавьте `whitenoise` в ваши зависимости. В файле `requirements.txt` добавьте строку:
+
+```
+whitenoise
+```
+
+Или установите его напрямую:
+
+```bash
+pip install whitenoise
+```
+
+### 2. Настройте Django для Использования WhiteNoise
+
+#### a. Обновите `settings.py`
+
+Добавьте `WhiteNoiseMiddleware` в список `MIDDLEWARE` вашего Django-проекта. Обычно это делается сразу после `SecurityMiddleware`.
+
+```python
+# settings.py
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Добавьте эту строку
+    # ... остальные middleware ...
+]
+
+STATIC_URL = '/staticfiles/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Опционально: включите сжатие и кэширование
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+```
+
+#### b. Соберите Статические Файлы
+
+Убедитесь, что команда `collectstatic` выполняется корректно и все статические файлы находятся в `STATIC_ROOT` (`staticfiles`).
+
+### 3. Обновите Dockerfile для Backend (Django + Daphne)
+
+Ваш Dockerfile уже подходит для использования WhiteNoise. Убедитесь, что `staticfiles` собираются и доступны.
+
+```dockerfile
+FROM python:3.10
+
+ENV PYTHONUNBUFFERED=1
+ENV DJANGO_SETTINGS_MODULE=myproject.settings
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Копируем только requirements.txt для установки зависимостей
+COPY requirements.txt .
+
+# Устанавливаем зависимости и удаляем requirements.txt после установки
+RUN pip install --no-cache-dir -r requirements.txt && rm requirements.txt
+
+# Копируем остальные файлы проекта
+COPY . .
+
+# Собираем статические файлы Django
+RUN python manage.py collectstatic --noinput
+
+# Открываем порт 8000
+EXPOSE 8000
+
+# Запускаем Daphne (ASGI сервер)
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]
+```
+
+### 4. Настройте Конфигурацию Nginx (Frontend)
+
+Если вы используете Nginx как прокси для Frontend, убедитесь, что он **не обрабатывает** запросы к `/staticfiles/`, чтобы они проходили через Daphne и обслуживались WhiteNoise.
+
+#### Пример `nginx.conf`:
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name yourdomain.com;
+
+    ssl_certificate /etc/nginx/ssl/certificate.crt;
+    ssl_certificate_key /etc/nginx/ssl/private.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'HIGH:!aNULL:!MD5';
+    ssl_prefer_server_ciphers on;
+
+    # Прокси для WebSocket и остальных запросов к Daphne
+    location /ws/ {
+        proxy_pass http://backend:8000;  # ASGI-server
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        access_log /var/log/nginx/ws_access.log;
+        error_log /var/log/nginx/ws_error.log debug;
+    }
+
+    # Прокси для всех остальных запросов к Daphne
+    location / {
+        proxy_pass http://backend:8000;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# Перенаправление HTTP на HTTPS
+server {
+    listen 80;
+    server_name yourdomain.com;
+    return 301 https://$host$request_uri;
+}
+```
+
+**Пояснения:**
+- **Отсутствие блока `location /staticfiles/`**: Это означает, что запросы к `/staticfiles/` будут проксироваться к Daphne, который обслуживает их через WhiteNoise.
+
+### 5. Обновите `docker-compose.yml`
+
+Убедитесь, что ваш `docker-compose.yml` настроен для совместной работы Frontend и Backend.
+
+#### Пример `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    networks:
+      - pingpong-network
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    restart: always
+    expose: 
+      - "8000"  # Доступно только внутри сети
+    volumes:
+      - static_volume:/app/staticfiles
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4444:80"
+      - "4443:443"
+    depends_on:
+      - backend
+    networks:
+      - pingpong-network
+    volumes:
+      - static_volume:/app/staticfiles  # Общий volume для статических файлов
+    restart: always
+
+  redis:
+    image: redis:latest
+    networks:
+      - pingpong-network
+    restart: always
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - pingpong-network
+    restart: always
+
+volumes:
+  db_data:
+  static_volume:
+
+networks:
+  pingpong-network:
+    driver: bridge
+```
+
+**Пояснения:**
+- **`static_volume`**: Создаёт общий volume для статических файлов, доступный как Backend, так и Frontend (Nginx).
+- **`expose: "8000"`**: Делает порт `8000` Backend доступным только внутри Docker-сети, предотвращая прямой доступ извне.
+
+### 6. Перезапустите Docker Compose
+
+После внесения всех изменений выполните:
+
+```bash
+docker-compose down
+docker-compose up -d --build
+```
+
+### 7. Проверка Работы
+
+1. **Проверьте Статические Файлы:**
+
+   Перейдите по адресу `https://localhost:4443/staticfiles/admin/css/base.css` (замените на актуальный путь) и убедитесь, что CSS-файл доступен и загружается без ошибок.
+
+2. **Проверьте Админку:**
+
+   Перейдите по адресу `https://localhost:4443/admin/` и убедитесь, что админка отображается корректно с применёнными стилями.
+
+3. **Проверьте Другие Страницы:**
+
+   Убедитесь, что все страницы вашего приложения отображаются корректно и статические файлы загружаются без ошибок.
+
+4. **Проверьте Логи:**
+
+   Просмотрите логи Nginx и Backend для выявления возможных ошибок:
+
+   ```bash
+   docker-compose logs frontend
+   docker-compose logs backend
+   ```
+
+---
+
+## Дополнительные Рекомендации
+
+### 1. Проверка Пути к Статическим Файлам
+
+Убедитесь, что пути к статическим файлам в `nginx.conf` и `settings.py` совпадают.
+
+- **`settings.py`:**
+
+  ```python
+  STATIC_URL = '/staticfiles/'
+  STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+  ```
+
+- **`nginx.conf`:**
+
+  ```nginx
+  location /staticfiles/ {
+      alias /app/staticfiles/;
+  }
+  ```
+
+**Важно:** Путь в `alias` должен указывать на реальную директорию внутри контейнера Nginx, куда Docker копирует `staticfiles`.
+
+### 2. Убедитесь, Что Статические Файлы Собраны
+
+Проверьте, что команда `collectstatic` действительно собрала все необходимые файлы:
+
+```bash
+docker exec -it <backend_container> ls /app/staticfiles/
+```
+
+### 3. Убедитесь, Что Volume Монтируется Корректно
+
+Проверьте, что `static_volume` правильно монтируется как в Backend, так и в Frontend:
+
+```bash
+docker volume inspect <project_name>_static_volume
+```
+
+### 4. Используйте WhiteNoise Если Не Хотите Использовать Nginx
+
+Если вы по каким-то причинам не хотите использовать Nginx для обслуживания статических файлов, настройте WhiteNoise:
+
+1. **Убедитесь, что `WhiteNoiseMiddleware` добавлен в `settings.py`.**
+2. **Убедитесь, что `STATIC_ROOT` и `STATIC_URL` настроены корректно.**
+3. **Убедитесь, что `collectstatic` выполняется и файлы собираются.**
+
+### 5. Логи и Отладка
+
+- **Логи Nginx:** Проверяйте логи Nginx для выявления проблем с обслуживанием статических файлов.
+
+  ```bash
+  docker exec -it <frontend_container> tail -f /var/log/nginx/error.log
+  ```
+
+- **Логи Backend:** Проверяйте логи Daphne и Django.
+
+  ```bash
+  docker-compose logs backend
+  ```
+
+### 6. Проверка Прав Доступа
+
+Убедитесь, что файлы в `staticfiles` имеют правильные права доступа и доступны для чтения Nginx.
+
+### 7. Проверка Конфигурации Nginx
+
+Проверьте корректность конфигурации Nginx перед перезапуском:
+
+```bash
+docker exec -it <frontend_container> nginx -t
+```
+
+---
+
+## Заключение
+
+При использовании **Daphne** для обслуживания Django-приложения в производственной среде рекомендуется **использовать Nginx для обслуживания статических файлов**. Это обеспечивает лучшую производительность, безопасность и соответствует лучшим практикам. Если же вы всё же хотите, чтобы Daphne обслуживал статические файлы, используйте **WhiteNoise**, но помните, что этот подход менее эффективен.
+
+Следуя приведённым выше шагам, вы сможете настроить правильное обслуживание статических файлов, обеспечив корректное отображение CSS и других ресурсов в вашем приложении.
+
+Если после выполнения всех шагов проблема сохраняется, пожалуйста, предоставьте дополнительные детали о конфигурации Nginx и структуре вашего проекта, чтобы можно было дать более точные рекомендации.
 
 ### django в целом
 * Бэкенд-фреймворк
