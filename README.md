@@ -982,27 +982,30 @@ Channel Layers предоставляют готовую инфраструкт�
   + может делать это без внешнего сервера с библиотекой WhiteNoise
 * в production через Nginx
   + Django looks for static files in static/ directory inside your apps and in STATICFILES_DIRS
-  + STATICFILES_DIRS = os.path.join(BASE_DIR, '../frontend/static') - a list of directories, путь к статическим файлам frontend
+  + STATICFILES_DIRS = os.path.join(BASE_DIR, '../frontend/static') a list of directories
   + INSTALLED_APPS: 'django.contrib.staticfiles'
-    - помогает обслуживать статические файлы для /admin
-    - позволяет добавлять версии или хеши в имена файлов на фронтенд, чтобы избежать кеширования старых версий
-    - для простоты настройки и администрирования оставляют, даже если обслуживание статических файлов через Nginx
+    - обслуживает стат файлы для /admin
+    - позволяет добавлять версии, хеши в имена файлов на фронтенд, чтобы избежать кеширования старых версий
+    - для простоты настройки и администрирования оставляют
     - можно убрать, если cтат файлы обслуживаются  через `/static` Nginx, не нужен `collectstatic`, SPA, фронтенд отделен от бэкенда
   + `STATIC_URL = '/staticfiles/'`
   + `STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')`
   + `location /staticfiles/ { alias /app/staticfiles/; }` # папка внутри контейнера Nginx, куда Docker копирует
-    - совпадает со STATIC_URL 
-  + перед `collectstatic`
+    - совпадает со STATIC_URL бэкенда
+  + до `collectstatic`
     - админские CSS (`base.css`, `dashboard.css`, ...) в `django.contrib.admin`  
     - стат. файлы DRF для **browsable API** или других админ-панелей
     - `ls $(python -c "import django; print(django.__path__[0])")/contrib/admin/static/admin/css/`
   + `python manage.py collectstatic`
-    - Django собирает все статические файлы, включая админку и DRF, в директорию STATIC_ROOT, staticfiles/admin/
+    - собирает статические файлы, включая админку и DRF, в директорию STATIC_ROOT, staticfiles/admin/
     - **при подготовке к продакшн**
     - **не трекается гитом**
   + в Django-шаблоне либо нет упоминания о стилях, стили приходят с фронтенда (собранный **бандл**)
   + настроить nginx и `docker-compose.yml`
   + файлы в `staticfiles` имеют права доступа, доступны для **чтения** Nginx
+* {% load static %}
+  + загрузка стат файлов Django (table.css)
+  + у нас кажется не будет этого
 * проверка 
   + `https://localhost:4443/staticfiles/base.css` (Статические файлы обслуживаются чер Daphne) публичный, стат файлы доступны на сайте (`STATIC_URL = '/static/'`)
   + перейдите по адресу приложения, оно работает (Динамические запросы проксируются через Nginx к Daphne)
@@ -1023,21 +1026,14 @@ Channel Layers предоставляют готовую инфраструкт�
     - код ответа 200 = OK
     - код ответа 404: Django не может найти файл, конечный URL, по которому файл запрашивается
   + Запустите приложение, DevTools, Network, запрос к файлу .css: http://localhost:3000/... = отдельный дев-сервер фронтенда  
-  + When running tests that use actual HTTP requests instead of the built-in testing client (i.e. when using the built-in LiveServerTestCase) the static assets need to be served along the rest of the content so the test environment reproduces the real one as faithfully as possible, but LiveServerTestCase has only very basic static file-serving functionality: It doesn’t know about the finders feature of the staticfiles application and assumes the static content has already been collected under STATIC_ROOT.
-    - Because of this, staticfiles ships its own django.contrib.staticfiles.testing.StaticLiveServerTestCase, a subclass of the built-in one that has the ability to transparently serve all the assets during execution of these tests in a way very similar to what we get at development time with DEBUG = True, i.e. without having to collect them using collectstatic first.
-
-* putting our static files in my_app/static/ (rather than creating another my_app subdirectory) - a bad idea
-  + Django will use the first static file it finds whose name matches, and if you had a static file with the same name in a different application, Django would be unable to distinguish between them. We need to be able to point Django at the right one, and the best way to ensure this is by namespacing them. That is, by putting those static files inside another directory named for the application itself
-
-* {% load static %}
-  + чтобы Django обработал ссылку {% static ... %}
-  + статические файлы Django (table.css) настроены для загрузки через {% static %}
-  + загружает статические файлы, помогает Django найти и сгенерировать путь к файлам
-  + из STATICFILES_DIRS = [BASE_DIR / "static"] (у нас нету)
-  + STATIC_ROOT = BASE_DIR / "staticfiles"
-    - для продакшена
-  + в папке `app/static/` каждого зарегистрированного приложения Django
-
+  + running tests that use actual HTTP requests instead of the built-in testing client
+    - i.e. when using the built-in LiveServerTestCase
+    - the static assets need to be served along the rest of the content so the test environment reproduces the real one as faithfully as possible
+    - LiveServerTestCase has only very basic static file-serving functionality: It assumes the static content has already been collected under STATIC_ROOT
+    - staticfiles ships its own django.contrib.staticfiles.testing.StaticLiveServerTestCase, a subclass of the built-in one that has the ability to transparently serve all the assets during execution of these tests in a way very similar to what we get at development time with DEBUG = True, i.e. without having to collect them using collectstatic first
+* creating my_app subdirectory, don not put static files in my_app/static/
+  + Django uses the first static file it finds whose name matches
+  + if you had a static file with the same name in a different application, Django is unable to distinguish between them
 * CSS-OM = дереао как DOM
 * bootstrap готовые стили, можно создавать кастомные на основе н их
 * .map (Source Map) 
