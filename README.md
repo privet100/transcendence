@@ -911,7 +911,6 @@ async def send_chat_message(self, event):
 
 Асинхронный обмен сообщениями **может работать без Channel Layers**, но с ними это гораздо проще, эффективнее и масштабируемо. Вот разбор:
 
-
 ### **Можно ли обойтись без Channel Layers?**
 Да, можно. Например, вы можете напрямую использовать:
 - **WebSockets без Django Channels**: Применяя библиотеки вроде `websockets` или `Django ASGI`, вы можете реализовать вебсокеты самостоятельно.
@@ -926,19 +925,14 @@ Channel Layers предоставляют готовую инфраструкт�
 2. **Хранением состояния**: Вам не нужно вручную отслеживать, какие клиенты подключены к каким группам (например, в чате).
 3. **Широковещательной отправкой сообщений**: Отправка сообщений сразу группе клиентов реализуется одной строкой кода.
 
-
 ### **Чем сложнее без Channel Layers**
 1. **Ручная маршрутизация сообщений**: Без Channel Layers вам придется разрабатывать механизм для связи между клиентами (например, вручную управлять Redis Pub/Sub).
 2. **Группы пользователей**: Channel Layers позволяют легко управлять группами (например, чаты, комнаты). Без них это потребует ручной работы.
 3. **Масштабирование**: Channel Layers легко работают в кластере (через Redis или другой бекенд). Если вы реализуете всё самостоятельно, масштабируемость потребует дополнительных усилий.
 
----
-
 ### **Когда можно отказаться от Channel Layers?**
 - **Простой проект**: Если вам нужно реализовать только базовый WebSocket без групп или сложного обмена сообщениями, Channel Layers могут быть избыточны.
 - **Нет необходимости в реальном времени**: Если обновления происходят не часто и можно обойтись стандартным REST API с периодическими запросами от клиента.
-
----
 
 ### **Вывод**
 Без Channel Layers **работать можно**, но это:
@@ -972,63 +966,43 @@ Channel Layers предоставляют готовую инфраструкт�
     - если сертификат отсутствует или самоподписан, браузер может блокировать подключение WebSocket
 
 ### подключить статические файлы (html, js, CSS, bootstrap.min.css,изображения, шрифты)
-* в разработке (DEBUG = True) статика обслуживается самим Django
+* чтобы все CSS-файлы находились/отдавались там, где ожидает браузер
+* Django при DEBUG = True during development 
+  + you use django.contrib.staticfiles
   + `python manage.py runserver`
-  + `Daphne` не обслуживает статические файлы по умолчанию, но может делать это без внешнего сервера с библиотекой WhiteNoise
-* в PRODUCTION через Nginx
-  + чтобы все CSS-файлы находились/отдавались там, где ожидает браузер (физически файлы могут лежать в разных местах)
-  + настроить nginx
-  + настроить `docker-compose.yml`
-  + файлы в `staticfiles` имеют правильные права доступа и доступны для чтения Nginx
-  + STATICFILES_DIRS = os.path.join(BASE_DIR, '../frontend/static') Путь к статическим файлам frontend/static
-    - a list of directories
-    - where Django will also look for static files in addition to using a static/ directory inside your apps, you can define 
-  + INSTALLED_APPS:  'django.contrib.staticfiles'
-    - помогает корректно обслуживать статические файлы для /admin
-    - позволяет на фронтенд добавлять версии или хеши в имена файлов, чтобы избежать кеширования старых версий
-    - можно убрать `django.contrib.staticfiles`, если cтат файлы обслуживаются  через `/static` через Nginx без Django, нет потребности в `collectstatic`, SPA, фронтенд отделен от бэкенда
-    - для простоты настройки и администрирования оставляют `django.contrib.staticfiles`, даже если обслуживание статических файлов будет происходить через Nginx
-  + пути к статическим файлам в `nginx.conf` и `settings.py` совпадают
-    - `STATIC_URL = '/staticfiles/'`
-    - `STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')`
-    - `location /staticfiles/ { alias /app/staticfiles/; } # реальная директория внутри контейнера Nginx, куда Docker копирует`
-  + до `collectstatic`: админские CSS (`base.css`, `dashboard.css`, ...) в `django.contrib.admin`  
+* manually serve user-uploaded media files from MEDIA_ROOT during development
+  + use django.views.static.serve() view
+  + don’t have django.contrib.staticfiles in INSTALLED_APPS
+  + if STATIC_URL = static/, you can do this by adding urlpatterns = [ ] to your urls.py `static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)`
+    - works only if the given prefix is local (e.g. static/) and not a URL (e.g. http://static.example.com/)
+    - only serves the actual STATIC_ROOT folder
+    - doesn’t perform static files discovery like django.contrib.staticfiles
+    - served the static files via a wrapper at the WSGI application layer => static files requests do not pass through the normal middleware chain
+* `Daphne` не обслуживает статические файлы по умолчанию
+  + может делать это без внешнего сервера с библиотекой WhiteNoise
+* в production через Nginx
+  + Django looks for static files in static/ directory inside your apps and in STATICFILES_DIRS
+  + STATICFILES_DIRS = os.path.join(BASE_DIR, '../frontend/static') - a list of directories, путь к статическим файлам frontend
+  + INSTALLED_APPS: 'django.contrib.staticfiles'
+    - помогает обслуживать статические файлы для /admin
+    - позволяет добавлять версии или хеши в имена файлов на фронтенд, чтобы избежать кеширования старых версий
+    - для простоты настройки и администрирования оставляют, даже если обслуживание статических файлов через Nginx
+    - можно убрать, если cтат файлы обслуживаются  через `/static` Nginx, не нужен `collectstatic`, SPA, фронтенд отделен от бэкенда
+  + `STATIC_URL = '/staticfiles/'`
+  + `STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')`
+  + `location /staticfiles/ { alias /app/staticfiles/; }` # папка внутри контейнера Nginx, куда Docker копирует
+    - совпадает со STATIC_URL 
+  + перед `collectstatic`
+    - админские CSS (`base.css`, `dashboard.css`, ...) в `django.contrib.admin`  
+    - стат. файлы DRF для **browsable API** или других админ-панелей
     - `ls $(python -c "import django; print(django.__path__[0])")/contrib/admin/static/admin/css/`
-    - Django собирает все статические файлы, включая админку и DRF, в директорию STATIC_ROOT
-    - DRF имеет свои стат. файлы для **browsable API** или других админ-панелей
   + `python manage.py collectstatic`
-    - копируются в staticfiles/admin/…
-    - **при подготовке проекта к продакшн**
+    - Django собирает все статические файлы, включая админку и DRF, в директорию STATIC_ROOT, staticfiles/admin/
+    - **при подготовке к продакшн**
     - **не трекается гитом**
   + в Django-шаблоне либо нет упоминания о стилях, стили приходят с фронтенда (собранный **бандл**)
-* During development, you can serve user-uploaded media files from MEDIA_ROOT using the django.views.static.serve() view
-  + This is not suitable for production use
-  + For some common deployment strategies, see How to deploy static files
-  + For example, if MEDIA_URL = media/, you can do this by adding the following snippet to your ROOT_URLCONF:
-    ```
-    from django.conf import settings
-    from django.conf.urls.static import static
-    urlpatterns = [
-        # ... the rest of your URLconf goes here ...
-    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    ```
-  + This helper function works only in debug mode and only if the given prefix is local (e.g. media/) and not a URL (e.g. http://media.example.com/).
-* Serving static files during development
-  + If you use django.contrib.staticfiles as explained above, runserver will do this automatically when DEBUG = True
-  + If you don’t have django.contrib.staticfiles in INSTALLED_APPS, you can manually serve static files using the django.views.static.serve() view
-    - not suitable for production use
-    - For some common deployment strategies, see How to deploy static files
-    - if STATIC_URL = static/, you can do this by adding the following snippet to your urls.py:
-      ```
-      from django.conf import settings
-      from django.conf.urls.static import static
-      urlpatterns = [
-          # ... the rest of your URLconf goes here ...
-      ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-      ```
-    - This helper function works only in debug mode and only if the given prefix is local (e.g. static/) and not a URL (e.g. http://static.example.com/).
-   - this helper function only serves the actual STATIC_ROOT folder; it doesn’t perform static files discovery like django.contrib.staticfiles
-    - static files are served via a wrapper at the WSGI application layer. As a consequence, static files requests do not pass through the normal middleware chain
+  + настроить nginx и `docker-compose.yml`
+  + файлы в `staticfiles` имеют права доступа, доступны для **чтения** Nginx
 * проверка 
   + `https://localhost:4443/staticfiles/base.css` (Статические файлы обслуживаются чер Daphne) публичный, стат файлы доступны на сайте (`STATIC_URL = '/static/'`)
   + перейдите по адресу приложения, оно работает (Динамические запросы проксируются через Nginx к Daphne)
