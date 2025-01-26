@@ -153,7 +153,7 @@
     - убедитесь, что собранные файлы попали в `STATIC_ROOT`
     - Daphne может обрабатывать статические файлы без внешнего сервера: добавьте WhiteNoise
     - убедитесь, что `myproject/asgi.py` корректно ссылается на проект
-    - . Однако, если вы всё же хотите, чтобы **Daphne** (ASGI-сервер) отвечал за обработку статических файлов, вы можете воспользоваться библиотекой **WhiteNoise**. Она позволяет вашему Django-приложению обслуживать статические файлы напрямую через ASGI-сервер.
+    - если вы хотите, чтобы Daphne отвечал за обработку статических файлов, вы можете воспользоваться библиотекой WhiteNoise
 
 ## Шаги для Настройки Daphne для Обработки Статических Файлов с Помощью WhiteNoise
 
@@ -550,33 +550,10 @@ server {
 ### проблема бакыта
 * `runserver` Django самостоятельно обслуживает статические файлы, включая CSS
 * `Daphne` не обслуживает статические файлы по умолчанию, CSS не загружается
-* Вариант 1: Использование Nginx для Обслуживания Статических Файлов
-
-server {
-    listen 443 ssl;
-    server_name yourdomain.com;
-
-    ssl_certificate /etc/nginx/ssl/certificate.crt;
-    ssl_certificate_key /etc/nginx/ssl/private.key;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers 'HIGH:!aNULL:!MD5';
-    ssl_prefer_server_ciphers on;
-
-    # Обслуживание статических файлов Django
-
-**Пояснения:**
-- **`location /staticfiles/`**: Обслуживает статические файлы из директории `/app/staticfiles/`, куда они были собраны командой `collectstatic`.
-- **`proxy_pass http://backend:8000;`**: Проксиирует все остальные запросы к Daphne.
-
-### 5. Обновите `docker-compose.yml`
-
-Настройте `docker-compose.yml` так, чтобы Nginx мог обслуживать статические файлы и проксировать запросы к Backend.
-
-#### Пример `docker-compose.yml`:
-
+* Вариант 1: Nginx для Обслуживания Статических Файлов
+  + настроить nginx
+  + астроить `docker-compose.yml`
 ```yaml
-version: '3.8'
-
 services:
   backend:
     build:
@@ -2394,6 +2371,12 @@ pip show django
   + this assumes that the requirements.txt file exists in the mounted /app folder at runtime
   + you need to skip installing dependencies during the build process
   + install them at runtime instead
+* `context ./backend`
+  + путь к директории, из которой будет происходить сборка образа
+  + что отправлять демону для создания образа
+  + файлы и папки внутри `./backend` (относительно файла `docker-compose.yml`) будут доступны для процесса сборки Docker
+  + `./backend` станет "рабочей областью" для команд в Dockerfile
+  + избежать попадания ненужных данных в образ
 
 ### токены, безопасность
 | **Характеристика**       | **Токен авторизации**            | **CSRF-ключ**                  | **Сессионный ключ**            |
