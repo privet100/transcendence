@@ -990,9 +990,7 @@ Channel Layers предоставляют готовую инфраструкт�
   + может делать это с библиотекой WhiteNoise
 * проверка 
   + https://localhost:4443/admin/
-  + http://localhost:4444/staticfiles/admin/css/base.css доступны через Nginx:
-  + https://localhost:4443/staticfiles/admin/css/base.css
-  + https://localhost:4443/staticfiles/base.css публичный, файлы доступны на сайте (`STATIC_URL = '/static/'`)
+  + https://localhost:4443/staticfiles/admin/css/base.css доступны через Nginx, публичный, файлы доступны на сайте (`STATIC_URL = '/static/'`)
   + если CSS-файл кэшировался, браузер может залипать на устаревшей версии
     - добавить ?v=123 в конце ссылки или очистить кэш
   + `python manage.py findstatic css/popUpChat.css`
