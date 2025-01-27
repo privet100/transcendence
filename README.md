@@ -989,8 +989,10 @@ Channel Layers предоставляют готовую инфраструкт�
 * `Daphne` не обслуживает статические файлы по умолчанию
   + может делать это с библиотекой WhiteNoise
 * проверка 
-  + https://localhost:4443/admin/
-  + https://localhost:4443/staticfiles/admin/css/base.css доступны через Nginx, публичный, файлы доступны на сайте (`STATIC_URL = '/static/'`)
+  + static backend: https://localhost:4443/admin/
+  + static backend: https://localhost:4443/staticfiles/admin/css/base.css доступны через Nginx, публичный, файлы доступны на сайте (`STATIC_URL = '/static/'`)
+  + static frontend: http://localhost:4444/static/frontend/css/popUpChat.css
+  + static frontend: https://localhost:4443/static/frontend/css/popUpChat.css
   + если CSS-файл кэшировался, браузер может залипать на устаревшей версии
     - добавить ?v=123 в конце ссылки или очистить кэш
   + `python manage.py findstatic css/popUpChat.css`
