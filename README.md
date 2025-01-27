@@ -990,6 +990,8 @@ Channel Layers предоставляют готовую инфраструкт�
 * проверка 
   + https://localhost:4443/ (Динамические запросы проксируются через Nginx к Daphne)
   + https://localhost:4443/admin/
+  + http://localhost:4444/staticfiles/backend/admin/css/base.css
+  + https://localhost:4443/staticfiles/backend/admin/css/base.css
   + https://localhost:4443/staticfiles/base.css (стат файлы обслуживаются чер Daphne)
     - публичный, файлы доступны на сайте (`STATIC_URL = '/static/'`)
   + https://localhost:4443/staticfiles/admin/css/base.css
