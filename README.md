@@ -1,3 +1,95 @@
+### test
+* https://localhost:4443/
+* http://localhost:8000/chat/d/
+* http://127.0.0.1:8000/admin/login/?next=/admin/
+* http://127.0.0.1:8000/user/1/
+* https://localhost:4443/staticfiles/admin/css/base.css
+* http://localhost:8000/staticfiles/admin/css/base.css
+* https://localhost:4443/static/css/popUpChat.css
+* bakyt: Endpoint that are formed from views.py from different folders
+  + `urls.py` связывает эндпоинты (URL-маршруты) с функциями/классами представлений из `views.py`
+  + просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
+* если подключены библиотеки для документирования API, то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
+* Postman: импортируйте коллекцию эндпоинтов, если она уже создана  
+* Postman для изучения API, отправляя запросы на `/api/`, `/swagger/`, ... и исследуя доступные маршруты
+* endpoints HTTP (API или страницы) with Postman:
+  + Введите адрес вашего сервера, например:
+     - `http://localhost:8000/api/endpoint/`
+     - `https://example.com/api/endpoint/`
+  + метод (GET, POST, PUT, DELETE и т. д.).
+  + если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`).
+  + отправьте запрос и проверьте статус ответа (200 OK, 401 Unauthorized и т.д.) и тело ответа
+* endpoints HTTP (API или страницы) with Curl:
+  + `curl -X GET http://localhost:8000/api/endpoint/`
+  + `curl -X POST http://localhost:8000/api/endpoint/ -H "Content-Type: application/json" -d '{"key": "value"}'`
+* endpoints HTTP (API или страницы) with browser:
+  + Для эндпоинтов, которые возвращают HTML (главная страница, панель администратора), просто откройте браузер и введите URL
+* endpoints Websockets with Postman
+  + меню `New Request` - `WebSocket`
+  + Укажите URL WebSocket-соединения:
+     - `ws://localhost:8000/ws/chat/room_name/`
+     - `wss://example.com/ws/chat/room_name/`
+  + Установите соединение и отправьте тестовые сообщения
+  +  Посмотрите, возвращает ли сервер ответы.
+* endpoints Websockets with Chrome + расширения [Smart WebSocket Client](https://chrome.google.com/webstore/detail/smart-websocket-client/kzhddgcmkfiimcdlddieeoemkbdmgkag) 
+  + Укажите URL WebSocket: `ws://localhost:8000/ws/chat/room_name/`
+  + Нажмите «Connect».
+  + Отправьте тестовые сообщения и проверьте, получает ли сервер их.
+* endpoints Websockets with Python + библиотека `websockets`
+  ```python
+  import asyncio
+  import websockets
+  async def test_websocket():
+      uri = "ws://localhost:8000/ws/chat/room_name/"
+      async with websockets.connect(uri) as websocket:
+          await websocket.send("Hello, WebSocket!")
+          response = await websocket.recv()
+          print(f"Response: {response}")
+  asyncio.run(test_websocket())
+  ```
+* Redis integration
+  + `redis-cli`
+  + `PING`
+    - Ожидаемый ответ: `PONG`.
+  + Проверьте, публикуются ли сообщения: `SUBSCRIBE my_channel`
+    - отправьте тестовые сообщения в канал `my_channel` и убедитесь, что они принимаются
+* HTTP-тесты с autrotests Django
+  + Django предоставляет встроенные инструменты для тестирования HTTP:
+    ```python
+    from django.test import TestCase
+    from django.urls import reverse
+    class APITest(TestCase):
+        def test_endpoint(self):
+            url = reverse("api_endpoint_name")  # Используйте имя вашего маршрута
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+    ```
+* WebSocket-тесты с Django Channels + `pytest`:
+  ```python
+  from channels.testing import WebsocketCommunicator
+  from myproject.asgi import application
+  import pytest
+  @pytest.mark.asyncio
+  async def test_websocket():
+      communicator = WebsocketCommunicator(application, "/ws/chat/room_name/")
+      connected, _ = await communicator.connect()
+      assert connected
+      await communicator.send_to(text_data="Hello!")
+      response = await communicator.receive_from()
+      assert response == "Hello, WebSocket!"      await communicator.disconnect()
+  ```
+* basic functions of website
+* websockets in room page
+* websockets in the game
+* connection
+  + Connection from another computer is working (so local network is working) 
+  + When Ivan tried to login with 42Auth from another computer (not server) - he got error 400; however basic sign up with email is working. 
+  + My login with 42Auth from server computer worked.
+* открываю 127.0.0.1:8000/chat/room1/ в двух разных местах и они получаются объдинены в одну комнату, оба видят все сообщения.
+На данный момент только это надо проверять, потому что другое пока не реализовано.
+* Убедитесь, что WebSocket работает: проверьте консоль браузера (F12) на наличие ошибок
+* Проверьте `docker-compose logs`
+
 * **ASGI_APPLICATION = "myproject.asgi.application" установили, зачем CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]**
 * **docker volume ls** лишний том
 * docker-compose up --build
@@ -1492,91 +1584,6 @@ Channel Layers предоставляют готовую инфраструкт�
 * to set up the database **для чего?**
   + `python manage.py makemigrations`, `python manage.py migrate`
   + create a superuser `python manage.py createsuperuser`
-
-### test
-* bakyt: Endpoint that are formed from views.py from different folders
-  + `urls.py` связывает эндпоинты (URL-маршруты) с функциями/классами представлений из `views.py`
-  + просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
-* если подключены библиотеки для документирования API, то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
-* Postman: импортируйте коллекцию эндпоинтов, если она уже создана  
-* Postman для изучения API, отправляя запросы на `/api/`, `/swagger/`, ... и исследуя доступные маршруты
-* endpoints HTTP (API или страницы) with Postman:
-  + Введите адрес вашего сервера, например:
-     - `http://localhost:8000/api/endpoint/`
-     - `https://example.com/api/endpoint/`
-  + метод (GET, POST, PUT, DELETE и т. д.).
-  + если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`).
-  + отправьте запрос и проверьте статус ответа (200 OK, 401 Unauthorized и т.д.) и тело ответа
-* endpoints HTTP (API или страницы) with Curl:
-  + `curl -X GET http://localhost:8000/api/endpoint/`
-  + `curl -X POST http://localhost:8000/api/endpoint/ -H "Content-Type: application/json" -d '{"key": "value"}'`
-* endpoints HTTP (API или страницы) with browser:
-  + Для эндпоинтов, которые возвращают HTML (главная страница, панель администратора), просто откройте браузер и введите URL
-* endpoints Websockets with Postman
-  + меню `New Request` - `WebSocket`
-  + Укажите URL WebSocket-соединения:
-     - `ws://localhost:8000/ws/chat/room_name/`
-     - `wss://example.com/ws/chat/room_name/`
-  + Установите соединение и отправьте тестовые сообщения
-  +  Посмотрите, возвращает ли сервер ответы.
-* endpoints Websockets with Chrome + расширения [Smart WebSocket Client](https://chrome.google.com/webstore/detail/smart-websocket-client/kzhddgcmkfiimcdlddieeoemkbdmgkag) 
-  + Укажите URL WebSocket: `ws://localhost:8000/ws/chat/room_name/`
-  + Нажмите «Connect».
-  + Отправьте тестовые сообщения и проверьте, получает ли сервер их.
-* endpoints Websockets with Python + библиотека `websockets`
-  ```python
-  import asyncio
-  import websockets
-  async def test_websocket():
-      uri = "ws://localhost:8000/ws/chat/room_name/"
-      async with websockets.connect(uri) as websocket:
-          await websocket.send("Hello, WebSocket!")
-          response = await websocket.recv()
-          print(f"Response: {response}")
-  asyncio.run(test_websocket())
-  ```
-* Redis integration
-  + `redis-cli`
-  + `PING`
-    - Ожидаемый ответ: `PONG`.
-  + Проверьте, публикуются ли сообщения: `SUBSCRIBE my_channel`
-    - отправьте тестовые сообщения в канал `my_channel` и убедитесь, что они принимаются
-* HTTP-тесты с autrotests Django
-  + Django предоставляет встроенные инструменты для тестирования HTTP:
-    ```python
-    from django.test import TestCase
-    from django.urls import reverse
-    class APITest(TestCase):
-        def test_endpoint(self):
-            url = reverse("api_endpoint_name")  # Используйте имя вашего маршрута
-            response = self.client.get(url)
-            self.assertEqual(response.status_code, 200)
-    ```
-* WebSocket-тесты с Django Channels + `pytest`:
-  ```python
-  from channels.testing import WebsocketCommunicator
-  from myproject.asgi import application
-  import pytest
-  @pytest.mark.asyncio
-  async def test_websocket():
-      communicator = WebsocketCommunicator(application, "/ws/chat/room_name/")
-      connected, _ = await communicator.connect()
-      assert connected
-      await communicator.send_to(text_data="Hello!")
-      response = await communicator.receive_from()
-      assert response == "Hello, WebSocket!"      await communicator.disconnect()
-  ```
-* basic functions of website
-* websockets in room page
-* websockets in the game
-* connection
-  + Connection from another computer is working (so local network is working) 
-  + When Ivan tried to login with 42Auth from another computer (not server) - he got error 400; however basic sign up with email is working. 
-  + My login with 42Auth from server computer worked.
-* открываю 127.0.0.1:8000/chat/room1/ в двух разных местах и они получаются объдинены в одну комнату, оба видят все сообщения.
-На данный момент только это надо проверять, потому что другое пока не реализовано.
-* Убедитесь, что WebSocket работает: проверьте консоль браузера (F12) на наличие ошибок
-* Проверьте `docker-compose logs`
 
 ### Organisation
 * F12 concole
