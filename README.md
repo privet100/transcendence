@@ -1,3 +1,9 @@
+### разобраться
+* **ASGI_APPLICATION = "myproject.asgi.application" установили, а зачем CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]**
+* **docker volume ls** лишний том
+* **восствноваить volume app !!!**
+* **ViewSet/APIView**
+
 ### test
 * https://localhost:4443/
 * http://localhost:8000/chat/d/
@@ -65,15 +71,7 @@
 * F12
 * `docker-compose logs`
 * логи `docker logs your-nginx-container`
-  + или внутри контейнера `tail -f /var/log/nginx/error.log`
-
-### general
-* **ASGI_APPLICATION = "myproject.asgi.application" установили, а зачем CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]**
-* **docker volume ls** лишний том
-* **восствноваить volume app !!!**
-* **ViewSet/APIView**
-
-![1-1](https://github.com/user-attachments/assets/e6a157ea-b278-493e-9649-6a361614deac)
+  + или внутри контейнера
 
 ### frontend nginx server
 * try using **bolt.new** it's better at frontend
@@ -91,8 +89,7 @@
 * фронт самописный или с использованием минимальных библиотек (jQuery, Bootstrap, ...), не на SPA-фреймворке
 * балансировщик нагрузки (если много сообщений, **что будет**?)
 * в модели пользователя сохраняю аватарки
-  + у фронтэнда есть требования к аватаркам или они могут сами отрисовывать?
-  + вдруг пользователь сохранит свою фотографию 1000 х 1000 пикселей, на фронте вы сможете отрисовать аватарку ?
+  + **у фронтэнда есть требования к аватаркам или они могут сами отрисовывать?** вдруг пользователь сохранит свою фотографию 1000 х 1000 пикселей, на фронте вы сможете отрисовать аватарку ?
 * `frontend/static/app.js`
   + `fetch('http://backend:8000/api/user-data/')`: HTTP-запрос к эндпоинту `/api/user-data/`, получить данные JSON 
   + динамически обновляет DOM§ пользовательского интерфейса с использованием данных, полученных от бэка
@@ -115,39 +112,23 @@
 * `python manage.py runserver 0.0.0.0:8000`
   + запускает Django-приложение с использованием встроенного **разработческого сервера**
     - может работать как с WSGI, так и с ASGI, в зависимости от конфигурации проекта
-  + Если вы настроили проект с использованием Channels и указали `ASGI_APPLICATION` в `settings.py`, то `runserver` запускает ASGI-сервер вместо стандартного WSGI
-  + команда `runserver` удобна для разработки
+     если настроно Channels и указано `ASGI_APPLICATION`, то запускает ASGI-сервер вместо стандартного WSGI
+    - команда `runserver` удобна для разработки
     - не рекомендуется для использования в продакшен-среде
-    - специализированный ASGI-сервер Daphne** обеспечивают более высокую производительность и стабильность.
-* слушает внутри контейнера на порту 8000 
-* слушает запросы фронтенда: аутентификация, чат, API для фронтенда, авторизация, игровая логика
-* обработка API-запросов, HTTP-запросов через Django REST Framework (DRF) стандартным Django-приложением для выполнения бизнес-логики
-* передаёт данные о запросе Python-приложению - Python-приложение обрабатывает запрос и возвращает ответ
-* обработка ws-запросов через Django Channels framework
-* `CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]`
-  + не запускает Daphne 
-  + запускает **встроенный сервер разработки Django**
-    - **не поддерживает ASGI или WebSocket**, не сможет обрабатывать WebSocket-соединения или другие асинхронные протоколы
-    - для разработки и тестирования
-* хорошо интегрируется с Django Channels и поддерживает WebSocket из коробки
+    - специализированный ASGI-сервер Daphne: более высокую производительность и стабильность.
+* слушает внутри контейнера на порту 8000 API-запросы, HTTP-запросы фронтенда
+* обработка через DRF стандартным Django-приложением, передаёт данные о запросе Python-приложению
+* Python-приложение обрабатывает запрос и возвращает ответ
+* хорошо интегрируется с Django Channels
+* поддерживает WebSocket из коробки
 * ASGI сервер 
 * asgi, wsgi
-  + интерфейс между веб-сервером и веб-приложениями/фреймворками, используемый Django-приложениями
-  + стандарт для взаимодействия между веб-серверами и Python-приложениями
-  + в Python фреймворки, тулкиты, библиоти, для каждого собственный метод установки и настройки, не умеют взаимодействовать между собой
+  + интерфейс, стандарт для взаимодействия между веб-сервером и веб-приложениями/фреймворками, используемый Django-приложениями
+  + в Python фреймворки, тулкиты, библиотеки, для каждого собственный метод установки и настройки, не умеют взаимодействовать между собой
   + WSGI, Web Server Gateway Interface
     - поддерживает только синхронные запросы HTTP, не подходит для реального времени или протокола WebSocket
-    - ывает нужен: некоторые инструменты поддерживают только синхронные HTTP-запросы; Django-приложений без асинхронных функций с WSGI стабильнее
+    - бывает нужен: некоторые инструменты поддерживают только синхронные HTTP-запросы; Django-приложений без асинхронных функций с WSGI стабильнее
   + ASGI, Asynchronous Server Gateway Interface - продолжение WSGI, когда есть асинхронные задачи
-* перехожу на asgi only:
-  + стандартные Django-функции (middleware, views, models) продолжают работать, не меняет Django-кода для HTTP
-  + удалила файл wsgi.py
-  + удалила строку `Gunicorn_APPLICATION = 'myproject.wsgi.application'`
-  + nginx location /ws/
-  + Тестирование
-    - HTTP-запросы (HTML-страница, отправка данных формы)
-    - функционал, связанный с WebSocket (чат, ...)
-    - клиент подключаетсся к ws:// или wss://
 * `ASGI_APPLICATION = "myproject.asgi.application"`
   + сервер ищет в `settings.py модуль `myproject.asgi` и внутри него переменную `application` 
   + Переменная `application` = точка входа для ASGI-сервера, ASGI-приложение, обрабатывает входящие запросы
@@ -158,7 +139,7 @@
     - приложения готовы к работе _до_ конфигурации маршрутов WebSocket
     - если снчала импортировать модели или др компоненты Django, будут ошибки, связанные с незарегистрированными приложениями или моделями
 * AllowedHostsOriginValidator проверяет допустимые хосты для WebSocket-соединений
-* DJANGO_SETTINGS_MODULE **настройки** для компонент Django (**ORM**, middleware, ...)
+* DJANGO_SETTINGS_MODULE настройки для компонент Django (**ORM**, middleware, ...)
 
 ### django в целом
 * Бэкенд-фреймворк
@@ -169,43 +150,31 @@
   + `BASE_DIR` корневая папка проекта  
   + `SECRET_KEY` 
   + `ALLOWED_HOSTS` список доменов/IP, с которых разрешён доступ к Django-приложению (когда `DEBUG=False`)
-  + `INSTALLED_APPS`
-  + `ROOT_URLCONF` главный файл роутов `myproject/urls.py`, роутинг для всего проекта
   + `TEMPLATES` настройки для системы шаблонов Django (**HTML-шаблоны**, какие контекстные процессоры использовать)
   + `REST_FRAMEWORK` **рендеры**, по умолчанию JSON и **Browsable API**
   + `AUTH_PASSWORD_VALIDATORS` валидаторы сложности паролейл (минимальная длина, отсутствие совпадений с логином, ...)
-* myproject/
-  + конфигурация Django, корневой маршрутизатор, запуск, управление проектом
-  + `__init__.py` делает папку пакетом Python
+* myproject/ конфигурация Django, корневой маршрутизатор, запуск, управление проектом
 * `models.py` структура данных, связи (пользователи, профили, чаты, сообщения, статистика игры, ...)
 * `apps.py` регистрация приложения в Django
 * **`migrations/`** (миграции для моделей)
+* Администрирование /admin встроеный интерфейс для управления данными (пользователи, чаты, статистика, ...)
 * Управление пользователями и аутентификацией
   + встроенная система аутентификации и модель пользователей
   + Регистрацию и авторизацию (в том числе OAuth/SSO)
   + Разграничение доступа к страницам (приватные/публичные чаты, комнаты, ...)
   + Проверку токена/сессии при каждом запросе с фронтенда
-* Администрирование /admin встроеный интерфейс для управления данными (пользователи, чаты, статистика, ...)
 * Безопасность и валидация
   + инструменты по защите от распространённых уязвимостей (**CSRF, XSS, SQL Injection**)
   + благодаря джанговским формам и сериализаторам + Django REST Framework, упрощается валидация данных, приходящих от фронтенда
-* список команд django
-  + [auth]: changepassword createsuperuser
-  + [contenttypes] remove_stale_contenttypes
-  + [daphne] runserver
-  + [django] check compilemessages createcachetable dbshell diffsettings dumpdata flush inspectdb loaddata makemessages makemigrations   migrate optimizemigration sendtestemail shell showmigrations sqlflush sqlmigrate sqlsequencereset squashmigrations startapp startproject test testserver
-  + [rest_framework] **generateschema**
-  + [sessions] clearsessions
-  + [staticfiles] collectstatic findstatic
-* DPR, Data Processing and Rendering (Обработка и отображение данных) - данные (JSON, ...) обрабатываются на серверной стороне с помощью Django и затем передаются в представление для рендеринга на клиентской стороне с использованием шаблонов и JavaScript
+* DPR, Data Processing and Rendering (Обработка и отображение данных) - данные (JSON, ...) обрабатываются на серверной стороне с помощью Django и передаются в представление для рендеринга на клиентской стороне с использованием шаблонов и JavaScript
 * manage.py django-утилита
   + скрипт запуска Django-проекта
   + интерфейс для выполнения административных задач, связанных с настройкой, разработкой и управлением проектом
   + `python manage.py runserver` запуск сервера разработки 
   + python manage.py migrate` применение **миграций** базы данных
   + `python manage.py createsuperuser` создание суперпользователя
-  + `if __name__ == '__main__':` точка входа программы. Если файл запущен напрямую (а не импортирован как модуль), выполняется `main()`
-  + можете создавать собственные команды (внутри приложения в папке `management/commands`) и запускать их через `manage.py`.
+  + `if __name__ == '__main__':` точка входа программы, если файл запущен напрямую (не импортирован как модуль), выполняется `main()`
+  + можете создавать собственные команды (в папке `management/commands`) и запускать их через `manage.py`.
   + точка входа для административных задач Django (запуск сервера разработки, миграции базы данных, создание пользователей, ...)
   + `execute_from_command_line(sys.argv)` обрабатывает команды, переданные в `sys.argv` (`runserver`, `migrate`, `createsuperuser`, ...)
   + если в вашем проекте используются Docker и автоматизированные процессы, `manage.py` может не использоваться напрямую 
@@ -217,6 +186,14 @@
   + проверить, что миграции применяются: `python manage.py migrate`
   + проверить, что тесты запускаются: `python manage.py test`
   + проверить, что суперпользователь (администр. аккаунт) создаётся: добавьте в скрипт развёртывания `python manage.py createsuperuser`
+  + команды django:
+    - [auth]: changepassword createsuperuser
+    - [contenttypes] remove_stale_contenttypes
+    - [daphne] runserver
+    - [django] check compilemessages createcachetable dbshell diffsettings dumpdata flush inspectdb loaddata makemessages makemigrations   migrate optimizemigration sendtestemail shell showmigrations sqlflush sqlmigrate sqlsequencereset squashmigrations startapp startproject test testserver
+    - [rest_framework] **generateschema**
+    - [sessions] clearsessions
+    - [staticfiles] collectstatic findstatic
 * суперпользователь
   + пользователь Django Admin
   + объект модели `User` в Django
