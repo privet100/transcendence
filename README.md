@@ -26,32 +26,14 @@
   + `urls.py` связывает эндпоинты с функциями/классами представлений из `views.py`
   + просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
 * если подключены библиотеки для документирования API, то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
-* Postman: импортируйте коллекцию эндпоинтов, если она уже создана  
-* Postman для изучения API, отправляя запросы на `/api/`, `/swagger/`, ... и исследуя доступные маршруты
-* endpoints HTTP (API или страницы) with Postman:
-  + Введите адрес вашего сервера, например:
-     - `http://localhost:8000/api/endpoint/`
-     - `https://example.com/api/endpoint/`
+* Postman
+  + импортируйте коллекцию эндпоинтов, если она уже создана  
+  + для изучения API, отправляя запросы на `/api/`, `/swagger/`, ... и исследуя доступные маршруты
+  + endpoints HTTP (API или страницы):
+    - Введите адрес сервера: `http://localhost:8000/api/endpoint/`
   + метод (GET, POST, PUT, DELETE и т. д.).
   + если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`).
   + отправьте запрос и проверьте статус ответа (200 OK, 401 Unauthorized и т.д.) и тело ответа
-* endpoints HTTP (API или страницы) with Curl:
-  + `curl -X GET http://localhost:8000/api/endpoint/`
-  + `curl -X POST http://localhost:8000/api/endpoint/ -H "Content-Type: application/json" -d '{"key": "value"}'`
-* endpoints HTTP (API или страницы) with browser:
-  + Для эндпоинтов, которые возвращают HTML (главная страница, панель администратора), просто откройте браузер и введите URL
-* endpoints Websockets with Postman
-  + меню `New Request` - `WebSocket`
-  + Укажите URL WebSocket-соединения:
-     - `ws://localhost:8000/ws/chat/room_name/`
-     - `wss://example.com/ws/chat/room_name/`
-  + Установите соединение и отправьте тестовые сообщения
-  +  Посмотрите, возвращает ли сервер ответы.
-* endpoints Websockets with Chrome + расширения [Smart WebSocket Client](https://chrome.google.com/webstore/detail/smart-websocket-client/kzhddgcmkfiimcdlddieeoemkbdmgkag) 
-  + Укажите URL WebSocket: `ws://localhost:8000/ws/chat/room_name/`
-  + Нажмите «Connect».
-  + Отправьте тестовые сообщения и проверьте, получает ли сервер их.
-* endpoints Websockets with Python + библиотека `websockets`
 * Redis integration
   + `redis-cli`
   + `PING`
@@ -197,7 +179,10 @@
 * суперпользователь
   + пользователь Django Admin
   + объект модели `User` в Django
-  + атрибуты `is_staff=True` и `is_superuser=True` => доступ к админке, все права в системе, полный доступ к системе управления данными
+  + атрибуты `is_staff=True` и `is_superuser=True`
+    - доступ к админке
+    - все права в системе
+    - полный доступ к системе управления данными
     - просмотр
     - редактирование, добавление, удаление записей во всех моделях, в базе через удобный интерфейс
     - управлять пользователями и их правами
@@ -207,8 +192,7 @@
   + если админка не используется, не нужен
   + Суперпользователь базы данных - другое, пользователь (роль) в PostgreSQL, полный доступ к структуре базы данных, может изменять схемы, управлять пользователями базы, выполнять запросы напрямую (не связан с Django)
 * requirements.txt: Python-библиотеки для бэкенда
-* **Django Debug Toolbar** отслеживание работы проекта, включая middleware
-* Django app отдельные модульные приложения внутри проекта
+* Django app - отдельные модульные приложения внутри проекта
 * втроенные django app
   + 'django.contrib.messages'
   + 'django.contrib.admin',
@@ -218,12 +202,7 @@
   + 'django.contrib.staticfiles'
   * **какие ещё**
 * Используем **стандартные структуры юзера для авторизации и для моделей данных**
-* myapp
-  + логика пользовательских профилей, турниров, историй игр
-  + расширить профили (рейтинг, биографию, статистику), турнирную логику (сетка турнира, раунды), механику игр:
-    - добавлять поля
-    - добавтиь **миграции** в соответствующие модели
-    - **API** для работы с сообщениями
+* **Django Debug Toolbar** отслеживание работы проекта, включая middleware
 
 ### django rest framework DRF
 * создаёт HTTP API с поддержкой **сериализации**, аутентификации, прав доступа
@@ -322,12 +301,20 @@
     - Стандартные модули сериализации и аутентификации DRF
 * автоматичесая документация эндпоинтов
   + **Browsable API** в `http://localhost:8000/api/` или `http://localhost:8000/` список эндпоинтов **не работает**
+* myapp: логика пользовательских профилей, турниров, историй игр
 
 ### django REST API (Application Programming Interface)
 * интерфейс
 * набор правил, позволяет приложениям взаимодействовать друг с другом
 * группа маршрутов (эндпоинтов)
 * клиент использует для взаимодействия с сервером
+* **обмен данных через API в формате REST**
+* авторизация с помощью токенов (JWT) и другие механизмы для обработки запросов и откликов между клиентом и сервером
+* уведомления и сообщения могут быть частью бизнес-логики
+* реализуются
+  + через события
+  + через статусы в ответах API
+  + не через механизм сообщений Django
 * определяются в `urls.py`
 * определяются в View-классах или функциях
   + классы, наследущие от `APIView`, `GenericViewSet`, `ViewSet`
@@ -345,12 +332,8 @@
     - маршрут `GET /users/<id>/`
     - маршрут `DELETE /users/<id>/`
     - маршрут API чата = группа всех маршрутов, связанных с чатом
-* список API http://localhost:8000/swagger/, http://localhost:8000/redoc/
-  + если настроена автоматическая документация (Swagger, Redoc)  
-* с точки зрения реализации api есть **class based views** (не сильно сложнее) / functions based views (проще)
-* Endpoint
+* Endpoint = URL-маршрут = конкретный маршрут, связанный с API
   + в `urls.py`
-  + конкретный маршрут, связанный с API
   + выполняет определённое действие
   + Endpoints чата:
     - `GET /chat/rooms/` — список комнат
@@ -359,14 +342,21 @@
     - `POST /chat/rooms/<room_id>/messages/` — отправить сообщение
   + `python manage.py show_urls` список эндпоинтов
   +  `grep -r "path(" backend/`, `grep -r "re_path(" backend/`
-* REST API
-  + **обмен данных через API в формате REST**
-  + авторизация с помощью токенов (JWT) и другие механизмы для обработки запросов и откликов между клиентом и сервером
-  + уведомления и сообщения могут быть частью бизнес-логики
-  + реализуются
-    - через события
-    - через статусы в ответах API
-    - не через механизм сообщений Django
+  + `curl -X GET http://localhost:8000/api/endpoint/` проверить эндпионт
+  + `curl -X POST http://localhost:8000/api/endpoint/ -H "Content-Type: application/json" -d '{"key": "value"}'`
+  + Для эндпоинтов, которые возвращают HTML (главная страница, панель администратора), откройте браузер и введите URL для проверки
+* endpoints Websockets with Postman
+  + меню `New Request` - `WebSocket`
+  + Укажите URL WebSocket-соединения:
+     - `ws://localhost:8000/ws/chat/room_name/`
+     - `wss://example.com/ws/chat/room_name/`
+  + Установите соединение и отправьте тестовые сообщения
+  +  Посмотрите, возвращает ли сервер ответы.
+* endpoints Websockets with Chrome + расширения [Smart WebSocket Client](https://chrome.google.com/webstore/detail/smart-websocket-client/kzhddgcmkfiimcdlddieeoemkbdmgkag) 
+  + Укажите URL WebSocket: `ws://localhost:8000/ws/chat/room_name/`
+  + Нажмите «Connect».
+  + Отправьте тестовые сообщения и проверьте, получает ли сервер их.
+* endpoints Websockets with Python + библиотека `websockets`
 * 'django.contrib.messages'
   + приложение
   + фреймворк
@@ -399,7 +389,8 @@
 * Реальное время (WebSocket/Push)
   + для отправки сообщений в чате
   + для **обновлений интерфейса** в режиме реального времени
-* endpoints = URL-маршруты
+* если настроена автоматическая документация (Swagger, Redoc), то список API http://localhost:8000/swagger/, http://localhost:8000/redoc/
+* с точки зрения реализации api есть **class based views** (не сильно сложнее) / functions based views (проще)
 
 ### django channels framework
 * как DRF слушает запросы
