@@ -393,18 +393,13 @@
 
 ### django channels 
 * расширение Django, framework, библиотека, надстройка Django для вебсокетов
-* добавить поддержку протокола WebSocket
-* полагается на стандартную инициализацию Django для HTTP-запросов
-* использует дополнительную логику для обработки WebSocket-соединений и других типов протоколов
-* для приложений с функциями реального времени, выходящих за рамки стандартного HTTP-протокола: онлайн-игра, онлайн-статус пользователей
-* для обработки асинхронных протоколов (WebSocket), управления асинхронными соединениями внутри Django
+* добавляет поддержку протокола WebSocket
 * не сервер, не принимает запросы от клиента 
-* обработка соединений внутри приложения 
-* связывает URL, по которым поступают запросы, с обработчиками Consumers
+* **полагается на стандартную инициализацию Django для HTTP-запросов**
+* обработка асинхронных протоколов, управление асинхронными соединениями **внутри Django**
 * `consumers.ChatConsumer.as_asgi()` связывает запрос с Consumer-классом
   - `as_asgi()` позволяет Consumer работать в асинхронной среде 
-* библиотека для работы c ws
-* как DRF слушает запросы
+* как и DRF слушает запросы и связывает URL, по которым поступают запросы, с обработчиками
   + но другие типы запросов, работает с другим протоколом 
   + для асинхронной связи
   + поддерживает постоянные соединения (получать и отправлять данные в реальном времени)
@@ -422,9 +417,9 @@
     - сессионные данные передаются через WebSocket-соединения
     - работать с данными сессии в WebSocket-сообщениях
     - обязателен, если используете сессии (для авторизации через стандартный `django.contrib.auth`, для хранения пользовательских данных между запросами, если работаете с `request.session`)
-    - обязателен в проектах, требующих взаимодействия с сессиями на сервере, например, если используется сессионное хранилище в бд, Redis, файловой системе
-    - обязателен, если используете стандартный механизм аутентификации Django `django.contrib.auth` (django.contrib.auth опирается на сессии для хранения данных о пользователе)
-    - можно без него, если JWT токены или другие безсессионные методы аутентификации вместо сессий: например, в REST API (DRF) сессии не нужны, авторизация через токены
+    - обязателен, если нужно взаимодействие с сессиями на сервере (используется сессионное хранилище в бд, Redis, файловой системе,...)
+    - обязателен, если есть стандартный механизм аутентификации Django `django.contrib.auth`, который опирается на сессии для хранения данных о пользователе
+    - можно без него, если JWT токены или другие безсессионные методы аутентификации (например, в REST API (DRF) сессии не нужны, авторизация через токены)
     - можно без него, если данные о сессии хранятся полностью в зашифрованных cookie (без серверного хранилища)
   + ограничение скорости
   + управление правами доступа
@@ -445,33 +440,32 @@
 * **views.py проверяет токен/подпись**
 * не требует добавления в INSTALLED_APPS
 
-### WebSockets
-* постоянное соединение между клиентом и сервером
-* передавать данные в режиме реального времени
-* сервер и клиент обмениваются данными в реальном времени: чата, игровой механики
-* Браузер пользователя (JavaScript **WebSocket API**) ?
-* создание 
-  + клиент загружает страницу чата или игровой комнаты
-  + клиентский код js инициирует соединение через **WebSocket API**: `const socket = new WebSocket("ws://example.com/ws/chat/room1/");`
-  + daphne устанавливает WebSocket-соединение, **передавая его в ASGI-приложение**
-  + `{ "type": "chat.message", "message": "Hello, World!" }` браузер -> nginx -> daphne -> механизм Channels -> Django consummer
-  + `{ "type": "chat.message", "message": "Hi there!" }` от сервера к клиенту
-* для работы с wss://
-  + сервер использует HTTPS с действительным SSL-сертификатом
-    - если сертификат отсутствует или самоподписан, браузер может блокировать подключение WebSocket
-| **Method**                | **Real-Time** | **Message Persistence**  | **Use Case**                           | **Complexity** |
-|---------------------------|---------------|--------------------------|----------------------------------------|----------------|
-| WebSocket (chat)          | Yes           | No                       | Real-time chats, games                 | High           |
-| Redis (Pub/Sub, WebSocket)| Yes           | No                       | Notifications, chats                   | High           |
-| Django Messages           | No            | Yes                      | System notifications, confirmations    | Low            |
-| REST API                  | No            | Yes                      | Simple notifications, data requests    | Low            |
-| Email                     | No            | Yes                      | Important notifications, confirmations | Medium         |
-| Push Notifications        | Yes           | Yes (by service)         | Mobile device notifications            | Medium         |
+* WebSockets
+  + постоянное соединение между клиентом и сервером
+  + сервер и клиент обмениваются данными в реальном времени: чата, игровой механики
+  * Браузер пользователя (JavaScript **WebSocket API**) ?
+  + что происходит 
+    + клиент загружает страницу чата или игровой комнаты
+    + клиентский код js инициирует соединение через **WebSocket API**: `new WebSocket`
+    + daphne устанавливает ws-соединение
+    + daphne передаёт ws-соединение в ASGI-приложение
+    + браузер -> nginx -> daphne -> механизм Channels ->  consummer `{ "type": "chat.message", "message": "Hello, World!" }` 
+    + обрвтно `{ "type": "chat.message", "message": "Hi there!" }`
+  * для работы с wss:// сервер использует HTTPS с действительным SSL-сертификатом
+    + если сертификат отсутствует или самоподписан, браузер может блокировать подключение WebSocket
+  + 
+    | **Method**                | **Real-Time** | **Message Persistence**  | **Use Case**                           | **Complexity** |
+    |---------------------------|---------------|--------------------------|----------------------------------------|----------------|
+    | WebSocket (chat)          | Yes           | No                       | Real-time chats, games                 | High           |
+    | Redis (Pub/Sub, WebSocket)| Yes           | No                       | Notifications, chats                   | High           |
+    | Django Messages           | No            | Yes                      | System notifications, confirmations    | Low            |
+    | REST API                  | No            | Yes                      | Simple notifications, data requests    | Low            |
+    | Email                     | No            | Yes                      | Important notifications, confirmations | Medium         |
+    | Push Notifications        | Yes           | Yes (by service)         | Mobile device notifications            | Medium         |
 
 ### django app chat
 * с реальным временем
 * на WebSocket
-* tuto https://channels.readthedocs.io/en/latest/index.html
 * js обращается к rest api (post) endpoints /history, /users/, /send
 * rest api строит и отдаёт html  
 * js получает ответ (get)
@@ -1452,6 +1446,7 @@
 * Matchmaking system for Tournament
   + the tournament system organize the matchmaking of the participants, and announce the next fight
 * tutorials:
+  + чат tuto https://channels.readthedocs.io/en/latest/index.html
   + бэк, фронт, база данных, API https://www.youtube.com/watch?v=XBu54nfzxAQ
   + REST API на DRF в Pycharm https://blog.jetbrains.com/pycharm/2023/09/building-apis-with-django-rest-framework/
   + https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/WebSocket
