@@ -1,11 +1,21 @@
 ### test
 * https://localhost:4443/
 * http://localhost:8000/chat/d/
-* http://127.0.0.1:8000/admin/login/?next=/admin/
+* http://127.0.0.1:8000/admin/
 * http://127.0.0.1:8000/user/1/
 * https://localhost:4443/staticfiles/admin/css/base.css
 * http://localhost:8000/staticfiles/admin/css/base.css
 * https://localhost:4443/static/css/popUpChat.css
+* наш сайт
+  + http://localhost:4444/ 
+  + https://localhost:4443/
+  + https://localhost:4443/chat: HTTP-запрос для загрузки страницы (HTML, CSS, JavaScript)
+  + ws://localhost:4443/ws/chat/<roomName>/: Ws-запрос отправляется на URL /ws/chat/ (настроен в routing.py)
+  + http://localhost:8000/admin
+  + https://tr.naurzalinov.me/users/
+  + http://95.217.129.132:8000/
+* `curl -I http://localhost:4444` должен вернуть статус 301 с заголовком Location: https://localhost:4443/...
+* `curl -I --insecure https://localhost:4443` должен вернуть `HTTP/1.1 200 OK`
 * Endpoints
   + `urls.py` связывает эндпоинты с функциями/классами представлений из `views.py`
   + просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
@@ -42,41 +52,26 @@
     - Ожидаемый ответ: `PONG`.
   + Проверьте, публикуются ли сообщения: `SUBSCRIBE my_channel`
     - отправьте тестовые сообщения в канал `my_channel` и убедитесь, что они принимаются
-* HTTP-тесты с autrotests Django
-  + Django предоставляет встроенные инструменты для тестирования HTTP:
+* Django предоставляет встроенные инструменты для тестирования HTTP
 * WebSocket-тесты с Django Channels + `pytest`:
-* basic functions of website
 * websockets in room page
 * websockets in the game
 * connection
   + Connection from another computer is working (so local network is working) 
   + When Ivan tried to login with 42Auth from another computer (not server) - he got error 400; however basic sign up with email is working. 
   + My login with 42Auth from server computer worked.
-* открываю 127.0.0.1:8000/chat/room1/ в двух разных местах и они получаются объдинены в одну комнату, оба видят все сообщения.
+* открываю 127.0.0.1:8000/chat/room1/ в разных местах, оба видят все сообщения
 * На данный момент только это надо проверять, потому что другое пока не реализовано.
-* Убедитесь, что WebSocket работает: проверьте консоль браузера (F12) на наличие ошибок
+* F12
 * `docker-compose logs`
 * логи `docker logs your-nginx-container`
   + или внутри контейнера `tail -f /var/log/nginx/error.log`
-* убедитесь, что перенаправления работают как ожидается:
-  + `curl -I http://localhost:4444` должен вернуть статус 301 с заголовком Location: https://localhost:4443/...
-  + `curl -I --insecure https://localhost:4443` должен вернуть `HTTP/1.1 200 OK`
 
 ### general
 * **ASGI_APPLICATION = "myproject.asgi.application" установили, а зачем CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]**
 * **docker volume ls** лишний том
 * **восствноваить volume app !!!**
 * **ViewSet/APIView**
-* наш сайт
-  + http://localhost:4444/ 
-  + https://localhost:4443/
-  + https://localhost:4443/chat
-    - HTTP-запрос для загрузки страницы (HTML, CSS, JavaScript)
-  + ws://localhost:4443/ws/chat/<roomName>/
-    - Ws-запрос отправляется на URL /ws/chat/ (настроен в routing.py)
-  + http://localhost:8000/admin
-  + https://tr.naurzalinov.me/users/
-  + http://95.217.129.132:8000/
 
 ![1-1](https://github.com/user-attachments/assets/e6a157ea-b278-493e-9649-6a361614deac)
 
@@ -111,13 +106,19 @@
   + код внутри {} исполняется в django, он выполняет и заново отправляет html
   + не надо: в завимисости от какого-то условия, показываем или нет какие-то части страницы
 * проверить: в контейнере `nginx -t`
-* SSL Labs - проверить корректность настройки SSL
+* **SSL Labs** проверить корректность настройки SSL
 * четыре server{}-блока = один процесс
 * Vanilla JS (без фреймворков)
 * **Bootstrap toolkit**
 
 ### backend Daphne 
-* runserver 0.0.0.0:8000 => запустили Django-приложение
+* `python manage.py runserver 0.0.0.0:8000`
+  + запускает Django-приложение с использованием встроенного **разработческого сервера**
+    - может работать как с WSGI, так и с ASGI, в зависимости от конфигурации проекта
+  + Если вы настроили проект с использованием Channels и указали `ASGI_APPLICATION` в `settings.py`, то `runserver` запускает ASGI-сервер вместо стандартного WSGI
+  + команда `runserver` удобна для разработки
+    - не рекомендуется для использования в продакшен-среде
+    - специализированный ASGI-сервер Daphne** обеспечивают более высокую производительность и стабильность.
 * слушает внутри контейнера на порту 8000 
 * слушает запросы фронтенда: аутентификация, чат, API для фронтенда, авторизация, игровая логика
 * обработка API-запросов, HTTP-запросов через Django REST Framework (DRF) стандартным Django-приложением для выполнения бизнес-логики
