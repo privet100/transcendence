@@ -65,19 +65,6 @@
             self.assertEqual(response.status_code, 200)
     ```
 * WebSocket-тесты с Django Channels + `pytest`:
-  ```python
-  from channels.testing import WebsocketCommunicator
-  from myproject.asgi import application
-  import pytest
-  @pytest.mark.asyncio
-  async def test_websocket():
-      communicator = WebsocketCommunicator(application, "/ws/chat/room_name/")
-      connected, _ = await communicator.connect()
-      assert connected
-      await communicator.send_to(text_data="Hello!")
-      response = await communicator.receive_from()
-      assert response == "Hello, WebSocket!"      await communicator.disconnect()
-  ```
 * basic functions of website
 * websockets in room page
 * websockets in the game
@@ -95,8 +82,6 @@
 * **docker volume ls** лишний том
 * **восствноваить volume app !!!**
 * **ViewSet/APIView**
-* docker-compose up --build
-  + пересобрать образы -> Django подхватывает изменения (если настроен **hot-reload**), фронтенд тоже
 * https://github.com/bakyt92/14_ft_transendence
 * https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
 * https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
@@ -547,6 +532,29 @@
 * channels – библиотека для работы c ws
 * channels_redis – поддержка групповой рассылки через Redis
 
+### WebSockets
+* сервер и клиент обмениваются данными в реальном времени: чата, игровой механики
+* Браузер пользователя (JavaScript **WebSocket API**) ?
+* создание 
+  + клиент загружает страницу чата или игровой комнаты
+  + клиентский код js инициирует соединение через **WebSocket API**: `const socket = new WebSocket("ws://example.com/ws/chat/room1/");`
+  + daphne устанавливает WebSocket-соединение, **передавая его в ASGI-приложение**
+  + `{ "type": "chat.message", "message": "Hello, World!" }` браузер -> nginx -> daphne -> механизм Channels -> Django consummer
+  + `{ "type": "chat.message", "message": "Hi there!" }` от сервера к клиенту
+* Django Channels
+  + расширение Django
+  + для обработки асинхронных протоколов (WebSocket), управления асинхронными соединениями внутри Django
+  + не сервер, не принимает запросы от клиента 
+  + обработка соединений внутри приложения 
+  + `websocket_urlpatterns = [ re_path(r"ws/chat/(?P<room_name>\w+)/$", consumers.ChatConsumer.as_asgi()) ]` связывает URL, по которым поступают запросы, с обработчиками Consumers
+    - `<room_name>` динамически извлекается из URL, тут любое слово (`\w+`) 
+  + `consumers.ChatConsumer.as_asgi()` связывает запрос с Consumer-классом
+    - `as_asgi()` позволяет Consumer работать в асинхронной среде 
+  + Channel Layers для взаимодействия между Consumers и для передачи сообщений между **процессами**
+* для работы с wss://
+  + сервер использует HTTPS с действительным SSL-сертификатом
+    - если сертификат отсутствует или самоподписан, браузер может блокировать подключение WebSocket
+
 ### django cash framework
 * инфраструктура для кэширования
 * хранение кэша (запросы, объекты, шаблоны, ...)
@@ -554,7 +562,7 @@
 * настраивается в settings.py, CACHES
 
 ### приложения Django app 
-* отдельные модульные приложения внутри проекта INSTALLED_APPS
+* отдельные модульные приложения внутри проекта
 * myapp
   + логика пользовательских профилей, турниров, историй игр
   + `friends = models.ManyToManyField("self")` пользователи могут быть друзьями 
@@ -570,7 +578,6 @@
 * 'django.contrib.staticfiles'
 * **какие есть встроенные**
 * Используем **стандартные структуры юзера для авторизации и для моделей данных**
-* логика views.py
 
 ### обмен сообщениями
 | **Method**                | **Real-Time** | **Message Persistence**  | **Use Case**                           | **Complexity** |
@@ -596,11 +603,6 @@
 * ws user communications
 * INSTALLED_APPS 'channels'
 * CHANNEL_LAYERS 'BACKEND': 'channels.layers.InMemoryChannelLayer', **in-memory ?**
-* `chat/models.py` модели сообщений и комнат
-* `chat/consumers.py` WebSocket consumer 
-* `chat/routing.py маршрут
-* `chat/urls.py` маршрут для комнаты чата
-* `chat/views.py представление
 * `python manage.py makemigrations`, `python manage.py migrate` создайте и примените миграции для моделей 
 * Django Channels
   + библиотека, надстройка Django для вебсокетов, добавить поддержку протокола WebSocket
@@ -722,71 +724,34 @@
   + Проверьте сохранение сообщений в базе данных
   + Развертывание `nginx.conf` location /ws/ 
 
-### db PostgreSQL
-* СУБД для хранения пользователей, сообщений, данных о матчах в Pong, статистики, ...
-* `psql -U myuser -d mydatabase` `\dt`
-  ```
-   Schema |                Name                | Type  | Owner  
-  --------+------------------------------------+-------+--------
-   public | auth_group                         | table | myuser
-   public | auth_group_permissions             | table | myuser
-   public | auth_permission                    | table | myuser
-   public | django_admin_log                   | table | myuser
-   public | django_content_type                | table | myuser
-   public | django_migrations                  | table | myuser
-   public | django_session                     | table | myuser
-   public | myapp_game                         | table | myuser
-   public | myapp_tournament                   | table | myuser
-   public | myapp_tournament_players           | table | myuser
-   public | myapp_userprofile                  | table | myuser
-   public | myapp_userprofile_friends          | table | myuser
-   public | myapp_userprofile_groups           | table | myuser
-   public | myapp_userprofile_user_permissions | table | myuser
-  ```
-
-### redis (Remote Dictionary Server) 
-* управление данными
-* репликация и кластеризация для масштабирования и высокой доступности
-* управление пользовательскими сессиями в веб-приложениях, хранение данных сессий
-  + хранение данных о текущих авторизованных пользователях. Управление сессиями при подключении пользователей к WebSocket
-  + хранение сессий (если Django настроен)
-* работает в оперативной памяти => высокая скорость, быструю запись и чтение
-  + следить за потреблением памяти
-* механизм списков или Pub/Sub для реализации очередей сообщений
+### redis in general (Remote Dictionary Server) 
+* **репликация** и **кластеризация** для масштабирования и высокой доступности
+* хранение и маршрутизация данных
 * Быстрый подсчёт статистики, временных данных
-* Реализация чата (Совместно с WebSocket для быстрой обработки сообщений. В **Pub/Sub** позволяет рассылать сообщения всем пользователям чата.)
+управление пользовательскими сессиями в веб-приложениях
+  + хранение данных о текущих авторизованных пользователях. Управление сессиями при подключении пользователей к WebSocket
+  + **хранение сессий** (если Django настроен)
 * очередь задач (отправки email, push-уведомления, логирование, обработка фоновых задач (обновление статистики матчей))
+  + механизм списков или Pub/Sub для реализации очередей сообщений
+  + Pub/Sub позволяет рассылать сообщения всем пользователям чата
 * для матчей в реальном времени (текущее состояние игры, обмен данными между игроками,хранение лидербордов с помощью упорядоченных множеств (sorted sets))
   + база данных
   + брокер сообщений, быстрый обмен сообщениями
   + хранение Pub/Sub (для реального времени)
-    - Pub/Sub для чата
-    - Pub/Sub (механизм публикации/подписки) для обмена сообщениями
     - Pub/Sub в реальном времени (чат, игра Pong)
+    - Pub/Sub (публикация/подписка) для обмена сообщениями
     - бекенд для Pub/Sub и WebSocket-сессий (чат, игра в реальном времени, ...)
-  + Когда клиент отправляет сообщение через WebSocket, **оно сначала сохраняется в Redis**, после чего перенаправляется другим клиентам или серверу в зависимости от логики
-  + канальный слой, для поддержки системы каналов через Django Channels
+  + клиент отправляет сообщение через WebSocket -> **оно сохраняется в Redis** -> перенаправляется другим клиентам или серверу
   + реализация реального времени через Django Channels (WebSocket)
   + Коммуникации между разными инстансами приложения
   + инструмент маршрутизации между подключёнными клиентами
   + Обработка событий WebSocket
   + Django Channels позволяет приложению обрабатывать протоколы реального времени (WebSocket, ...)
-* Библиотеки абстрагируют низкоуровневую работу с Redis, скрывают сложность интеграции
-  + `channels_redis` подключением и отправкой сообщений в Redis
-  + `django-redis` сериализацию данных, запись, извлечение
-  + легко интегрируется с Django через библиотеки `channels_redis` и `django-redis`
-* хранение и маршрутизация данных
+* поддержка Pub/Sub => идеальный для каналов WebSocket
 * **in-memory key-value store**
-* значения могут быть: string, list, hash, set, sorted sets, bitmap, HyperLogLogs, геопространственные индексы и др  
-* поддерживает множество языков программирования
-* Транзакции и скрипты на языке Lua
 * может сохранять данные на **диск**, чтобы избежать потери при сбоях
-* пддержка Pub/Sub (публикации/подписки) => идеальный для каналов WebSocket
 * Убедитесь, что сервер Redis защищён (настройка пароля, ограничение доступа, ...)
-* Настройте Redis для работы с высоким количеством соединений
-* настройки: время жизни кэша (`TIMEOUT`), ...
-* Убедитесь, что Redis не перегружен `redis-cli info memory`
-* очистить кэш `redis-cli -n 1 flushdb`
+* настройте Redis для работы с высоким количеством соединений
 * один сервер Redis = кэширование + обслуживание channel layers
   + два процесса на одном сервере Redis, с разными ключами и настройками
 * если WebSocket-запросы зависят от Redis (хранение данных о сессиях, ...), убедитесь, что Redis работает: `redis-cli ping`, Ожидаемый ответ: `PONG`
@@ -796,7 +761,7 @@
   + `vm.overcommit_memory = 1` в `/etc/sysctl.conf` сохранить настройку после перезагрузки
 * используется механизм Pub/Sub (Publish/Subscribe) для реализации чата?
   + Поиск в коде `PubSub`, `publish`, `subscribe`, `event`, `broker`, `topic`
-    - библиотеки  `Redis`, `RabbitMQ`, `Kafka`, WebSocket-библиотеки с поддержкой Pub/Sub
+    - библиотеки  `Redis`, `RabbitMQ`, WebSocket-библиотеки с поддержкой Pub/Sub
   + Если чат реализован через WebSocket, Pub/Sub может быть встроен в логику
     . Например, отправка сообщения (`publish`) уведомляет подписчиков (`subscribe`)
   + Redis = брокер сообщений в режиме Pub/Sub
@@ -810,6 +775,18 @@
   + Отправьте сообщение в чат и проверьте:
   - Логирование на сервере. Часто Pub/Sub системы логируют публикацию и доставку сообщений.
   - Задержки при передаче сообщения. Если сообщение доходит мгновенно, вероятно используется WebSocket с логикой Pub/Sub
+
+* работает в оперативной памяти => высокая скорость, быструю запись и чтение
+  + следить за потреблением памяти
+* настройки: время жизни кэша (`TIMEOUT`), ...
+* `redis-cli info memory` Redis не перегружен?
+* `redis-cli -n 1 flushdb` очистить кэш 
+* Библиотеки абстрагируют низкоуровневую работу с Redis
+  + `channels_redis` подключением и отправкой сообщений в Redis
+  + `django-redis` сериализацию данных, запись, извлечение
+  + легко интегрируется с Django через библиотеки `channels_redis` и `django-redis`
+* поддерживает множество языков программирования
+* Транзакции и скрипты на языке Lua
 
 #### кэширование (redis)
 * Кэширование использует Redis как хранилище данных в памяти с быстрым доступом
@@ -877,6 +854,7 @@
 * bakyt: только кэш сообщений, чат и **системные**
 
 #### `CHANNEL_LAYERS` (канал-сервер) для Django Channels (redis)
+  + канальный слой, для поддержки системы каналов через Django Channels
 * для распределения сообщений и управления группами пользователей в масштабируемых приложениях, когда запросы обрабатываются несколькими серверами
   + обмениваться сообщениями между инстансами приложения и клиентами
 * обмен сообщениями между различными инстансами приложения или даже между **различными процессами** (если их несколько)
@@ -958,28 +936,30 @@
     - Отсутствие долговременного хранения сообщений (если вы не сохраняете их в базу данных).
     - Если ваш проект не планирует масштабироваться и остаётся в рамках одного процесса, Channel Layer вам не нужен. Django Channels достаточно для управления WebSocket-соединениями и реализацией чата.
 
-### WebSockets
-* сервер и клиент обмениваются данными в реальном времени: чата, игровой механики
-* Браузер пользователя (JavaScript **WebSocket API**) ?
-* создание 
-  + клиент загружает страницу чата или игровой комнаты
-  + клиентский код js инициирует соединение через **WebSocket API**: `const socket = new WebSocket("ws://example.com/ws/chat/room1/");`
-  + daphne устанавливает WebSocket-соединение, **передавая его в ASGI-приложение**
-  + `{ "type": "chat.message", "message": "Hello, World!" }` браузер -> nginx -> daphne -> механизм Channels -> Django consummer
-  + `{ "type": "chat.message", "message": "Hi there!" }` от сервера к клиенту
-* Django Channels
-  + расширение Django
-  + для обработки асинхронных протоколов (WebSocket), управления асинхронными соединениями внутри Django
-  + не сервер, не принимает запросы от клиента 
-  + обработка соединений внутри приложения 
-  + `websocket_urlpatterns = [ re_path(r"ws/chat/(?P<room_name>\w+)/$", consumers.ChatConsumer.as_asgi()) ]` связывает URL, по которым поступают запросы, с обработчиками Consumers
-    - `<room_name>` динамически извлекается из URL, тут любое слово (`\w+`) 
-  + `consumers.ChatConsumer.as_asgi()` связывает запрос с Consumer-классом
-    - `as_asgi()` позволяет Consumer работать в асинхронной среде 
-  + Channel Layers для взаимодействия между Consumers и для передачи сообщений между **процессами**
-* для работы с wss://
-  + сервер использует HTTPS с действительным SSL-сертификатом
-    - если сертификат отсутствует или самоподписан, браузер может блокировать подключение WebSocket
+### db PostgreSQL
+* СУБД для хранения пользователей, сообщений, данных о матчах в Pong, статистики, ...
+* to set up the database **для чего?**
+  + `python manage.py makemigrations`, `python manage.py migrate`
+  + create a superuser `python manage.py createsuperuser`
+* `psql -U myuser -d mydatabase` `\dt`
+  ```
+   Schema |                Name                | Type  | Owner  
+  --------+------------------------------------+-------+--------
+   public | auth_group                         | table | myuser
+   public | auth_group_permissions             | table | myuser
+   public | auth_permission                    | table | myuser
+   public | django_admin_log                   | table | myuser
+   public | django_content_type                | table | myuser
+   public | django_migrations                  | table | myuser
+   public | django_session                     | table | myuser
+   public | myapp_game                         | table | myuser
+   public | myapp_tournament                   | table | myuser
+   public | myapp_tournament_players           | table | myuser
+   public | myapp_userprofile                  | table | myuser
+   public | myapp_userprofile_friends          | table | myuser
+   public | myapp_userprofile_groups           | table | myuser
+   public | myapp_userprofile_user_permissions | table | myuser
+  ```
 
 ### статические файлы (html, js, CSS, bootstrap.min.css,изображения, шрифты) - DVELOPPEMENT
 * **`python manage.py runserver` при DEBUG = True**
@@ -1408,31 +1388,6 @@
   + загрузка стат файлов Django (table.css)
   + у нас кажется не будет этого
 
-### запуск
-* For Ecole42 computers, I've updated settings of docker file in DEV branch 
-  + порт, который нужен для django, занят
-  + поменять номера портов в docker и в nginx
-  + 6800  port for redis 
-  + 4444 port frontend HTTP connections
-  + 4443 port frontend for SSL connections over HTTPS
-  + for local Ecole 42's network `ALLOWED_HOSTS = ['*']` in settings.py
-* Секретный ключ от api раз в две недели примерно обновляется
-* 'docker compose up --build' (BUILD нужно)
-  - все скачается и распакуется
-  - потом в терминале можно Ctrl + C (условное клавиатурное прерывание)
-* `sudo ufw status` 80, 443, 8000 открыты
-* `curl http://localhost:8000`
-* `docker exec -it git-backend-1 ss -tuln` проверить порты бэкенда
-  + `tcp LISTEN 0 511 0.0.0.0:8000 0.0.0.0:*`
-* `docker exec -it git-frontend-1 curl http://git-backend-1:8000` подключиться к бэкенду из контейнера
-* `docker logs git-backend-1`
-* `docker logs git-frontend-1`
-* через 42 на посте кластера, отличном от того, на котором он размещен
-  + 1 способ: каждый раз менять URL-адрес перенаправления, чтобы он соответствовал IP-адресу хост-компьютера 
-  + 2 саособ лучше:
-    - каждый компьютер использует VM, в ней изменяете файл хостов, чтобы связать IP-адрес исходной станции с URL-адресами
-    - подключиться к другому компьютеру в кластере через его внутреннее доменное имя школы, добавить это в nginx.conf, чтобы веб-сервер разрешал связываться с вами в этом домене, а также на стороне django
-
 ### Dockefiles
 * `context ./backend`
   + файлы в `./backend` доступны для процесса сборки
@@ -1507,6 +1462,27 @@
   + `docker volume inspect staticfiles`
   + если вы хотите, чтобы том был доступен и через файловую систему хоста, вы можете использовать bind mount, а не именованный том
 
+### запуск
+* For Ecole42 computers, I've updated settings of docker file in DEV branch 
+  + порт, который нужен для django, занят
+  + поменять номера портов в docker и в nginx
+  + 6800  port for redis 
+  + 4444 port frontend HTTP connections
+  + 4443 port frontend for SSL connections over HTTPS
+  + for local Ecole 42's network `ALLOWED_HOSTS = ['*']` in settings.py
+* **Секретный ключ от api раз в две недели примерно обновляется**
+* 'docker compose up --build'
+  - все скачается и распакуется
+  - потом в терминале можно Ctrl + C (условное клавиатурное прерывание)
+  + пересобрать образы -> Django подхватывает изменения (если настроен **hot-reload**), фронтенд тоже
+* `sudo ufw status` 80, 443, 8000 открыты
+* `docker exec -it git-backend-1 ss -tuln` проверить порты бэкенда
+* через 42 на посте кластера, отличном от того, на котором он размещен
+  + 1 способ: каждый раз менять URL-адрес перенаправления, чтобы он соответствовал IP-адресу хост-компьютера 
+  + 2 саособ лучше:
+    - каждый компьютер использует VM, в ней изменяете файл хостов, чтобы связать IP-адрес исходной станции с URL-адресами
+    - подключиться к другому компьютеру в кластере через его внутреннее доменное имя школы, добавить это в nginx.conf, чтобы веб-сервер разрешал связываться с вами в этом домене, а также на стороне django
+
 ### разное
 * трекинг **когда пользователь был онлайн**
   + models.py: last online для индикатива
@@ -1526,9 +1502,6 @@
 * virtual environment не нужно, потому что у нас докер
 * pass reset будет ли?
 * change username, email будет ли?
-* to set up the database **для чего?**
-  + `python manage.py makemigrations`, `python manage.py migrate`
-  + create a superuser `python manage.py createsuperuser`
 
 ### Organisation
 * Чтобы файлы нового приложения (`chatAn`), созданные внутри контейнера, появились на хосте
