@@ -94,6 +94,7 @@
 * **ASGI_APPLICATION = "myproject.asgi.application" установили, а зачем CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]**
 * **docker volume ls** лишний том
 * **восствноваить volume app !!!**
+* **ViewSet/APIView**
 * docker-compose up --build
   + пересобрать образы -> Django подхватывает изменения (если настроен **hot-reload**), фронтенд тоже
 * https://github.com/bakyt92/14_ft_transendence
