@@ -6,7 +6,7 @@
 * https://localhost:4443/staticfiles/admin/css/base.css
 * http://localhost:8000/staticfiles/admin/css/base.css
 * https://localhost:4443/static/css/popUpChat.css
-* bakyt: Endpoint that are formed from views.py from different folders
+* bakyt: Endpoint that are formed from views.py
   + `urls.py` связывает эндпоинты (URL-маршруты) с функциями/классами представлений из `views.py`
   + просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
 * если подключены библиотеки для документирования API, то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
@@ -36,17 +36,6 @@
   + Нажмите «Connect».
   + Отправьте тестовые сообщения и проверьте, получает ли сервер их.
 * endpoints Websockets with Python + библиотека `websockets`
-  ```python
-  import asyncio
-  import websockets
-  async def test_websocket():
-      uri = "ws://localhost:8000/ws/chat/room_name/"
-      async with websockets.connect(uri) as websocket:
-          await websocket.send("Hello, WebSocket!")
-          response = await websocket.recv()
-          print(f"Response: {response}")
-  asyncio.run(test_websocket())
-  ```
 * Redis integration
   + `redis-cli`
   + `PING`
@@ -55,15 +44,6 @@
     - отправьте тестовые сообщения в канал `my_channel` и убедитесь, что они принимаются
 * HTTP-тесты с autrotests Django
   + Django предоставляет встроенные инструменты для тестирования HTTP:
-    ```python
-    from django.test import TestCase
-    from django.urls import reverse
-    class APITest(TestCase):
-        def test_endpoint(self):
-            url = reverse("api_endpoint_name")  # Используйте имя вашего маршрута
-            response = self.client.get(url)
-            self.assertEqual(response.status_code, 200)
-    ```
 * WebSocket-тесты с Django Channels + `pytest`:
 * basic functions of website
 * websockets in room page
@@ -73,9 +53,9 @@
   + When Ivan tried to login with 42Auth from another computer (not server) - he got error 400; however basic sign up with email is working. 
   + My login with 42Auth from server computer worked.
 * открываю 127.0.0.1:8000/chat/room1/ в двух разных местах и они получаются объдинены в одну комнату, оба видят все сообщения.
-На данный момент только это надо проверять, потому что другое пока не реализовано.
+* На данный момент только это надо проверять, потому что другое пока не реализовано.
 * Убедитесь, что WebSocket работает: проверьте консоль браузера (F12) на наличие ошибок
-* Проверьте `docker-compose logs`
+* `docker-compose logs`
 
 ### general
 * **ASGI_APPLICATION = "myproject.asgi.application" установили, а зачем CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]**
@@ -291,6 +271,22 @@
   + Суперпользователь базы данных - другое, пользователь (роль) в PostgreSQL, полный доступ к структуре базы данных, может изменять схемы, управлять пользователями базы, выполнять запросы напрямую (не связан с Django)
 * requirements.txt: Python-библиотеки для бэкенда
 * **Django Debug Toolbar** отслеживание работы проекта, включая middleware
+* Django app отдельные модульные приложения внутри проекта
+* втроенные django app
+  + 'django.contrib.messages'
+  + 'django.contrib.admin',
+  + 'django.contrib.auth',
+  + 'django.contrib.contenttypes',
+  + 'django.contrib.sessions',
+  + 'django.contrib.staticfiles'
+  * **какие ещё**
+* Используем **стандартные структуры юзера для авторизации и для моделей данных**
+* myapp
+  + логика пользовательских профилей, турниров, историй игр
+  + расширить профили (рейтинг, биографию, статистику), турнирную логику (сетка турнира, раунды), механику игр:
+    - добавлять поля
+    - добавтиь **миграции** в соответствующие модели
+    - **API** для работы с сообщениями
 
 ### django rest framework DRF
 * создаёт HTTP API с поддержкой **сериализации**, аутентификации, прав доступа
@@ -469,32 +465,22 @@
    
 ### django channels framework
 * Django Channels и Django REST Framework (DRF)
-  + обрабатывают разные типы запросов
-  + схожие задачи: обработка запросов и аутентификация пользователей
-  + работают с разными протоколами
-  + аналогичные концепции для работы с запросами и аутентификацией можно найти в обоих
-  + протокол WebSocket, используется для двухсторонней связи в реальном времени (чаты, уведомления)
-  + специальные middleware для обработки WebSocket-соединений:
-    - SessionMiddleware – управляет сессионными данными (хранит информацию о пользователе, сессии, ...)
-    - AuthenticationMiddleware – выполняет аутентификацию пользователей, связывая их с подключением WebSocket
-  + Consumer обработчик для работы с ws-соединениями, аналогичный представлению в DRF, для работы с асинхронными запросами через WebSocket
-* views.py **проверяет токен/подпись**
+  + обработка запросов и аутентификация пользователей
+  + обрабатывают разные типы запросов, работают с разными протоколами
+  + протокол WebSocket для двухсторонней связи в реальном времени (чаты, уведомления)
+  + специальные middleware для обработки ws-соединений:
+    - SessionMiddleware **управляет сессионными данными** (хранит информацию о пользователе, сессии, ...)
+    - AuthenticationMiddleware выполняет **аутентификацию пользователей**, связывая их с подключением WebSocket
+* **views.py проверяет токен/подпись**
 * django channel создает websocket, слушает запросы
   + отличия от html: непрерывное соединение, стрим
-  + new Websocket(127.0.0.1:8000/game, wss)
-+ Channels Middleware (WebSocket)
++ Channels Middleware
   + AuthenticationMiddlewareStack
     - проверяет, что WebSocket-соединение аутентифицировано: различные методы аутентификации, например, проверку токенов (JWT, Cookies и другие)
-    - связывает пользователя с запросом.
-  + SessionMiddleware
-    - в случае использования аутентификации через сессии
+    - связывает пользователя с запросом
+  + SessionMiddleware - если аутентификация через сессии
     - для получения идентификатора сессии и связанного с ним пользователя
     - для сохранения информации о сессии WebSocket-подключения: идентификаторы сессии и связанные данные (информация о пользователе)
-  +  Consumer (Channels Consumer)
-    - обработчик сообщений ws в Django Channels (аналогичные представлениям в традиционном Django)
-  + отправлены через Channel Layer (Redis)
-    - для обмена сообщениями между различными экземплярами приложения, например, для отправки сообщений между WebSocket-соединениями
-    - когда данные отправляются в channel layer, они могут быть опубликованы в опр. канал и доставлены тем, кто подписан на канал
 * аутентификация осуществляется через `AuthenticationMiddleware`, который связывает подключение с пользователем
 * сессии также обрабатываются через `SessionMiddleware`, и сессионные данные передаются через WebSocket-соединения
 * Используется для асинхронной связи и поддерживает постоянные соединения, что позволяет получать и отправлять данные в реальном времени
@@ -560,24 +546,6 @@
 * хранение кэша (запросы, объекты, шаблоны, ...)
 * не требует добавления в INSTALLED_APPS
 * настраивается в settings.py, CACHES
-
-### приложения Django app 
-* отдельные модульные приложения внутри проекта
-* myapp
-  + логика пользовательских профилей, турниров, историй игр
-  + `friends = models.ManyToManyField("self")` пользователи могут быть друзьями 
-  + расширить профили (рейтинг, биографию, статистику), турнирную логику (сетка турнира, раунды), механику игр:
-     - добавлять поля
-     - добавтиь **миграции** в соответствующие модели
-    + **API** для работы с сообщениями
-* 'django.contrib.messages'
-* 'django.contrib.admin',
-* 'django.contrib.auth',
-* 'django.contrib.contenttypes',
-* 'django.contrib.sessions',
-* 'django.contrib.staticfiles'
-* **какие есть встроенные**
-* Используем **стандартные структуры юзера для авторизации и для моделей данных**
 
 ### обмен сообщениями
 | **Method**                | **Real-Time** | **Message Persistence**  | **Use Case**                           | **Complexity** |
@@ -854,7 +822,7 @@
 * bakyt: только кэш сообщений, чат и **системные**
 
 #### `CHANNEL_LAYERS` (канал-сервер) для Django Channels (redis)
-  + канальный слой, для поддержки системы каналов через Django Channels
+* канальный слой, для поддержки системы каналов через Django Channels
 * для распределения сообщений и управления группами пользователей в масштабируемых приложениях, когда запросы обрабатываются несколькими серверами
   + обмениваться сообщениями между инстансами приложения и клиентами
 * обмен сообщениями между различными инстансами приложения или даже между **различными процессами** (если их несколько)
@@ -935,6 +903,9 @@
     - Если в будущем потребуется масштабирование (например, развертывание нескольких инстансов приложения), вам придется добавить поддержку **Channel Layer** и Redis.
     - Отсутствие долговременного хранения сообщений (если вы не сохраняете их в базу данных).
     - Если ваш проект не планирует масштабироваться и остаётся в рамках одного процесса, Channel Layer вам не нужен. Django Channels достаточно для управления WebSocket-соединениями и реализацией чата.
+* отправлены через Channel Layer (Redis)
+  + для обмена сообщениями между различными экземплярами приложения, **например, для отправки сообщений между WebSocket-соединениями**
+  + когда данные отправляются в channel layer, они могут быть опубликованы в опр. канал и доставлены тем, кто подписан на канал
 
 ### db PostgreSQL
 * СУБД для хранения пользователей, сообщений, данных о матчах в Pong, статистики, ...
@@ -961,20 +932,20 @@
    public | myapp_userprofile_user_permissions | table | myuser
   ```
 
-### статические файлы (html, js, CSS, bootstrap.min.css,изображения, шрифты) - DVELOPPEMENT
-* **`python manage.py runserver` при DEBUG = True**
-  + you use django.contrib.staticfiles
-* manually serve user-uploaded media files from MEDIA_ROOT
-  + use django.views.static.serve() view
-  + don’t have django.contrib.staticfiles in INSTALLED_APPS
-  + if STATIC_URL = static/, addi urlpatterns = [ ] to your urls.py `static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)`
-    - works only if the prefix is local (static/) and not a URL (http://static.example.com/)
-  + only serves STATIC_ROOT folder
-  + doesn’t perform static files discovery like django.contrib.staticfiles
-  + serves static files via a wrapper at the WSGI application layer => static files requests do not pass through the middleware chain
-* напрямую ссылаться на файлы через URL
-
-### статические файлы PRODUCTION
+### статические файлы html, js, CSS, bootstrap.min.css,изображения, шрифты
+* в разработке:
+  + **`python manage.py runserver` при DEBUG = True**
+    - you use django.contrib.staticfiles
+  + manually serve user-uploaded media files from MEDIA_ROOT
+    - use django.views.static.serve() view
+    - don’t have django.contrib.staticfiles in INSTALLED_APPS
+    - if STATIC_URL = static/, addi urlpatterns = [ ] to your urls.py `static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)`
+      - works only if the prefix is local (static/) and not a URL (http://static.example.com/)
+    - only serves STATIC_ROOT folder
+    - doesn’t perform static files discovery like django.contrib.staticfiles
+    - serves static files via a wrapper at the WSGI application layer => static files requests do not pass through the middleware chain
+  + напрямую ссылаться на файлы через URL
+  + всё, что идёт ниже, можно в production
 * чтобы все файлы находились/отдавались там, где ожидает браузер
 * 'django.contrib.staticfiles'
   + обслуживает стат файлы для /admin
@@ -1272,19 +1243,16 @@
     - Создавать фальшивые cookies, сессии или токены.
     - Подделывать запросы или манипулировать приложением.
 * Не храните секретные переменные и файлы (например, `.env`, SSL-сертификаты) в системе контроля версий. Используйте инструменты, такие как [Docker Secrets](https://docs.docker.com/engine/swarm/secrets/) или специализированные менеджеры секретов (например, [HashiCorp Vault](https://www.vaultproject.io/)) для управления конфиденциальными данными.
-
-### autorisation
-* При каждом запросе клиент отправляет токен в заголовке Authorization: Bearer <token>
-* Сервер декодирует токен, проверяет его подпись, использует данные для авторизации (например, проверяет роль пользователя)
-* виды авторизаций: Ecole 42, гугл, логин и пароль с базы данных
-* задача на бэкэнде
-* внедрить 2FA через электронную почту
-  + Мы выполнили первую часть, генерируя код и все такое
-  + были проблемы с последней частью, где мы на самом деле отправляем электронное письмо
-    - попробовали sendgrid life, было сложно добиться успеха в отправке электронных писем
-  + мы использовали Gmail, самое сложное — найти путь через пользовательский интерфейс Google для создания «mdp приложения» на стороне Django, все легко делается с помощью функции send_mail
-    - сначала пришло как спам, а потом появилось само по себе после нескольких писем
-    - со стороны Django это происходит, Gmail изменил условия две недели назад, с тех пор это стало проблемой
+* autorisation
+  + При каждом запросе клиент отправляет токен в заголовке Authorization: Bearer <token>
+  + Сервер декодирует токен, проверяет его подпись, использует данные для авторизации (например, проверяет роль пользователя)
+  + виды авторизаций: Ecole 42, гугл, логин и пароль с базы данных
+  + задача на бэкэнде
+  + внедрить 2FA через электронную почту
+    - Мы выполнили первую часть, генерируя код и все такое
+    - были проблемы с последней частью, где мы на самом деле отправляем электронное письмо
+      - попробовали sendgrid life, было сложно добиться успеха в отправке электронных писем
+    - мы использовали Gmail, найти путь через пользовательский интерфейс Google для создания «mdp приложения» на стороне Django, функция send_mail
 
 ### cookie, localStorage, sessionStorage
 | **Свойство**        | **Cookie**                            | **LocalStorage**      | **SessionStorage**             |
@@ -1376,7 +1344,7 @@
       - шифрование WebSocket-соединений (wss://)
       - защищают транспортный уровень
       - не связаны с аутентификацией или авторизацией пользователя
-
+   
 ### js
 * js менять параметры html, class = стиль
 * open chat
@@ -1612,12 +1580,12 @@
   + the tournament system organize the matchmaking of the participants, and announce the next fight
 * **DO NOT FORGET**
   + remove убрать settings.py SECRET_KEY, frontend/etc/private.key
-  + close ports 800 and 6800 for outside
+  + close ports 8000 and 6800 
   + `http://backend:8000` хранить в перменной окружения
-  + close http://localhost/backend:8000/chat
-  + to justify your choices during the evaluation
   + We set DJANGO_SETTINGS_MODULE in the .env, docker-compose and Dockerfile. Then, we set it again: os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings'). This appears to protect us from forgetting to set this variable in the .env, but it seems redundant in our case. May I remove os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')?
   + DEBUG = False
   + в продакшен отключают генерацию .map-файлов
   + GOOGLE_REDIRECT_URI=http://localhost:8000/auth/callback убрать
   + 42_REDIRECT_URI=http://127.0.0.1:8000/auth/callback убртаь
+  + 0.0.0.0:8000 поменять
+  + to justify your choices during the evaluation
