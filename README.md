@@ -56,15 +56,17 @@
 * На данный момент только это надо проверять, потому что другое пока не реализовано.
 * Убедитесь, что WebSocket работает: проверьте консоль браузера (F12) на наличие ошибок
 * `docker-compose logs`
+* логи `docker logs your-nginx-container`
+  + или внутри контейнера `tail -f /var/log/nginx/error.log`
+* убедитесь, что перенаправления работают как ожидается:
+  + `curl -I http://localhost:4444` должен вернуть статус 301 с заголовком Location: https://localhost:4443/...
+  + `curl -I --insecure https://localhost:4443` должен вернуть `HTTP/1.1 200 OK`
 
 ### general
 * **ASGI_APPLICATION = "myproject.asgi.application" установили, а зачем CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]**
 * **docker volume ls** лишний том
 * **восствноваить volume app !!!**
 * **ViewSet/APIView**
-* https://github.com/bakyt92/14_ft_transendence
-* https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
-* https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
 * наш сайт
   + http://localhost:4444/ 
   + https://localhost:4443/
@@ -75,18 +77,6 @@
   + http://localhost:8000/admin
   + https://tr.naurzalinov.me/users/
   + http://95.217.129.132:8000/
-* бэк, фронт, база данных, API https://www.youtube.com/watch?v=XBu54nfzxAQ
-* REST API на DRF в Pycharm https://blog.jetbrains.com/pycharm/2023/09/building-apis-with-django-rest-framework/
-* https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/WebSocket
-* https://docs.djangoproject.com/en/5.1/ref/contrib/auth/
-* Django Tutorial https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/Tutorial_local_library_website
-* https://www.djangoproject.com/start/
-* https://www.django-rest-framework.org/tutorial/quickstart/
-* django https://youtube.com/playlist?list=PLA0M1Bcd0w8xZA3Kl1fYmOH_MfLpiYMRs&si=mza4MvfFeRMqgU_B
-* django https://youtube.com/playlist?list=PLA0M1Bcd0w8yU5h2vwZ4LO7h1xt8COUXl&si=ddHMMDnBVPiUuEXy
-* The Browsable API - Django REST frameworkhttps://www.django-rest-framework.org/topics/browsable-api/
-* design https://www.figma.com/design/aWDJYfDmaeCv2NKJ8bJ15n/FT_Transcendence?node-id=109-32&p=f
-* // https://miro.com/app/board/uXjVLAphyh8=/
 
 ![1-1](https://github.com/user-attachments/assets/e6a157ea-b278-493e-9649-6a361614deac)
 
@@ -97,27 +87,21 @@
   + like custom colors custom map
 * подписывается на **WebSocket-каналы**
 * проверяет сертификаты SSL
-* расшифровывает их с использованием SSL-сертификата
+* расшифровывает с использованием SSL-сертификата
   + внутренний трафик не шифруется
 * если запрос к статическому файлу, отдает его из /usr/share/nginx/html/static/
-* запросы на /api/ (JSON, HTML, WebSocket) идут через Nginx на Django (аутентификаци, получения/отправки данных)
+* запросы на /api/ (JSON, HTML, WebSocket) идут на Django (аутентификаци, получения/отправки данных)
   + `proxy_set_header ...` передает заголовки (Host, IP-адрес клиента, протокол, ...), чтобы бэкенд понимал, откуда запрос
-  + сохраняет заголовки WebSocket
-* нет разделения маршрутов между ws и wss, wss работает через тот же путь, что и ws
-* четыре server{}-блока = один процесс
-* you should keep separate server blocks, if you are encountering errors after merging the two server blocks
-* Vanilla JS (без фреймворков)
+  + **сохраняет заголовки WebSocket**
 * фронт самописный или с использованием минимальных библиотек (jQuery, Bootstrap, ...), не на SPA-фреймворке
 * балансировщик нагрузки (если много сообщений, **что будет**?)
-* **Bootstrap toolkit**
 * в модели пользователя сохраняю аватарки
-  + у фронтэнда есть требования какие нибудь к аватаркам или они могут сами отрисовывать?
-  + вдруг пользователь сохранит свою фотографию 1000 х 1000 пикселей, на фронте вы сможете сами отрисовать аватарку ?
+  + у фронтэнда есть требования к аватаркам или они могут сами отрисовывать?
+  + вдруг пользователь сохранит свою фотографию 1000 х 1000 пикселей, на фронте вы сможете отрисовать аватарку ?
 * `frontend/static/app.js`
-  + вызывает fetch к бэкенду
-    + `fetch('http://backend:8000/api/user-data/')`: HTTP-запрос к эндпоинту `/api/user-data/`, получить данные JSON 
-  + динамически обновляет DOM, это не делает приложение SPA-фреймворком — это обычная логика на чистом JS
-  + динамическое обновления пользовательского интерфейса с использованием данных, полученных от бэка 
+  + `fetch('http://backend:8000/api/user-data/')`: HTTP-запрос к эндпоинту `/api/user-data/`, получить данные JSON 
+  + динамически обновляет DOM§ пользовательского интерфейса с использованием данных, полученных от бэка
+  + это не делает приложение SPA-фреймворком — это обычная логика на чистом JS
   + `response => response.json()` конвертирует ответ JSON от сервера в объект JavaScript
   + после получения данных пользовательский интерфейс (UI) обновляется без перезагрузки страницы
   + `async/await` для упрощения чтения
@@ -127,16 +111,10 @@
   + код внутри {} исполняется в django, он выполняет и заново отправляет html
   + не надо: в завимисости от какого-то условия, показываем или нет какие-то части страницы
 * проверить: в контейнере `nginx -t`
-  + ```
-    nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
-    nginx: configuration file /etc/nginx/nginx.conf test is successful
-    ```
-* логи `docker logs your-nginx-container`
-  + или внутри контейнера `tail -f /var/log/nginx/error.log`
 * SSL Labs - проверить корректность настройки SSL
-* убедитесь, что перенаправления работают как ожидается:
-  + `curl -I http://localhost:4444` должен вернуть статус 301 с заголовком Location: https://localhost:4443/...
-  + `curl -I --insecure https://localhost:4443` должен вернуть `HTTP/1.1 200 OK`
+* четыре server{}-блока = один процесс
+* Vanilla JS (без фреймворков)
+* **Bootstrap toolkit**
 
 ### backend Daphne 
 * runserver 0.0.0.0:8000 => запустили Django-приложение
@@ -1454,6 +1432,9 @@
   + Django Channels: передача данных пользователю в реальном времени через протокол WebSocket
 
 ### Organisation
+* https://github.com/bakyt92/14_ft_transendence
+* https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
+* https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
 * Чтобы файлы нового приложения (`chatAn`), созданные внутри контейнера, появились на хосте
   + директория проекта внутри контейнера и на хосте связаны с помощью volumes (точек монтирования) `./backend:/app `
 * F12 concole
@@ -1560,6 +1541,19 @@
   + this requirement can be modified using the Standard User Management module
 * Matchmaking system for Tournament
   + the tournament system organize the matchmaking of the participants, and announce the next fight
+* tutorials:
+  + бэк, фронт, база данных, API https://www.youtube.com/watch?v=XBu54nfzxAQ
+  + REST API на DRF в Pycharm https://blog.jetbrains.com/pycharm/2023/09/building-apis-with-django-rest-framework/
+  + https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/WebSocket
+  + https://docs.djangoproject.com/en/5.1/ref/contrib/auth/
+  + Django Tutorial https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/Tutorial_local_library_website
+  + https://www.djangoproject.com/start/
+  + https://www.django-rest-framework.org/tutorial/quickstart/
+  + django https://youtube.com/playlist?list=PLA0M1Bcd0w8xZA3Kl1fYmOH_MfLpiYMRs&si=mza4MvfFeRMqgU_B
+  + django https://youtube.com/playlist?list=PLA0M1Bcd0w8yU5h2vwZ4LO7h1xt8COUXl&si=ddHMMDnBVPiUuEXy
+  + The Browsable API - Django REST frameworkhttps://www.django-rest-framework.org/topics/browsable-api/
+  + design https://www.figma.com/design/aWDJYfDmaeCv2NKJ8bJ15n/FT_Transcendence?node-id=109-32&p=f
+  + // https://miro.com/app/board/uXjVLAphyh8=/
 * **DO NOT FORGET**
   + remove убрать settings.py SECRET_KEY, frontend/etc/private.key
   + close ports 8000 and 6800 
