@@ -1064,7 +1064,7 @@
   + Использует middleware (`AuthMiddlewareStack`) для сопоставления пользователя.
   + Поддерживает передачу аутентификационных данных через Cookie (например, `sessionid`) или токены
 * если хотите объединить аутентификацию для DRF и Django Channels, рекомендуется использовать JWT или SessionAuthentication и настроить  middleware
-* any password stored in your database, if applicable, must be hashed (subject)
+* any password stored in your database, if applicable, must be hashed; a strong password hashing algorithm (subject)
 * your website must be protected against **SQL injections/XSS** (subject)
 * if you have a backend or any other features, it is mandatory to enable an HTTPS connection for all aspects (Utilize wss instead of ws...)
 * some form of validation for forms and any user input, either within the base page if no backend is used or on the server side if a backend is employed (subject)
