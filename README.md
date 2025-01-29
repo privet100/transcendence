@@ -67,7 +67,7 @@
   + `response => response.json()` конвертирует ответ JSON от сервера в объект JavaScript
   + после получения данных пользовательский интерфейс (UI) обновляется без перезагрузки страницы
   + `async/await` для упрощения чтения
-* single-page (SPA)
+*  a single-page application (subject)
   + один html
   + меняется с помощью js
   + код внутри {} исполняется в django, он выполняет и заново отправляет html
@@ -1063,7 +1063,15 @@
 * Django Channels: Аутентификация один раз при установлении соединения
   + Использует middleware (`AuthMiddlewareStack`) для сопоставления пользователя.
   + Поддерживает передачу аутентификационных данных через Cookie (например, `sessionid`) или токены
-* Если вы хотите объединить аутентификацию для DRF и Django Channels, рекомендуется использовать JWT или SessionAuthentication и настроить соответствующие middleware
+* если хотите объединить аутентификацию для DRF и Django Channels, рекомендуется использовать JWT или SessionAuthentication и настроить  middleware
+* any password stored in your database, if applicable, must be hashed (subject)
+* your website must be protected against **SQL injections/XSS** (subject)
+* if you have a backend or any other features, it is mandatory to enable an HTTPS connection for all aspects (Utilize wss instead of ws...)
+* some form of validation for forms and any user input, either within the base page if no backend is used or on the server side if a backend is employed (subject)
+* the security of your website (subject)
+  + regardless of whether you choose to implement the JWT Security module with 2FA
+  + even if you decide not to use JWT tokens
+  + for instance, if you opt to create an API, ensure your routes are protected
 * views.py проверяет токен/подпись
 
 ### cookie, localStorage, sessionStorage
@@ -1244,6 +1252,11 @@
     - файлы, помещенные в том в одном контейнере, доступны для использования в другом 
   + `docker volume inspect staticfiles`
   + если вы хотите, чтобы том был доступен и через файловую систему хоста, вы можете использовать bind mount, а не именованный том
+* Docker runtime files must be located in /goinfre or /sgoinfre (subject)
+* You can’t use so called “bind-mount volumes” between the host and the container if non-root UIDs are used in the container (subject), but several fallbacks exist:
+  + Docker in a VM
+  + rebuild you container after your changes
+  + craft **your own docker image** with root as unique UID
 
 ### запуск
 * **ASGI_APPLICATION = "myproject.asgi.application" установили, а зачем CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]**
@@ -1296,6 +1309,8 @@
   + Views: обработка запросов и отправка ответов в разных форматах (JSON, ...) через API
   + DRF (API): процесс обработки запросов и создания ответов в виде JSON, XML или других форматов
   + Django Channels: передача данных пользователю в реальном времени через протокол WebSocket
+* the use of libraries or tools that provide an immediate and complete solution for a global feature or a module is rohibited (subject)
+• the use of a small library or tool that solves a simple and unique task, representing a subcomponent of a global feature or module, is allowed (subject)
 
 ### Organisation
 * https://github.com/bakyt92/14_ft_transendence
