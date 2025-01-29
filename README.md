@@ -438,7 +438,11 @@
   + если сертификат отсутствует, браузер может блокировать подключение WebSocket
 * `consumers.ChatConsumer.as_asgi()` связывает запрос с Consumer-классом
   + `as_asgi()` Consumer работает в асинхронной среде 
-* **views.py проверяет токен/подпись ?**
+* логика приёма и обработки WebSocket-запросов и связанной аутентификации/авторизации пишется в consumers.py и/или в кастомном middleware для Channels
+  + но можно организовать WebSocket‐аутентификацию через Django session
+    - Channels используют cookie-сессии Django, если пользователь уже аутентифицирован через views, то Channels видит сессию по cookie
+   - логика аутентификации (включая проверку подписи на этапе логина) происходит в views
+   - ws-протокол подхватывает готовую сессию
 
 ### `CHANNEL_LAYERS` (канал-сервер, канальный слой) для Django Channels
 * абстракция в Django Channels
@@ -1068,6 +1072,7 @@
   + Использует middleware (`AuthMiddlewareStack`) для сопоставления пользователя.
   + Поддерживает передачу аутентификационных данных через Cookie (например, `sessionid`) или токены
 * Если вы хотите объединить аутентификацию для DRF и Django Channels, рекомендуется использовать JWT или SessionAuthentication и настроить соответствующие middleware
+* views.py проверяет токен/подпись
 
 ### cookie, localStorage, sessionStorage
 | **Свойство**        | **Cookie**                            | **LocalStorage**      | **SessionStorage**             |
