@@ -80,7 +80,8 @@
 * **Карточка Bootstrap**  
 * pop-up windows : login, chat, profile
 * страница comptetition, profile, настройки
-
+* compatible with the latest stable up-to-date version of Google Chrome
+  
 ### backend Daphne 
 * `python manage.py runserver 0.0.0.0:8000`
   + запускает Django-приложение с использованием встроенного **разработческого сервера**
