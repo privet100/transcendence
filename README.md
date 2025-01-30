@@ -1,4 +1,4 @@
-### test
+### TEST
 * https://localhost:4443/
 * https://localhost:4443/chat: HTTP-запрос для загрузки страницы (HTML, CSS, JavaScript)
 * https://localhost:4443/staticfiles/admin/css/base.css
@@ -29,6 +29,7 @@
 * `docker-compose logs`
 * `docker logs backend`
 * логи внутри контейнера
+
 
 ### GAME LOGIC
 * a player should also be possible to propose a tournament (subject)
@@ -84,6 +85,16 @@
   + add any metrics you deem useful
   + users monitor their gaming statistics and game session details through user-friendly dashboards
   + a comprehensive view of their gaming experience
+* game logic, because we need it to do the multiplayer
+* трекинг **когда пользователь был онлайн**
+  + models.py: last online для индикатива
+  + три решения 
+    - через библиотеку channels - по вебсокетам следим пользователь онлайн или нет - НАМ ЭТОТ СПОСОБ
+    - через Django sessions - как только юзер делает какое либо действие, Джанго сохраняет в базу данных дату этого действия 
+    - через redis - но не понял как это работает
+* pass reset будет ли?
+* change username, email будет ли?
+
 
 ### FRONTEND NGINX
 * try using **bolt.new** it's better at frontend
@@ -125,7 +136,8 @@
 * compatible with the latest stable up-to-date version of Google Chrome
 * Amine: game front using javascript
 
-### backend Daphne 
+
+### BACKEND DAPHNE 
 * compatible with the latest stable up-to-date version of Google Chrome (subject)
 * The user should be able to use the Back and Forward buttons of the browser (subject)
 * класс router обрабатывает перемещения по сайту
@@ -147,6 +159,7 @@
   + proxy_set_header Upgrade $http_upgrade;
   + proxy_set_header Connection "upgrade";=
   
+
 ### BACKEND DAPHNE 
 * `python manage.py runserver 0.0.0.0:8000`
   + запускает Django-приложение с использованием встроенного **разработческого сервера**
@@ -180,6 +193,7 @@
 * AllowedHostsOriginValidator проверяет допустимые хосты для WebSocket-соединений
 * DJANGO_SETTINGS_MODULE настройки для компонент Django (**ORM**, middleware, ...)
 * Amine: game backend using websockets (with 42 auth)
+
 
 ### DJANGO
 * Бэкенд-фреймворк
@@ -277,19 +291,17 @@
   + совместимо с встроенной системой Django, которая использует LOGGING
   + выводить разные сообщения для компонентов
 
+
 ### DJANGO REST FRAMEWORK DRF
-* создаёт HTTP API с поддержкой **сериализации**, аутентификации, прав доступа
-* протокол HTTP(S) используется для создания RESTful API, которые обрабатывают стандартные HTTP-запросы (GET, POST, PUT, DELETE)
+* создаёт RESTful HTTP API с поддержкой **сериализации**, аутентификации, прав доступа
 * ваимодействие с базами данных и другими внешними сервисами (API École 42)
-* game logic, because we need it to do the multiplayer
-* рендеринг **шаблонов** (**Server-Side Rendering**)
 * js: нопка "создать турнир" -> вызывает 127.0.0.1/tour -> запускает DRF
-* с ним: PUT = поменять поле в бд, без него запрос sql
+* PUT = поменять поле в бд (без DRF запрос sql)
 * middlware
   + набор классов
   + не являются серверами
-  + фильтры или обработчики, модифицирующими запросы/ответы
-  + каждый middleware по очереди обрабатывает запрос и передаёт запрос следующему 
+  + фильтры, обработчики, модифицируюют запросы/ответы
+  + middleware обрабатывает запрос и передаёт запрос следующему 
   + **для обеспечения доступа к объекту пользователя (request.user) и другим данным авторизации**
   + SecurityMiddleware
     - добавляет заголовки безопасности (`Strict-Transport-Security` для HTTPS)
@@ -334,8 +346,6 @@
   + SecurityMiddleware
     - проверка заголовков
     - добавление заголовков безопасности
-* аутентификация реализуется через middleware, через стандартный механизм HTTP-запросов, например, с использованием **JWT или сессий**
-* сессии управляются с помощью cookie-сессионных данных или токенов для аутентификации API
 * каждый запрос обрабатывается отдельно, и клиент получает ответ сразу
 * **среда `AppRegistry`** управляет регистрацией приложений и моделей
 * использует сессии или JWT для аутентификации пользователей
@@ -376,11 +386,16 @@
   + **Browsable API** в `http://localhost:8000/api/` или `http://localhost:8000/` список эндпоинтов **не работает**
 * myapp: логика пользовательских профилей, турниров, историй игр
 * bakyt: API for Database - UserProfile works
+* рендеринг шаблонов (Server-Side Rendering) у нас нет
 
-### django REST API (Application Programming Interface)
+
+### DJANGOo REST API (Application Programming Interface)
 * интерфейс
 * набор правил, позволяет приложениям взаимодействовать друг с другом
 * группа маршрутов (эндпоинтов)
+* RESTful HTTP API с поддержкой **сериализации**, аутентификации, прав доступа
+  + используется протокол HTTP(S)
+  + API обрабатывает стандартные HTTP-запросы (GET, POST, PUT, DELETE)
 * клиент использует для взаимодействия с сервером
 * **обмен данных через API в формате REST**
 * авторизация с помощью токенов (JWT) и другие механизмы для обработки запросов и откликов между клиентом и сервером
@@ -466,6 +481,7 @@
 * если настроена автоматическая документация (Swagger, Redoc), то список API http://localhost:8000/swagger/, http://localhost:8000/redoc/
 * с точки зрения реализации api есть **class based views** (не сильно сложнее) / functions based views (проще)
 
+
 ### DJANGO CHANNELS
 * расширение Django, framework, библиотека, надстройка для вебсокетов
 * добавляет поддержку асинхронных протоколов
@@ -476,6 +492,9 @@
   + другие типы запросов, другой протокол
   + создает ws
   + создает consumer
+* change the post requests to a websocket
+  + to make the game and chat using websockets (**native browser api**)
+  + it’s beneficial in terms of continuous data streaming
 * WebSockets
   + клиент загружает страницу
   + js инициирует соединение через **WebSocket API**: `new WebSocket`
@@ -535,6 +554,7 @@
   + Обеспечение единообразного стиля и навигации между страницами.
 * alexey: Tournaments – working 
 
+
 ### CHANNEL LAYERS
 * не сервер
 * абстракция, настройка Django Channels
@@ -591,6 +611,7 @@
   + Мини-чат или прямое общение (point-to-point). Если все пользователи сидят в рамках одного сервера (и у вас не требуется распределённая горизонтальная архитектура), то и группы Channels будут работать внутри этого одного процесса 
   + Push-уведомления из кода в конкретный WebSocket‐консьюмер
 
+
 ### REDIS
 * Remote Dictionary Server  
 * * **репликация** и **кластеризация** для масштабирования и высокой доступности
@@ -616,6 +637,7 @@
   + `django-redis` библиотека для **сериализацию** данных, записи, извлечения
   + поддерживает множество языков программирования
   + транзакции и скрипты на языке Lua
+
 
 ### REDIS = BACKEND ДЛЯ CHANNEL LAYERS  
 * бэкэнд, брокер сообщений, посредник (если несколько серверов/контейнеров обрабатывают ws-запросы)
@@ -669,6 +691,7 @@
     - Логирование на сервере. Часто Pub/Sub системы логируют публикацию и доставку сообщений.
     - Задержки при передаче сообщения. Если сообщение доходит мгновенно, вероятно используется WebSocket с логикой Pub/Sub
 
+
 ### REDIS ДЛЯ ХРАНЕНЯ СЕССИЙ
 * для управления **состоянием** ws-соединений
   + хранит **данные о подключениях**
@@ -677,6 +700,7 @@
 * управление пользовательскими сессиями в веб-приложениях при подключении пользователей к ws
   + хранение данных о текущих авторизованных пользователях
  
+
 ### REDIS ДЛЯ КЭШИРОВАНИЯ
 * django cash framework обращается к redis
   + инфраструктура для кэширования
@@ -733,7 +757,8 @@
   + redis для кэширования промежуточных результатов в асинхронных операциях (промежуточные результаты обработки WebSocket-соединений)
 * bakyt: только кэш сообщений, чат и **системные**
 
-### CHAT
+
+### LIVE CHAT
 * **история в бд** (или в redis?)
 * **чат сделать компонентом**
 * the user sends direct messages to other users (subject)
@@ -785,6 +810,7 @@
   + Проверьте сохранение сообщений в базе данных
   + Развертывание `nginx.conf` location /ws/ 
 
+
 ### DATABASE PostgreSQL
 * СУБД для хранения пользователей, сообщений, данных о матчах в Pong, статистики, ...
 * to set up the database **для чего?**
@@ -809,6 +835,7 @@
    public | myapp_userprofile_groups           | table | myuser
    public | myapp_userprofile_user_permissions | table | myuser
   ```
+
 
 ### СТАТИЧЕСКИЕ ФАЙЛЫ html js CSS изображения шрифты
 * в разработке:
@@ -884,7 +911,8 @@
   + видеть исходный код для отладки кода в браузере
   + в продакшен отключают генерацию .map-файлов, чтобы уменьшить вес приложения и не раскрывать детали исходного кода
 
-### токены, безопасность
+
+### ТОКЕНЫ БЕЗОПАСНОСТЬ
 | Характеристика       | Токен авторизации            | CSRF-ключ                  | Сессионный ключ            |
 |----------------------|------------------------------|----------------------------|----------------------------|
 | Назначение           | Аутентификация               |                            | Идентификация сессии       |
@@ -1160,8 +1188,11 @@
   + obtain the credentials and permissions from the authority to enable a secure login
   + user-friendly login and authorization flows that adhere to best practices and security standards
   + the secure exchange of authentication tokens and user information between the web application and the authentication provider
+* аутентификация реализуется через middleware, через стандартный механизм HTTP-запросов, например, с использованием **JWT или сессий**
+* сессии управляются с помощью cookie-сессионных данных или токенов для аутентификации API
 
-### cookie, localStorage, sessionStorage
+
+### COOKIE LOCALSTORAGE SESSIONSTORAGE
 | **Свойство**        | **Cookie**                            | **LocalStorage**      | **SessionStorage**             |
 |---------------------|----------------------------------------|----------------------|-----------------------------------|
 | **Хранение данных** | В браузере, отправляются серверу      | Только в браузере     | Только в браузере                    |
@@ -1251,8 +1282,12 @@
       - шифрование WebSocket-соединений (wss://)
       - защищают транспортный уровень
       - не связаны с аутентификацией или авторизацией пользователя
+* валидация данных
+  + **js на фронте читает инпут, проверяет с помощью regex**
+  + функция make password django шифрует на сервере ?
+  + бэк ещё раз валидирует (проверяет пароль и почту, ...) **зачем два раза** 
    
-### js
+### JAVASCRIPT
 * js менять параметры html, class = стиль
 * open chat
   + на странице login, profile, решгистрация нету
@@ -1263,7 +1298,8 @@
   + загрузка стат файлов Django (table.css)
   + у нас кажется не будет этого
 
-### Dockefiles
+
+### DOCKER
 * **docker volume ls** лишний том
 * Чтобы файлы нового приложения, созданные внутри контейнера, появились на хосте
   + директория проекта внутри контейнера и на хосте связаны с помощью volumes (точек монтирования) `./backend:/app `
@@ -1344,8 +1380,10 @@
   + Docker in a VM
   + rebuild you container after your changes
   + craft **your own docker image** with root as unique UID
+* virtual environment не нужно, потому что у нас докер
 
-### запуск
+
+### ЗАПУСК
 * **ASGI_APPLICATION = "myproject.asgi.application" установили, а зачем CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]**
 * For Ecole42 computers, I've updated settings of docker file in DEV branch 
   + порт, который нужен для django, занят
@@ -1369,24 +1407,8 @@
   + When Ivan tried to login with 42Auth from another computer (not server) - he got error 400; however basic sign up with email is working 
   + My login with 42Auth from server computer worked
 
-### разное
-* трекинг **когда пользователь был онлайн**
-  + models.py: last online для индикатива
-  + три решения 
-    - через библиотеку channels - по вебсокетам следим пользователь онлайн или нет - НАМ ЭТОТ СПОСОБ
-    - через Django sessions - как только юзер делает какое либо действие, Джанго сохраняет в базу данных дату этого действия 
-    - через redis - но не понял как это работает
-* предупредить клиента, что его ждет игра, даже если он в чате
-* валидация данных
-  + **js на фронте читает инпут, проверяет с помощью regex**
-  + функция make password django шифрует на сервере ?
-  + бэк ещё раз валидирует (проверяет пароль и почту, ...) **зачем два раза** 
-* change the post requests to a websocket
-  + to make the game and chat using websockets (**native browser api**)
-  + it’s beneficial in terms of continuous data streaming
-* virtual environment не нужно, потому что у нас докер
-* pass reset будет ли?
-* change username, email будет ли?
+
+### РАЗНОЕ
 * CSR client-side rendering / SSR server-side rendering, данные загружаются на клиентскую сторону, HTML генерируется динамически с помощью JavaScript
   + SSR сервер генерирует и отправляет готовый HTML на клиентскую сторону, каждый запрос требует пересоздания всей страницы на сервере, может быть медленным, сервер должен выполнить обработку данных и сгенерировать страницу каждый раз, когда поступает запрос 
   + сервер отправляет данные (JSON, ...)
@@ -1397,7 +1419,7 @@
 * rendering
   + фронтенд: рендеринг HTML-шаблонов или динамически обновляемых данных через JavaScript, процесс генерации и отображения контента на веб-странице
   + Views: обработка запросов и отправка ответов в разных форматах (JSON, ...) через API
-  + DRF (API): процесс обработки запросов и создания ответов в виде JSON, XML или других форматов
+  + DRF: процесс обработки запросов и создания ответов в виде JSON, XML или других форматов
   + Django Channels: передача данных пользователю в реальном времени через протокол WebSocket
 * the use of libraries or tools that provide an immediate and complete solution for a global feature or a module is rohibited (subject)
 • the use of a small library or tool that solves a simple and unique task, representing a subcomponent of a global feature or module, is allowed (subject)
