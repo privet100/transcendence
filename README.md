@@ -176,19 +176,10 @@
 * проверить: в контейнере `nginx -t`
 * **SSL Labs** проверить корректность настройки SSL
 * четыре server{}-блока = один процесс
-* Vanilla JS (без фреймворков)
 * **Bootstrap toolkit**
 * **Карточка Bootstrap**  
 * pop-up windows : login, chat, profile
 * страница comptetition, profile, настройки
-* compatible with the latest stable up-to-date version of Google Chrome
-* Amine: game front using javascript
-* alexey: Layout on the pages – working on it
-  + расположение и структура элементов пользовательского интерфейса на веб-страницах
-  + Работа с CSS-фреймворками (например, Tailwind CSS или Bootstrap)
-
-
-### BACKEND DAPHNE 
 * compatible with the latest stable up-to-date version of Google Chrome (subject)
 * The user should be able to use the Back and Forward buttons of the browser (subject)
 * класс router обрабатывает перемещения по сайту
@@ -207,6 +198,10 @@
 * proxy_http_version 1.1
   + ws‐подключения для **апгрейда соединения** используют HTTP/1.1
   + если оставить по умолчанию HTTP/1.0, Nginx не будет корректно передавать заголовки Upgrade и Connection: upgrade, и вебсокеты могут не работать
+* Amine: game front using javascript
+* alexey: Layout on the pages – working on it
+  + расположение и структура элементов пользовательского интерфейса на веб-страницах
+  + Работа с CSS-фреймворками (например, Tailwind CSS или Bootstrap)
   
 
 ### BACKEND DAPHNE 
@@ -402,55 +397,33 @@
 
 ### DJANGO RESTFUL HTTP API 
 * API Application Programming Interface = интерфейс = набор правил = WebSocket-путь = группа маршрутов (эндпоинтов)
-  +  API = 5–10 эндпоинтов, например, группа всех маршрутов, связанных с чатом
+* обрабатывает HTTP-запросы (GET, POST, PUT, DELETE) и отклики между клиентом и сервером
 * REST Representational State Transfer стиль взаимодействия между клиентом и сервером
   + Request Body (json, xml, yaml, MessagePac, CSV)
   + Query Parameters `GET /users?name=Иван`
   + Path Parameters `GET /users/1/`
   + Headers `Content-Type: application/json`  
-* обрабатывает HTTP-запросы (GET, POST, PUT, DELETE) и отклики между клиентом и сервером
+* API = 5–10 эндпоинтов, например, группа всех маршрутов, связанных с чатом
 * endpoint = URL-маршрут = конкретный маршрут, связанный с API
   + выполняет определённое действие
-  + endpoints чата
-    - `GET /chat/rooms/` — список комнат
-    - `POST /chat/rooms/` — создать комнату
-    - `GET /chat/rooms/<room_id>/messages/`
-    - `POST /chat/rooms/<room_id>/messages/`
-* список эндпоинтов
-  - `python manage.py show_urls` 
-  -  `grep -r "path(" backend/`, `grep -r "re_path(" backend/`
-  - `curl -X GET http://localhost:8000/api/endpoint/`
-  - `curl -X POST http://localhost:8000/api/endpoint/ -H "Content-Type: application/json" -d '{"key": "value"}'`
-  - Postman
-  - Chrome + расширения
-  - Python + библиотека `websockets`
-  - http://localhost:8000/api/, http://localhost:8000/ автоматичесая документация эндпоинтов **Browsable API** 
-  - http://localhost:8000/swagger/, http://localhost:8000/redoc/, если настроена автоматическая документация
+  + endpoints чата `GET /chat/rooms/`, `POST /chat/rooms/`, `GET /chat/rooms/<room_id>/messages/`, `POST /chat/rooms/<room_id>/messages/`
 * APIView ViewSet специализированные CBV из DRF
-  + обработчики HTTP-запросов
+  + обработчики HTTP-запросов  для работы с API
   + определяются в View-классах или функциях
   + классы, наследущие от `APIView`, `GenericViewSet`, `ViewSet`
-  + классы для работы с API
-  + APIView` расширяет `View`, добавляет поддержку сериализации, аутентификации, др API-функций
-    - CBV предназначенный для REST API
-    - инструмент для создания API
-    - класс в DRF
-    - наследуется от класса View
-    - добавляет поддержку сериализации, работы с JSON, вспомогательные методы для обработки HTTP, `GET` `POST` `PUT` `DELETE`
-    - подходит для создания простых API с базовой логикой
-  + ViewSet расширенный вариант APIView
-    - автоматически обрабатывает CRUD-операции
+  + APIView`
+    - класс, наследуется от класса View
+    - CBV предназначенный для создания REST API
+    - добавляет поддержку сериализации,  аутентификации, работы с JSON, вспомогательные методы для обработки HTTP `GET` `POST` `PUT` `DELETE`, др API-функций
+    - для простых API с базовой логикой
+  + ViewSet
+    - расширенный вариант APIView
+    - использует методы по умолчанию, предоставляемые DRF (избежать написания методов для HTTP-запросов `GET`, `POST`, `PUT`, `DELETE`)
+    - добавляет автоматическую обработку запросов для стандартных операций CRUD (Create, Read, Update, Delete) над данными, которые уже есть в базе
     - работает в связке с Router, что упрощает маршрутизацию API
-    - более высокоуровневый класс
-    - добавляет автоматическую обработку запросов для стандартных операций CRUD (Create, Read, Update, Delete)
     - генерирует маршруты для операций с ресурсами (создание нового объекта, получение списка объектов, обновление, удаление)
-    - избежать написания методов для каждого HTTP-запроса, таких как `GET`, `POST`, `PUT`, `DELETE`
-    - использует методы по умолчанию, предоставляемые DRF
-    - автоматически предоставляет стандартные действия для модели
-    - настраивать маршруты для ресурсов API с помощью router
-    - для стандартных операций, связанных с моделями (создание, получение, обновление, удаление объектов)
+    - предоставляет стандартные действия для модели
     - подходит для ресурсо-ориентированных API, где операции с объектами ("пользователи", "продукты") 
-    - настроить API для CRUD-операций над данными, которые уже есть в базе
   + | Вариант     | Для чего?                          | Маршрутизация |
     |-------------|------------------------------------|----------------|
     | **FBV**     | Обычные представления              | Ручная (`path()` или `re_path()`) |
@@ -458,69 +431,59 @@
     | **APIView** | API-представления                  | Ручная (`as_view()`) |
     | **ViewSet** | API + автоматическая маршрутизация | Через `Router` |
 * позволяет **приложениям** взаимодействовать друг с другом
+* сессии не нужны, авторизация через токены
 * bakyt: API for Database - UserProfile works
-* технические детали
-  + протокол HTTP(S)
-  + реализуются
-    - через события
-    - через статусы в ответах API
-    - не через механизм сообщений Django
+* реализуются
+  + через события
+  + через статусы в ответах API
+  + не через механизм сообщений Django
 
 
 ### DJANGO CHANNELS
 * расширение Django, framework, библиотека, надстройка для вебсокетов
-* добавляет поддержку асинхронных протоколов, асинхронного взаимодействия, **фоновых задач**
-* слушает ws-запросы, связывает URL запроса с обработчиками
-  + отличия от html: непрерывное соединение, стрим
-  + другие типы запросов, другой протокол
-  + создает ws
-  + создает consumer
-* обновление интерфейса в режиме реального времени
-* содзание ws
-  + регистрация и управление подключениями (каналами) пользователей
+* добавляет поддержку асинхронных протоколов, асинхронного взаимодействия, **фоновых задач**, обновление интерфейса в режиме реального времени
+* слушает ws-запросы
+  + непрерывное соединение, стрим
   + js инициирует соединение через **WebSocket API**: `new WebSocket`
   + daphne устанавливает ws-соединение
   + daphne передаёт ws-соединение в ASGI-приложение
-  + подключение пользователей к WebSocket
+  + создает ws
+  + создает consumer
+  + связывает URL запроса с обработчиками `consumers.ChatConsumer.as_asgi()`
+    - URLRouter маршрутизирует запросы на consumers 
   + назначение пользователей к группам каналов
   + закрытие соединений
 * обслуживание ws
   + AuthenticationMiddlewareStack
-    - проверяет, что ws-соединение аутентифицировано
-    - различные методы аутентификации (проверка токенов JWT, Cookies и др)
-    - связывает пользователя с запросом, с подключением ws
+    - проверяет, что соединение аутентифицировано (проверка токенов JWT, Cookies и др)
+    - связывает пользователя с запросом, с подключением
+    - оборачивает маршруты ws
+    - обеспечивает аутентификацию пользователей
+    - добавляет объект пользователя в scope["user"] => в consumers `self.scope["user"]` для информации об аутентифицированном пользователе и выполнять действия на основе его прав и ролей
   + SessionMiddleware (если используется) работа с сессией
     - получение id сессии и связанного с ним пользователя
     - сохранение информации о сессии: id сессии и связанные данные (пользователь, ...)
-    - обязателен, если используете сессии (авторизация через `django.contrib.auth`, хранение пользовательские данных между запросами, если работаете с `request.session`)
+    - обязателен, если используете сессии (хранение пользовательские данных между запросами)
     - обязателен, если есть `django.contrib.auth` (он опирается на сессии для хранения данных о пользователе)
     - обязателен, если взаимодействие с сессиями на сервере (сессионное хранилище в бд, Redis, файловой системе,...)
-    - можно без него, если JWT токены или др безсессионные методы аутентификации (например, в REST API (DRF) сессии не нужны, авторизация через токены)
-    - можно без него, если данные о сессии хранятся полностью в зашифрованных cookie (без серверного хранилища)
+    - можно без него, если JWT токены или др безсессионные методы аутентификации 
+    - можно без него, если данные о сессии хранятся в зашифрованных cookie (без серверного хранилища)
+  + другие middleware могут быть:+ ограничение скорости, управление правами доступа, обработка ошибок
   + consummer получает `{ "type": "chat.message", "message": "Hello, World!" } с заголовками
+    - логика приёма и обработки ws-запросов и аутентификации/авторизации может быть вместо этого в кастомном middleware
   + Backend Channel Layer
   + consumer отправляет через ws обратно пользователю `{ "type": "chat.message", "message": "Hi there!" }` 
-  + предоставляет **объект пользователя (scope["user"]) в consumer'ах**, если пользователь аутентифицирован
-  + | Method                | Real-Time | Message Persistence  | Use Case                           | Complexity |
-    |-----------------------|-----------|----------------------|------------------------------------|------------|
-    | WebSocket (chat)      | Yes       | No                   | Real-time chats, games             | High       |
-    | Redis (Pub/Sub, ws)   | Yes       | No                   | Notifications, chats               | High       |
-    | Django Messages       | No        | Yes                  | System notifications, confirmations| Low        |
-    | REST API              | No        | Yes                  | Simple notifications, data requests| Low        |
-    | Email                 | No        | Yes                  | Important notifications, confirmations| Medium  |
-    | Push Notifications    | Yes       | Yes (by service)     | Mobile device notifications        | Medium     |
-  + ограничение скорости
-  + управление правами доступа
-  + обработка ошибок
   + сессии передаются через cookie
   + если сертификат отсутствует, браузер может блокировать подключение WebSocket
   + если страница загружена по https://, то используйте wss:// 
-* `consumers.ChatConsumer.as_asgi()` связывает запрос с Consumer-классом
-* логика приёма и обработки ws-запросов и аутентификации/авторизации пишется в consumers.py и/или в кастомном middleware
-  + но можно организовать WebSocket‐аутентификацию через Django session
-    - Channels используют cookie-сессии Django, если пользователь уже аутентифицирован через views, то Channels видит сессию по cookie
-   - логика аутентификации (включая проверку подписи на этапе логина) происходит в views
-   - ws-протокол подхватывает готовую сессию
+* | Method                | Real-Time | Message Persistence  | Use Case                           | Complexity |
+  |-----------------------|-----------|----------------------|------------------------------------|------------|
+  | WebSocket (chat)      | Yes       | No                   | Real-time chats, games             | High       |
+  | Redis (Pub/Sub, ws)   | Yes       | No                   | Notifications, chats               | High       |
+  | Django Messages       | No        | Yes                  | System notifications, confirmations| Low        |
+  | REST API              | No        | Yes                  | Simple notifications, data requests| Low        |
+  | Email                 | No        | Yes                  | Important notifications, confirmations| Medium  |
+  | Push Notifications    | Yes       | Yes (by service)     | Mobile device notifications        | Medium     |
 
 
 ### CHANNEL LAYERS
@@ -1338,6 +1301,16 @@
   + Django Channels: передача данных пользователю в реальном времени через протокол WebSocket
 * the use of libraries or tools that provide an immediate and complete solution for a global feature or a module is rohibited (subject)
 • the use of a small library or tool that solves a simple and unique task, representing a subcomponent of a global feature or module, is allowed (subject)
+* список эндпоинтов
+  - `python manage.py show_urls` 
+  -  `grep -r "path(" backend/`, `grep -r "re_path(" backend/`
+  - `curl -X GET http://localhost:8000/api/endpoint/`
+  - `curl -X POST http://localhost:8000/api/endpoint/ -H "Content-Type: application/json" -d '{"key": "value"}'`
+  - Postman
+  - Chrome + расширения
+  - Python + библиотека `websockets`
+  - http://localhost:8000/api/, http://localhost:8000/ автоматичесая документация эндпоинтов **Browsable API** 
+  - http://localhost:8000/swagger/, http://localhost:8000/redoc/, если настроена автоматическая документация
 
 ### Organisation
 * https://github.com/bakyt92/14_ft_transendence
