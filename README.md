@@ -1,40 +1,31 @@
 ### test
 * https://localhost:4443/
-* http://localhost:8000/chat/d/
++ https://localhost:4443/chat: HTTP-запрос для загрузки страницы (HTML, CSS, JavaScript)
+* https://localhost:4443/staticfiles/admin/css/base.css
+* https://localhost:4443/static/css/popUpChat.css
+* http://localhost:4444/ 
 * http://127.0.0.1:8000/admin/
 * http://127.0.0.1:8000/user/1/
-* https://localhost:4443/staticfiles/admin/css/base.css
+* http://localhost:8000/chat/d/
+* 127.0.0.1:8000/chat/room1/ в разных местах, оба видят все сообщения
 * http://localhost:8000/staticfiles/admin/css/base.css
-* https://localhost:4443/static/css/popUpChat.css
-* наш сайт
-  + http://localhost:4444/ 
-  + https://localhost:4443/
-  + https://localhost:4443/chat: HTTP-запрос для загрузки страницы (HTML, CSS, JavaScript)
-  + ws://localhost:4443/ws/chat/<roomName>/: Ws-запрос отправляется на URL /ws/chat/ (настроен в routing.py)
-  + http://localhost:8000/admin
-  + https://tr.naurzalinov.me/users/
-  + http://95.217.129.132:8000/
++ ws://localhost:4443/ws/chat/<roomName>/ ws-запрос на /ws/chat/
++ http://95.217.129.132:8000/
++ https://tr.naurzalinov.me/users/
 * `curl -I http://localhost:4444` должен вернуть статус 301 с заголовком Location: https://localhost:4443/...
 * `curl -I --insecure https://localhost:4443` должен вернуть `HTTP/1.1 200 OK`
-* Endpoints
-  + `urls.py` связывает эндпоинты с функциями/классами представлений из `views.py`
-  + просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
-* если подключены библиотеки для документирования API, то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
+* Endpoints: просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
 * Postman
   + импортируйте коллекцию эндпоинтов, если она уже создана  
   + для изучения API, отправляя запросы на `/api/`, `/swagger/`, ... и исследуя доступные маршруты
-  + endpoints HTTP (API или страницы):
-    - Введите адрес сервера: `http://localhost:8000/api/endpoint/`
-  + метод (GET, POST, PUT, DELETE и т. д.).
-  + если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`).
+  + endpoints HTTP (API или страницы): введите `http://localhost:8000/api/endpoint/`
+  + метод (GET, POST, PUT, DELETE и т. д.)
+  + если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`)
   + отправьте запрос и проверьте статус ответа (200 OK, 401 Unauthorized и т.д.) и тело ответа
 * Django предоставляет встроенные инструменты для тестирования HTTP
-* WebSocket-тесты с Django Channels + `pytest`:
-* connection from another computer (so local network is working) 
-  + When Ivan tried to login with 42Auth from another computer (not server) - he got error 400; however basic sign up with email is working 
-  + My login with 42Auth from server computer worked
-* открываю 127.0.0.1:8000/chat/room1/ в разных местах, оба видят все сообщения
+* WebSocket-тесты с Django Channels + `pytest`
 * F12
+* если подключены библиотеки для документирования API, то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
 * `docker-compose logs`
 * `docker logs backend`
 * логи внутри контейнера
@@ -61,7 +52,7 @@
   + two distant players, each player is located on a separated computer, accessing the same website and playing the same Pong game
   + think about **network issues**, like unexpected disconnection or lag
   + you have to offer the best user experience possible
-* Minor module: Game Customization Options (subject) возможно будем
+* Game Customization Options (subject) возможно будем
   + customization options for all available games on the platform
   + customization features, such as power-ups, attacks, or different maps, that enhance the gameplay experience
   + allow users to choose a default version of the game with basic features if they prefer a simpler experience
@@ -710,16 +701,13 @@
 * bakyt: только кэш сообщений, чат и **системные**
 
 ### chat
+* **история в бд** (или в redis?)
+* **чат сделать компонентом**
 * the user sends direct messages to other users (subject)
 * the user blocks other users, they see no more messages from the account they blocked (subject)
 * the user invites other users to play through the chat interface (subject)
 * the tournament warns users expected for the next game (subject)
 * the user access other players profiles through the chat interface (subject)
-**история в бд** (или в redis?)
-  + **чат надо сделать компонентом**
-* js обращается к rest api (post) endpoints /history, /users/, /send
-  + login pages.js - запрос post к бэку
-  + в заголовке запроса каждый раз CSRF токен, чтобы знать, что это не юзер с третьего сайта
 * rest api строит и отдаёт html  
 * js получает ответ (get)
 * с каждым пользователем у бэкенда 2 вебсовета: чат, положение ракетки
@@ -878,26 +866,26 @@
   + в продакшен отключают генерацию .map-файлов, чтобы уменьшить вес приложения и не раскрывать детали исходного кода
 
 ### токены, безопасность
-| **Характеристика**       | **Токен авторизации**            | **CSRF-ключ**                  | **Сессионный ключ**            |
-|---------------------------|----------------------------------|--------------------------------|---------------------------------|
-| **Назначение**           | Аутентификация                  |                                  | Идентификация сессии           |
-| **Где хранится?**         | HTTP-заголовки, cookie, JS-хранилища | Cookie (обычно)               | Cookie (обычно)                |
-| **Пример использования** | REST API, GraphQL, WebSockets   | Формы, AJAX-запросы           | Веб-приложения с авторизацией  |
+| Характеристика       | Токен авторизации            | CSRF-ключ                  | Сессионный ключ            |
+|----------------------|------------------------------|----------------------------|----------------------------|
+| Назначение           | Аутентификация               |                            | Идентификация сессии       |
+| Где хранится?        | HTTP-заголовки, cookie, JS-хранилища | Cookie (обычно)    | Cookie (обычно)            |
+| Пример использования | REST API, GraphQL, WebSockets| Формы, AJAX-запросы        | Веб-приложения с авторизацией|
 
-| токен/ключ    | Назначение                                       | Где хранится                         | Особенности | пример |
-|---------------|--------------------------------------------------|--------------------------------------|-------------|--------|
-| CSRF          | от подделки запросов (CSRF-атак)                 | cookie csrftoken                     | проверяется сервером при POST/PUT запросах, передаётся в скрытом поле формы или заголовке            | Защита формы входа; обеспечение легитимности запросов от пользователя|
-|ток авторизации| авторизация пользователя                         |HTTP-заг cookie locStorage sessStorage| Используется для REST API и WebSocket; может быть JWT                                          | авторизация REST API (`Authorization: Bearer <token>`) или ws-соединения |
-|сессионный ключ| управление пользовательской сессией              | cookie sessionid                     | долговрем. связь пользователя с сервером; подходит для **веб-интерфейсов**; сохраняется на сервере | отслеживание состояния авторизации в веб-приложении; данные польз. (корзина)|
-| WebSocket-ток | авторизация польз. при установке ws-соединения   | URL параметр / заголовок ws-запроса  | передаётся при установке соединения; проверка прав доступа                                              | авторизация чата, потоковой системы `wss://example.com/ws/chat/?token=<...>`|
-| Email-токен   | подтверждение email-адреса, восстановление пароля| URL отправляемое пользователю        | одноразовый токен                     
-                                                                   | подтверждение email ссылкой `https://example.com/verify-email/?token=<>`|
-| API-ключи     | идентификация и авторизация сторонних приложений | HTTP заголовок запроса               | передаётся с каждым запросом; ограниченный доступ к API                                          | интеграция с внеш сервисом, предост. публ. API `Authorization: Api-Key <>`|
-| щифров. ключи | шифрование сообщений                             | На сервере в хранилище               | не передаётся клиенту; для шифрования 
-                                                                   | шифрование сообщений чата на стороне сервера|
-| OAuth-токен   | Аутентификация и авторизация через Google        | в cookie или localStorage            | для OAuth 2.0.                        
-                                                                   | авторизация Google OAuth API; доступ к данным польз. через API (email, ...)|
+| токен/ключ    | Назначение                          | Где хранится                         | Особенности | пример |
+|---------------|-------------------------------------|--------------------------------------|-------------|--------|
+| CSRF          | от подделки запросов (CSRF-атак)    | cookie csrftoken                     | проверяется сервером при POST/PUT запросах, передаётся в скрытом поле формы или заголовке            | Защита формы входа; обеспечение легитимности запросов от пользователя|
+|ток авторизации| авторизация                         |HTTP-заг cookie locStorage sessStorage| Используется для REST API и WebSocket; может быть JWT | авторизация REST API (`Authorization: Bearer <token>`) или ws-соединения |
+|сессионный ключ| управление пользов! сессией         | cookie sessionid                     | долговрем. связь пользователя с сервером; подходит для **веб-интерфейсов**; сохраняется на сервере | отслеживание состояния авторизации в веб-приложении; данные польз. (корзина)|
+| ws-ток        | авторизация при установке ws-соедине| URL параметр / заголовок ws-запроса  | передаётся при установке соединения; проверка прав доступа | авторизация чата, потоковой системы `wss://example.com/ws/chat/?token=<...>`|
+| Email-токен   | подтвержд email-адреса, восст пароля| URL отправляемое пользователю        | одноразовый токен| подтверждение email ссылкой `https://example.com/verify-email/?token=<>`|
+| API-ключи     |идентификация, авторизация стор прилож| HTTP заголовок запроса              | передаётся с каждым запросом; ограниченный доступ к API | интеграция с внеш сервисом, предост. публ. API `Authorization: Api-Key <>`|
+| щифров. ключи | шифрование сообщений                | На сервере в хранилище               | не передаётся клиенту; для шифрования | шифрование сообщений чата на стороне сервера|
+| OAuth-токен   | аутентиф и авторизация через Google |  cookie или localStorage             | для OAuth 2.0. | авторизация Google OAuth API; доступ к данным польз. через API (email, ...)|
 
+* js обращается к rest api (post) endpoints /history, /users/, /send
+  + login pages.js - запрос post к бэку
+  + в заголовке запроса каждый раз CSRF токен, чтобы знать, что это не юзер с третьего сайта
 * **csrf MW проверяет токен, а до этого не надо его проверять?**
 * можно вообще без сессий: если вся информация хранится в токенах или сессии вообще не нужны (например, чисто API-проект)
 **если используется исключительно токен-авторизация (JWT), можно отключить django.contrib.sessions.middleware.SessionMiddleware и  django.middleware.csrf.CsrfViewMiddleware**
@@ -1355,6 +1343,9 @@
   + 2 саособ лучше:
     - каждый компьютер использует VM, в ней изменяете файл хостов, чтобы связать IP-адрес исходной станции с URL-адресами
     - подключиться к другому компьютеру в кластере через его внутреннее доменное имя школы, добавить это в nginx.conf, чтобы веб-сервер разрешал связываться с вами в этом домене, а также на стороне django
+* from another computer (so local network is working) 
+  + When Ivan tried to login with 42Auth from another computer (not server) - he got error 400; however basic sign up with email is working 
+  + My login with 42Auth from server computer worked
 
 ### разное
 * трекинг **когда пользователь был онлайн**
