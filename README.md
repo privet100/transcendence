@@ -1,6 +1,6 @@
 ### test
 * https://localhost:4443/
-+ https://localhost:4443/chat: HTTP-запрос для загрузки страницы (HTML, CSS, JavaScript)
+* https://localhost:4443/chat: HTTP-запрос для загрузки страницы (HTML, CSS, JavaScript)
 * https://localhost:4443/staticfiles/admin/css/base.css
 * https://localhost:4443/static/css/popUpChat.css
 * http://localhost:4444/ 
@@ -9,9 +9,9 @@
 * http://localhost:8000/chat/d/
 * 127.0.0.1:8000/chat/room1/ в разных местах, оба видят все сообщения
 * http://localhost:8000/staticfiles/admin/css/base.css
-+ ws://localhost:4443/ws/chat/<roomName>/ ws-запрос на /ws/chat/
-+ http://95.217.129.132:8000/
-+ https://tr.naurzalinov.me/users/
+* ws://localhost:4443/ws/chat/<roomName>/ ws-запрос на /ws/chat/
+* http://95.217.129.132:8000/
+* https://tr.naurzalinov.me/users/
 * `curl -I http://localhost:4444` должен вернуть статус 301 с заголовком Location: https://localhost:4443/...
 * `curl -I --insecure https://localhost:4443` должен вернуть `HTTP/1.1 200 OK`
 * Endpoints: просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
@@ -30,7 +30,7 @@
 * `docker logs backend`
 * логи внутри контейнера
 
-### game logic
+### GAME LOGIC
 * a player should also be possible to propose a tournament (subject)
   + a tournament displaies who is playing against whom and the order of the players (subject)
 • a matchmaking system: the tournament system organize the matchmaking of the participants, and announce the next fight
@@ -85,7 +85,7 @@
   + users monitor their gaming statistics and game session details through user-friendly dashboards
   + a comprehensive view of their gaming experience
 
-### frontend nginx server
+### FRONTEND NGINX
 * try using **bolt.new** it's better at frontend
   + the ui is fire here
 * **game customization** it's just gonna be front
@@ -124,8 +124,26 @@
 * страница comptetition, profile, настройки
 * compatible with the latest stable up-to-date version of Google Chrome (subject)
 * The user should be able to use the Back and Forward buttons of the browser (subject)
+* класс router обрабатывает перемещения по сайту
+  + popstate кнопки назад вперёд в брузере
+* на место .app подставляется div
+  + class Component базовый, абстрактный
+  + фиксированная часть страницы доступна в js
+  + div = homapage, profile, ... (наследуют от Component)
+  + constructor() создаёт класс
+  + state = переменные 
+  + % body % кберем, т.к. у нас SPA
+  + fetch (в js) = запрос к бэку
+  + функция render своя в каждом компоненте
+    - например нужен username - делаем запрос к бэку fetchuserprofile
+  + событие DomContactLoaded = html полностью загрузился (у нас только 1 раз)
+* ws‐подключения для «апгрейда» соединения используют HTTP/1.1
+  + если оставить по умолчанию HTTP/1.0, Nginx не будет корректно передавать заголовки Upgrade и Connection: upgrade, и вебсокеты могут не работать
+  + proxy_http_version 1.1;
+  + proxy_set_header Upgrade $http_upgrade;
+  + proxy_set_header Connection "upgrade";=
   
-### backend Daphne 
+### BACKEND DAPHNE 
 * `python manage.py runserver 0.0.0.0:8000`
   + запускает Django-приложение с использованием встроенного **разработческого сервера**
     - может работать как с WSGI, так и с ASGI, в зависимости от конфигурации проекта
@@ -158,7 +176,7 @@
 * AllowedHostsOriginValidator проверяет допустимые хосты для WebSocket-соединений
 * DJANGO_SETTINGS_MODULE настройки для компонент Django (**ORM**, middleware, ...)
 
-### django
+### DJANGO
 * Бэкенд-фреймворк
 * ключевые механики (аутентификация, управление базой данных, админка, API), функции и практики из коробки
 * диктует архитектуру (приложения, модели, views, urls, ...)
@@ -254,7 +272,7 @@
   + совместимо с встроенной системой Django, которая использует LOGGING
   + выводить разные сообщения для компонентов
 
-### django rest framework DRF
+### DJANGO REST FRAMEWORK DRF
 * создаёт HTTP API с поддержкой **сериализации**, аутентификации, прав доступа
 * протокол HTTP(S) используется для создания RESTful API, которые обрабатывают стандартные HTTP-запросы (GET, POST, PUT, DELETE)
 * ваимодействие с базами данных и другими внешними сервисами (API École 42)
@@ -442,7 +460,7 @@
 * если настроена автоматическая документация (Swagger, Redoc), то список API http://localhost:8000/swagger/, http://localhost:8000/redoc/
 * с точки зрения реализации api есть **class based views** (не сильно сложнее) / functions based views (проще)
 
-### django channels 
+### DJANGO CHANNELS
 * расширение Django, framework, библиотека, надстройка для вебсокетов
 * добавляет поддержку асинхронных протоколов
 * не сервер, не принимает запросы
@@ -504,9 +522,10 @@
    - логика аутентификации (включая проверку подписи на этапе логина) происходит в views
    - ws-протокол подхватывает готовую сессию
 
-### `CHANNEL_LAYERS` (канал-сервер, канальный слой) для Django Channels
+### CHANNEL LAYERS
 * не сервер
 * абстракция, настройка Django Channels
+* канал-сервер, канальный слой для Django Channels
 * промежуточный уровень для обработки событий в реальном времени
 * распределенные задачи (уведомления, обработка сообщений, др асинхронные операций)
   + сообщения от клиента передаются через Channel Layer
@@ -514,10 +533,10 @@
   + ответ от сервера передается обратно через WebSocket-соединение
 * публикует в канал, доставляет подписанным
 * channels_redis поддержка групповой рассылки
-* маршрутизация между клиентами
-* асинхронный обмен сообщениям **между**
+* асинхронный обмен сообщениямм, маршрутизация **между**
   + частям приложения
   + сервером и клиентом
+  + клиентами
   + инстансами приложения
   + процессами
   + ws-соединениями и **фоновыми задачами**
@@ -556,10 +575,11 @@
   + ок если вам нужно всего лишь точечно отправлять и получать сообщения в рамках одного процесса
   + широковещательное (group_send) или мульти‐user‐чат‐шаблон если и нужен, то только в рамках одного процесса
   + реал-тайм обновления для одного пользователя (или небольшой группы в рамках одного процесса). Например, вы хотите уведомлять конкретного юзера о событиях (новые сообщения, новые заявки в друзья и т.п.), и ваш сервер – один.  
-  + Мини-чат или прямое общение (point-to-point). Если все пользователи сидят в рамках одного сервера (и у вас не требуется распределённая горизонтальная архитектура), то и группы Channels будут работать внутри этого одного процесса  
+  + Мини-чат или прямое общение (point-to-point). Если все пользователи сидят в рамках одного сервера (и у вас не требуется распределённая горизонтальная архитектура), то и группы Channels будут работать внутри этого одного процесса 
   + Push-уведомления из кода в конкретный WebSocket‐консьюмер
 
-### Remote Dictionary Server redis: general 
+### REDIS
+* Remote Dictionary Server  
 * * **репликация** и **кластеризация** для масштабирования и высокой доступности
 * хранение данных
 * маршрутизация данных
@@ -584,7 +604,7 @@
   + поддерживает множество языков программирования
   + транзакции и скрипты на языке Lua
 
-### redis = backend для сhannel layers  
+### REDIS = BACKEND ДЛЯ CHANNEL LAYERS  
 * бэкэнд, брокер сообщений, посредник (если несколько серверов/контейнеров обрабатывают ws-запросы)
   + daphne каждого инстанса/контейнера подключается к Redis-серверу
   + сервер получает сообщение от клиента, отправляет его в канал через Channel Layer
@@ -636,7 +656,7 @@
     - Логирование на сервере. Часто Pub/Sub системы логируют публикацию и доставку сообщений.
     - Задержки при передаче сообщения. Если сообщение доходит мгновенно, вероятно используется WebSocket с логикой Pub/Sub
 
-### redis для хранения сессий
+### REDIS ДЛЯ ХРАНЕНЯ СЕССИЙ
 * для управления **состоянием** ws-соединений
   + хранит **данные о подключениях**
   + очередь задач (отправки email, push-уведомления, логирование, обработка фоновых задач (обновление статистики матчей))
@@ -644,7 +664,7 @@
 * управление пользовательскими сессиями в веб-приложениях при подключении пользователей к ws
   + хранение данных о текущих авторизованных пользователях
  
-### кэширование (redis)
+### REDIS ДЛЯ КЭШИРОВАНИЯ
 * django cash framework обращается к redis
   + инфраструктура для кэширования
   + хранение кэша (запросы, объекты, шаблоны, ...)
@@ -700,7 +720,7 @@
   + redis для кэширования промежуточных результатов в асинхронных операциях (промежуточные результаты обработки WebSocket-соединений)
 * bakyt: только кэш сообщений, чат и **системные**
 
-### chat
+### CHAT
 * **история в бд** (или в redis?)
 * **чат сделать компонентом**
 * the user sends direct messages to other users (subject)
@@ -708,23 +728,9 @@
 * the user invites other users to play through the chat interface (subject)
 * the tournament warns users expected for the next game (subject)
 * the user access other players profiles through the chat interface (subject)
-* rest api строит и отдаёт html  
+* rest api строит и отдаёт html
 * js получает ответ (get)
 * с каждым пользователем у бэкенда 2 вебсовета: чат, положение ракетки
-* `python manage.py makemigrations`, `python manage.py migrate` создайте и примените миграции для моделей 
-* класс router обрабатывает перемещения по сайту
-  + popstate кнопки назад вперёд в брузере
-* на место .app подставляется div
-  + class Component базовый, абстрактный
-  + фиксированная часть страницы доступна в js
-  + div = homapage, profile, ... (наследуют от Component)
-  + constructor() создаёт класс
-  + state = переменные 
-  + % body % кберем, т.к. у нас SPA
-  + fetch (в js) = запрос к бэку
-  + функция render своя в каждом компоненте
-    - например нужен username - делаем запрос к бэку fetchuserprofile
-  + событие DomContactLoaded = html полностью загрузился (у нас только 1 раз)
 * websocket объект js
 * websocket: кому пишем сообщение? в запросе
 * prepMsg забирает инпут и делает ws запрос
@@ -766,7 +772,7 @@
   + Проверьте сохранение сообщений в базе данных
   + Развертывание `nginx.conf` location /ws/ 
 
-### db PostgreSQL
+### DATABASE PostgreSQL
 * СУБД для хранения пользователей, сообщений, данных о матчах в Pong, статистики, ...
 * to set up the database **для чего?**
   + `python manage.py makemigrations`, `python manage.py migrate`
@@ -791,7 +797,7 @@
    public | myapp_userprofile_user_permissions | table | myuser
   ```
 
-### статические файлы html js CSS изображения шрифты
+### СТАТИЧЕСКИЕ ФАЙЛЫ html js CSS изображения шрифты
 * в разработке:
   + **`python manage.py runserver` при DEBUG = True**
     - you use django.contrib.staticfiles
@@ -1006,8 +1012,8 @@
     - Access Token хранится в памяти клиента (`In-Memory`) для минимизации уязвимости к XSS.
     - Refresh Token хранится в HTTP-only cookie для долгосрочного хранения и обновления Access Token.
   +
-    | **Место хранения**       | **Безопасность**       | **Удобство** | **Долговечность** |
-    |---------------------------|------------------------|--------------|-------------------|
+    | **Место хранения**        | **Безопасность**      | **Удобство** | **Долговечность** |
+    |---------------------------|-----------------------|--------------|-------------------|
     | Local Storage             | Уязвимо к XSS         | Высокое      | Высокая           |
     | Session Storage           | Уязвимо к XSS         | Среднее      | Средняя           |
     | In-Memory                 | Защищено от XSS       | Низкое       | Низкая            |
@@ -1015,15 +1021,17 @@
     | Redis (сервер)            | Высокая               | Высокое      | Средняя           |
     | HTTP-only cookies         | Защищено от XSS/CSRF  | Высокое      | Средняя/высокая   |
   + Если требуется высокая безопасность
-    - Храните Access и Refresh Tokens на сервере (в базе данных или Redis).
-    - Используйте HTTP-only cookies для передачи сессионных данных.
+    - Храните Access и Refresh Tokens на сервере (в базе данных или Redis)
+    - Используйте HTTP-only cookies для передачи сессионных данных
   + Если важно удобство разработки
-    - Используйте Local Storage или Session Storage, но будьте готовы защищать приложение от XSS-атак.
+    - Используйте Local Storage или Session Storage
+    -  защищать приложение от XSS-атак
   + Гибридный подход
-     - Access Token в памяти клиента (In-Memory) для временного использования.
-     - Refresh Token в HTTP-only cookies для долговременного хранения и обновления Access Token.
-  + Frontend отправляет запросы к Backend, который использует токены для взаимодействия с внешними сервисами.
-    - Это обеспечивает, что токены никогда не покидают Backend.
+     - Access Token в памяти клиента (**In-Memory**) для временного использования
+     - Refresh Token в HTTP-only cookies для долговременного хранения и обновления Access Token
+  + Frontend отправляет запросы к Backend
+    - backend использует токены для взаимодействия с внешними сервисами
+    - токены никогда не покидают Backend
   + backend может использовать токены для взаимодействия с внешними API без необходимости передачи токенов на Frontend
   + получение Токенов
     - пользователь инициирует аутентификацию через Frontend
