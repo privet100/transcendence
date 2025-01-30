@@ -81,7 +81,8 @@
 * pop-up windows : login, chat, profile
 * страница comptetition, profile, настройки
 * compatible with the latest stable up-to-date version of Google Chrome
-  
+* Amine: game front using javascript
+
 ### backend Daphne 
 * `python manage.py runserver 0.0.0.0:8000`
   + запускает Django-приложение с использованием встроенного **разработческого сервера**
@@ -114,6 +115,7 @@
     - если снчала импортировать модели или др компоненты Django, будут ошибки, связанные с незарегистрированными приложениями или моделями
 * AllowedHostsOriginValidator проверяет допустимые хосты для WebSocket-соединений
 * DJANGO_SETTINGS_MODULE настройки для компонент Django (**ORM**, middleware, ...)
+* Amine: game backend using websockets (with 42 auth)
 
 ### django
 * Бэкенд-фреймворк
@@ -294,6 +296,7 @@
 * автоматичесая документация эндпоинтов
   + **Browsable API** в `http://localhost:8000/api/` или `http://localhost:8000/` список эндпоинтов **не работает**
 * myapp: логика пользовательских профилей, турниров, историй игр
+* bakyt: API for Database - UserProfile works
 
 ### django REST API (Application Programming Interface)
 * интерфейс
@@ -445,6 +448,13 @@
     - Channels используют cookie-сессии Django, если пользователь уже аутентифицирован через views, то Channels видит сессию по cookie
    - логика аутентификации (включая проверку подписи на этапе логина) происходит в views
    - ws-протокол подхватывает готовую сессию
+* alexey: Layout on the pages – working on it
+  + расположение и структура элементов пользовательского интерфейса на веб-страницах
+  + Определение и настройка общей структуры страниц (шапка, меню, контентная часть, подвал)
+  + Создание адаптивного дизайна
+  + Работа с CSS-фреймворками (например, Tailwind CSS или Bootstrap)
+  + Обеспечение единообразного стиля и навигации между страницами.
+* alexey: Tournaments – working 
 
 ### `CHANNEL_LAYERS` (канал-сервер, канальный слой) для Django Channels
 * не сервер
@@ -1074,6 +1084,7 @@
   + even if you decide not to use JWT tokens
   + for instance, if you opt to create an API, ensure your routes are protected
 * views.py проверяет токен/подпись
+* alexey: Authorization and authorization logic on frontend — almost works
 
 ### cookie, localStorage, sessionStorage
 | **Свойство**        | **Cookie**                            | **LocalStorage**      | **SessionStorage**             |
