@@ -1,49 +1,91 @@
 ### test
 * https://localhost:4443/
-* http://localhost:8000/chat/d/
+* https://localhost:4443/chat: HTTP-запрос для загрузки страницы (HTML, CSS, JavaScript)
+* https://localhost:4443/staticfiles/admin/css/base.css
+* https://localhost:4443/static/css/popUpChat.css
+* http://localhost:4444/ 
 * http://127.0.0.1:8000/admin/
 * http://127.0.0.1:8000/user/1/
-* https://localhost:4443/staticfiles/admin/css/base.css
+* http://localhost:8000/chat/d/
+* 127.0.0.1:8000/chat/room1/ в разных местах, оба видят все сообщения
 * http://localhost:8000/staticfiles/admin/css/base.css
-* https://localhost:4443/static/css/popUpChat.css
-* наш сайт
-  + http://localhost:4444/ 
-  + https://localhost:4443/
-  + https://localhost:4443/chat: HTTP-запрос для загрузки страницы (HTML, CSS, JavaScript)
-  + ws://localhost:4443/ws/chat/<roomName>/: Ws-запрос отправляется на URL /ws/chat/ (настроен в routing.py)
-  + http://localhost:8000/admin
-  + https://tr.naurzalinov.me/users/
-  + http://95.217.129.132:8000/
+* ws://localhost:4443/ws/chat/<roomName>/ ws-запрос на /ws/chat/
+* http://95.217.129.132:8000/
+* https://tr.naurzalinov.me/users/
 * `curl -I http://localhost:4444` должен вернуть статус 301 с заголовком Location: https://localhost:4443/...
 * `curl -I --insecure https://localhost:4443` должен вернуть `HTTP/1.1 200 OK`
-* Endpoints
-  + `urls.py` связывает эндпоинты с функциями/классами представлений из `views.py`
-  + просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
-* если подключены библиотеки для документирования API, то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
+* Endpoints: просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
 * Postman
   + импортируйте коллекцию эндпоинтов, если она уже создана  
   + для изучения API, отправляя запросы на `/api/`, `/swagger/`, ... и исследуя доступные маршруты
-  + endpoints HTTP (API или страницы):
-    - Введите адрес сервера: `http://localhost:8000/api/endpoint/`
-  + метод (GET, POST, PUT, DELETE и т. д.).
-  + если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`).
+  + endpoints HTTP (API или страницы): введите `http://localhost:8000/api/endpoint/`
+  + метод (GET, POST, PUT, DELETE и т. д.)
+  + если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`)
   + отправьте запрос и проверьте статус ответа (200 OK, 401 Unauthorized и т.д.) и тело ответа
 * Django предоставляет встроенные инструменты для тестирования HTTP
-* WebSocket-тесты с Django Channels + `pytest`:
-* websockets in room page
-* websockets in the game
-* connection
-  + Connection from another computer is working (so local network is working) 
-  + When Ivan tried to login with 42Auth from another computer (not server) - he got error 400; however basic sign up with email is working. 
-  + My login with 42Auth from server computer worked.
-* открываю 127.0.0.1:8000/chat/room1/ в разных местах, оба видят все сообщения
-* На данный момент только это надо проверять, потому что другое пока не реализовано.
+* WebSocket-тесты с Django Channels + `pytest`
 * F12
+* если подключены библиотеки для документирования API, то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
 * `docker-compose logs`
-* логи `docker logs your-nginx-container`
-  + или внутри контейнера
+* `docker logs backend`
+* логи внутри контейнера
 
-### frontend nginx server
+### GAME LOGIC
+* a player should also be possible to propose a tournament (subject)
+  + a tournament displaies who is playing against whom and the order of the players (subject)
+• a matchmaking system: the tournament system organize the matchmaking of the participants, and announce the next fight
+• a registration system
+  + at the start of a tournament, each player must input their alias name
+  + the aliases will be reset when a new tournament begins
+  + this requirement can be modified using the Standard User Management module.
+* user management, authentication, users across tournaments (subject)
+  + Users can subscribe to the website in a secure way
+  + Registered users can log in in a secure way
+  + Users can select a unique display name to play the tournaments
+  + Users can update their information
+  + Users can upload an avatar, with a default option if none is provided
+  + Users can add others as friends and view their online status
+  + User profiles display stats, such as wins and losses
+  + Each user has a Match History including 1v1 games, dates, and relevant details, accessible to logged-in users
+  + the management of duplicate usernames/emails is at your discretion, you must provide a solution that makes sense
+* Remote players (subject)
+  + two distant players, each player is located on a separated computer, accessing the same website and playing the same Pong game
+  + think about **network issues**, like unexpected disconnection or lag
+  + you have to offer the best user experience possible
+* Game Customization Options (subject) возможно будем
+  + customization options for all available games on the platform
+  + customization features, such as power-ups, attacks, or different maps, that enhance the gameplay experience
+  + allow users to choose a default version of the game with basic features if they prefer a simpler experience
+  + ensure that customization options are available and applicable to all games offered on the platform
+  + implement user-friendly settings menus or interfaces for adjusting game parameters
+  + maintain consistency in customization features across all games to provide a unified user experience
+  + to give users the flexibility to tailor their gaming experience across all available games by providing a variety of customization options while also offering a default version for those who prefer a straightforward gameplay experience
+* AI Opponent (subject)
+  + to introduce data-driven elements to the project, with the major module introducing an AI opponent for enhanced gameplay, and the minor module focusing on user and game statistics dashboards, offering users a minimalistic yet insightful glimpse into their gaming experiences
+  + an AI player into the game
+  + the use of the A* algorithm is not permitted 
+  + an AI opponent that provides a challenging and engaging gameplay experience for users
+  + the AI replicates human behavior, meaning that in your AI implementation, you must simulate keyboard input
+  + the AI refreshes its view of the game once per second, requiring it to anticipate bounces and other actions
+  + the AI utilizes **power-ups** if you have chosen to implement the Game customization options module
+  + AI logic and decision-making processes that enable the AI player to make intelligent and strategic moves
+  + explore alternative algorithms and techniques to create an effective AI player without relying on A*
+  + the AI adapts to different gameplay scenarios and user interactions
+  + to explain in detail how your AI is working 
+  + it must have the capability to win occasionally
+  + an AI opponent that adds excitement and competitiveness without relying on the A* algorithm
+* user and Game Stats Dashboards (subject) может быть будем делать
+  + dashboards that display statistics for individual users and game sessions
+  + user-friendly dashboards that provide users with insights into their own gaming statistics
+  + a separate dashboard for game sessions, showing detailed statistics, outcomes, historical data for each match
+  + the dashboards offer an intuitive and informative user interface for tracking and analyzing data
+  + data visualization techniques, such as charts and graphs, to present statistics in a clear and visually appealing manner
+  + users access and explore their own gaming history and performance metrics conveniently
+  + add any metrics you deem useful
+  + users monitor their gaming statistics and game session details through user-friendly dashboards
+  + a comprehensive view of their gaming experience
+
+### FRONTEND NGINX
 * try using **bolt.new** it's better at frontend
   + the ui is fire here
 * **game customization** it's just gonna be front
@@ -84,6 +126,28 @@
 * Amine: game front using javascript
 
 ### backend Daphne 
+* compatible with the latest stable up-to-date version of Google Chrome (subject)
+* The user should be able to use the Back and Forward buttons of the browser (subject)
+* класс router обрабатывает перемещения по сайту
+  + popstate кнопки назад вперёд в брузере
+* на место .app подставляется div
+  + class Component базовый, абстрактный
+  + фиксированная часть страницы доступна в js
+  + div = homapage, profile, ... (наследуют от Component)
+  + constructor() создаёт класс
+  + state = переменные 
+  + % body % кберем, т.к. у нас SPA
+  + fetch (в js) = запрос к бэку
+  + функция render своя в каждом компоненте
+    - например нужен username - делаем запрос к бэку fetchuserprofile
+  + событие DomContactLoaded = html полностью загрузился (у нас только 1 раз)
+* ws‐подключения для «апгрейда» соединения используют HTTP/1.1
+  + если оставить по умолчанию HTTP/1.0, Nginx не будет корректно передавать заголовки Upgrade и Connection: upgrade, и вебсокеты могут не работать
+  + proxy_http_version 1.1;
+  + proxy_set_header Upgrade $http_upgrade;
+  + proxy_set_header Connection "upgrade";=
+  
+### BACKEND DAPHNE 
 * `python manage.py runserver 0.0.0.0:8000`
   + запускает Django-приложение с использованием встроенного **разработческого сервера**
     - может работать как с WSGI, так и с ASGI, в зависимости от конфигурации проекта
@@ -117,7 +181,7 @@
 * DJANGO_SETTINGS_MODULE настройки для компонент Django (**ORM**, middleware, ...)
 * Amine: game backend using websockets (with 42 auth)
 
-### django
+### DJANGO
 * Бэкенд-фреймворк
 * ключевые механики (аутентификация, управление базой данных, админка, API), функции и практики из коробки
 * диктует архитектуру (приложения, модели, views, urls, ...)
@@ -197,8 +261,23 @@
   * **какие ещё**
 * Используем **стандартные структуры юзера для авторизации и для моделей данных**
 * **Django Debug Toolbar** отслеживание работы проекта, включая middleware
+* settings.py logging.basicConfig
+  + глобальные настройки логирования в Python
+  + влияет на все логгеры, включая те, которые используются Django и Channels
+  + Django и Channels используют свои логгеры (LOGGING), может конфликтовать с их внутренними настройками
+  + не предоставляет тонкого контроля над логгерами (раздельное управление для django и channels)
+  + не рекомендуется для Django, так как может игнорировать встроенные настройки логирования
+* settings.py LOGGING
+  + настраивает Django и его зависимости через встроенную систему логирования
+  + можете настроить разные обработчики, уровни логирования и форматы для отдельных логгеров:
+    - django — для стандартных событий Django (запросы, ответы, ошибки).
+    - channels — для событий, связанных с WebSocket и канальным слоем.
+  + разделять логи
+  + управлять логированием для разных компонентов (например, django, channels, django.db)
+  + совместимо с встроенной системой Django, которая использует LOGGING
+  + выводить разные сообщения для компонентов
 
-### django rest framework DRF
+### DJANGO REST FRAMEWORK DRF
 * создаёт HTTP API с поддержкой **сериализации**, аутентификации, прав доступа
 * протокол HTTP(S) используется для создания RESTful API, которые обрабатывают стандартные HTTP-запросы (GET, POST, PUT, DELETE)
 * ваимодействие с базами данных и другими внешними сервисами (API École 42)
@@ -387,7 +466,7 @@
 * если настроена автоматическая документация (Swagger, Redoc), то список API http://localhost:8000/swagger/, http://localhost:8000/redoc/
 * с точки зрения реализации api есть **class based views** (не сильно сложнее) / functions based views (проще)
 
-### django channels 
+### DJANGO CHANNELS
 * расширение Django, framework, библиотека, надстройка для вебсокетов
 * добавляет поддержку асинхронных протоколов
 * не сервер, не принимает запросы
@@ -415,14 +494,14 @@
   + предоставляет **объект пользователя (scope["user"]) в consumer'ах**, если пользователь аутентифицирован
   + браузеры блокируют смешанный контент: если страница загружена по https://, то ws:// с другим или тем же доменом зачастую будет заблокирован, поэтому нужно использовать wss:// (это тот же WebSocket, но внутри TLS)
   +
-    | **Method**                | **Real-Time** | **Message Persistence**  | **Use Case**                           | **Complexity** |
-    |---------------------------|---------------|--------------------------|----------------------------------------|----------------|
-    | WebSocket (chat)          | Yes           | No                       | Real-time chats, games                 | High           |
-    | Redis (Pub/Sub, WebSocket)| Yes           | No                       | Notifications, chats                   | High           |
-    | Django Messages           | No            | Yes                      | System notifications, confirmations    | Low            |
-    | REST API                  | No            | Yes                      | Simple notifications, data requests    | Low            |
-    | Email                     | No            | Yes                      | Important notifications, confirmations | Medium         |
-    | Push Notifications        | Yes           | Yes (by service)         | Mobile device notifications            | Medium         |
+    | Method                | Real-Time | Message Persistence  | Use Case                           | Complexity |
+    |-----------------------|-----------|----------------------|------------------------------------|------------|
+    | WebSocket (chat)      | Yes       | No                   | Real-time chats, games             | High       |
+    | Redis (Pub/Sub, ws)   | Yes       | No                   | Notifications, chats               | High       |
+    | Django Messages       | No        | Yes                  | System notifications, confirmations| Low        |
+    | REST API              | No        | Yes                  | Simple notifications, data requests| Low        |
+    | Email                 | No        | Yes                  | Important notifications, confirmations| Medium  |
+    | Push Notifications    | Yes       | Yes (by service)     | Mobile device notifications        | Medium     |
 * специальные middleware
   + AuthenticationMiddlewareStack
     - проверяет, что ws-соединение аутентифицировано
@@ -456,9 +535,10 @@
   + Обеспечение единообразного стиля и навигации между страницами.
 * alexey: Tournaments – working 
 
-### `CHANNEL_LAYERS` (канал-сервер, канальный слой) для Django Channels
+### CHANNEL LAYERS
 * не сервер
 * абстракция, настройка Django Channels
+* канал-сервер, канальный слой для Django Channels
 * промежуточный уровень для обработки событий в реальном времени
 * распределенные задачи (уведомления, обработка сообщений, др асинхронные операций)
   + сообщения от клиента передаются через Channel Layer
@@ -466,10 +546,10 @@
   + ответ от сервера передается обратно через WebSocket-соединение
 * публикует в канал, доставляет подписанным
 * channels_redis поддержка групповой рассылки
-* маршрутизация между клиентами
-* асинхронный обмен сообщениям **между**
+* асинхронный обмен сообщениямм, маршрутизация **между**
   + частям приложения
   + сервером и клиентом
+  + клиентами
   + инстансами приложения
   + процессами
   + ws-соединениями и **фоновыми задачами**
@@ -508,10 +588,11 @@
   + ок если вам нужно всего лишь точечно отправлять и получать сообщения в рамках одного процесса
   + широковещательное (group_send) или мульти‐user‐чат‐шаблон если и нужен, то только в рамках одного процесса
   + реал-тайм обновления для одного пользователя (или небольшой группы в рамках одного процесса). Например, вы хотите уведомлять конкретного юзера о событиях (новые сообщения, новые заявки в друзья и т.п.), и ваш сервер – один.  
-  + Мини-чат или прямое общение (point-to-point). Если все пользователи сидят в рамках одного сервера (и у вас не требуется распределённая горизонтальная архитектура), то и группы Channels будут работать внутри этого одного процесса  
+  + Мини-чат или прямое общение (point-to-point). Если все пользователи сидят в рамках одного сервера (и у вас не требуется распределённая горизонтальная архитектура), то и группы Channels будут работать внутри этого одного процесса 
   + Push-уведомления из кода в конкретный WebSocket‐консьюмер
 
-### Remote Dictionary Server redis: general 
+### REDIS
+* Remote Dictionary Server  
 * * **репликация** и **кластеризация** для масштабирования и высокой доступности
 * хранение данных
 * маршрутизация данных
@@ -536,7 +617,7 @@
   + поддерживает множество языков программирования
   + транзакции и скрипты на языке Lua
 
-### redis = backend для сhannel layers  
+### REDIS = BACKEND ДЛЯ CHANNEL LAYERS  
 * бэкэнд, брокер сообщений, посредник (если несколько серверов/контейнеров обрабатывают ws-запросы)
   + daphne каждого инстанса/контейнера подключается к Redis-серверу
   + сервер получает сообщение от клиента, отправляет его в канал через Channel Layer
@@ -588,7 +669,7 @@
     - Логирование на сервере. Часто Pub/Sub системы логируют публикацию и доставку сообщений.
     - Задержки при передаче сообщения. Если сообщение доходит мгновенно, вероятно используется WebSocket с логикой Pub/Sub
 
-### redis для хранения сессий
+### REDIS ДЛЯ ХРАНЕНЯ СЕССИЙ
 * для управления **состоянием** ws-соединений
   + хранит **данные о подключениях**
   + очередь задач (отправки email, push-уведомления, логирование, обработка фоновых задач (обновление статистики матчей))
@@ -596,7 +677,7 @@
 * управление пользовательскими сессиями в веб-приложениях при подключении пользователей к ws
   + хранение данных о текущих авторизованных пользователях
  
-### кэширование (redis)
+### REDIS ДЛЯ КЭШИРОВАНИЯ
 * django cash framework обращается к redis
   + инфраструктура для кэширования
   + хранение кэша (запросы, объекты, шаблоны, ...)
@@ -652,29 +733,17 @@
   + redis для кэширования промежуточных результатов в асинхронных операциях (промежуточные результаты обработки WebSocket-соединений)
 * bakyt: только кэш сообщений, чат и **системные**
 
-### chat
+### CHAT
 * **история в бд** (или в redis?)
-  + **чат надо сделать компонентом**
-* js обращается к rest api (post) endpoints /history, /users/, /send
-  + login pages.js - запрос post к бэку
-  + в заголовке запроса каждый раз CSRF токен, чтобы знать, что это не юзер с третьего сайта
-* rest api строит и отдаёт html  
+* **чат сделать компонентом**
+* the user sends direct messages to other users (subject)
+* the user blocks other users, they see no more messages from the account they blocked (subject)
+* the user invites other users to play through the chat interface (subject)
+* the tournament warns users expected for the next game (subject)
+* the user access other players profiles through the chat interface (subject)
+* rest api строит и отдаёт html
 * js получает ответ (get)
 * с каждым пользователем у бэкенда 2 вебсовета: чат, положение ракетки
-* `python manage.py makemigrations`, `python manage.py migrate` создайте и примените миграции для моделей 
-* класс router обрабатывает перемещения по сайту
-  + popstate кнопки назад вперёд в брузере
-* на место .app подставляется div
-  + class Component базовый, абстрактный
-  + фиксированная часть страницы доступна в js
-  + div = homapage, profile, ... (наследуют от Component)
-  + constructor() создаёт класс
-  + state = переменные 
-  + % body % кберем, т.к. у нас SPA
-  + fetch (в js) = запрос к бэку
-  + функция render своя в каждом компоненте
-    - например нужен username - делаем запрос к бэку fetchuserprofile
-  + событие DomContactLoaded = html полностью загрузился (у нас только 1 раз)
 * websocket объект js
 * websocket: кому пишем сообщение? в запросе
 * prepMsg забирает инпут и делает ws запрос
@@ -716,7 +785,7 @@
   + Проверьте сохранение сообщений в базе данных
   + Развертывание `nginx.conf` location /ws/ 
 
-### db PostgreSQL
+### DATABASE PostgreSQL
 * СУБД для хранения пользователей, сообщений, данных о матчах в Pong, статистики, ...
 * to set up the database **для чего?**
   + `python manage.py makemigrations`, `python manage.py migrate`
@@ -741,7 +810,7 @@
    public | myapp_userprofile_user_permissions | table | myuser
   ```
 
-### статические файлы html js CSS изображения шрифты
+### СТАТИЧЕСКИЕ ФАЙЛЫ html js CSS изображения шрифты
 * в разработке:
   + **`python manage.py runserver` при DEBUG = True**
     - you use django.contrib.staticfiles
@@ -816,26 +885,26 @@
   + в продакшен отключают генерацию .map-файлов, чтобы уменьшить вес приложения и не раскрывать детали исходного кода
 
 ### токены, безопасность
-| **Характеристика**       | **Токен авторизации**            | **CSRF-ключ**                  | **Сессионный ключ**            |
-|---------------------------|----------------------------------|--------------------------------|---------------------------------|
-| **Назначение**           | Аутентификация                  |                                  | Идентификация сессии           |
-| **Где хранится?**         | HTTP-заголовки, cookie, JS-хранилища | Cookie (обычно)               | Cookie (обычно)                |
-| **Пример использования** | REST API, GraphQL, WebSockets   | Формы, AJAX-запросы           | Веб-приложения с авторизацией  |
+| Характеристика       | Токен авторизации            | CSRF-ключ                  | Сессионный ключ            |
+|----------------------|------------------------------|----------------------------|----------------------------|
+| Назначение           | Аутентификация               |                            | Идентификация сессии       |
+| Где хранится?        | HTTP-заголовки, cookie, JS-хранилища | Cookie (обычно)    | Cookie (обычно)            |
+| Пример использования | REST API, GraphQL, WebSockets| Формы, AJAX-запросы        | Веб-приложения с авторизацией|
 
-| токен/ключ    | Назначение                                       | Где хранится                         | Особенности | пример |
-|---------------|--------------------------------------------------|--------------------------------------|-------------|--------|
-| CSRF          | от подделки запросов (CSRF-атак)                 | cookie csrftoken                     | проверяется сервером при POST/PUT запросах, передаётся в скрытом поле формы или заголовке            | Защита формы входа; обеспечение легитимности запросов от пользователя|
-|ток авторизации| авторизация пользователя                         |HTTP-заг cookie locStorage sessStorage| Используется для REST API и WebSocket; может быть JWT                                          | авторизация REST API (`Authorization: Bearer <token>`) или ws-соединения |
-|сессионный ключ| управление пользовательской сессией              | cookie sessionid                     | долговрем. связь пользователя с сервером; подходит для **веб-интерфейсов**; сохраняется на сервере | отслеживание состояния авторизации в веб-приложении; данные польз. (корзина)|
-| WebSocket-ток | авторизация польз. при установке ws-соединения   | URL параметр / заголовок ws-запроса  | передаётся при установке соединения; проверка прав доступа                                              | авторизация чата, потоковой системы `wss://example.com/ws/chat/?token=<...>`|
-| Email-токен   | подтверждение email-адреса, восстановление пароля| URL отправляемое пользователю        | одноразовый токен                     
-                                                                   | подтверждение email ссылкой `https://example.com/verify-email/?token=<>`|
-| API-ключи     | идентификация и авторизация сторонних приложений | HTTP заголовок запроса               | передаётся с каждым запросом; ограниченный доступ к API                                          | интеграция с внеш сервисом, предост. публ. API `Authorization: Api-Key <>`|
-| щифров. ключи | шифрование сообщений                             | На сервере в хранилище               | не передаётся клиенту; для шифрования 
-                                                                   | шифрование сообщений чата на стороне сервера|
-| OAuth-токен   | Аутентификация и авторизация через Google        | в cookie или localStorage            | для OAuth 2.0.                        
-                                                                   | авторизация Google OAuth API; доступ к данным польз. через API (email, ...)|
+| токен/ключ    | Назначение                          | Где хранится                         | Особенности | пример |
+|---------------|-------------------------------------|--------------------------------------|-------------|--------|
+| CSRF          | от подделки запросов (CSRF-атак)    | cookie csrftoken                     | проверяется сервером при POST/PUT запросах, передаётся в скрытом поле формы или заголовке            | Защита формы входа; обеспечение легитимности запросов от пользователя|
+|ток авторизации| авторизация                         |HTTP-заг cookie locStorage sessStorage| Используется для REST API и WebSocket; может быть JWT | авторизация REST API (`Authorization: Bearer <token>`) или ws-соединения |
+|сессионный ключ| управление пользов! сессией         | cookie sessionid                     | долговрем. связь пользователя с сервером; подходит для **веб-интерфейсов**; сохраняется на сервере | отслеживание состояния авторизации в веб-приложении; данные польз. (корзина)|
+| ws-ток        | авторизация при установке ws-соедине| URL параметр / заголовок ws-запроса  | передаётся при установке соединения; проверка прав доступа | авторизация чата, потоковой системы `wss://example.com/ws/chat/?token=<...>`|
+| Email-токен   | подтвержд email-адреса, восст пароля| URL отправляемое пользователю        | одноразовый токен| подтверждение email ссылкой `https://example.com/verify-email/?token=<>`|
+| API-ключи     |идентификация, авторизация стор прилож| HTTP заголовок запроса              | передаётся с каждым запросом; ограниченный доступ к API | интеграция с внеш сервисом, предост. публ. API `Authorization: Api-Key <>`|
+| щифров. ключи | шифрование сообщений                | На сервере в хранилище               | не передаётся клиенту; для шифрования | шифрование сообщений чата на стороне сервера|
+| OAuth-токен   | аутентиф и авторизация через Google |  cookie или localStorage             | для OAuth 2.0. | авторизация Google OAuth API; доступ к данным польз. через API (email, ...)|
 
+* js обращается к rest api (post) endpoints /history, /users/, /send
+  + login pages.js - запрос post к бэку
+  + в заголовке запроса каждый раз CSRF токен, чтобы знать, что это не юзер с третьего сайта
 * **csrf MW проверяет токен, а до этого не надо его проверять?**
 * можно вообще без сессий: если вся информация хранится в токенах или сессии вообще не нужны (например, чисто API-проект)
 **если используется исключительно токен-авторизация (JWT), можно отключить django.contrib.sessions.middleware.SessionMiddleware и  django.middleware.csrf.CsrfViewMiddleware**
@@ -956,8 +1025,8 @@
     - Access Token хранится в памяти клиента (`In-Memory`) для минимизации уязвимости к XSS.
     - Refresh Token хранится в HTTP-only cookie для долгосрочного хранения и обновления Access Token.
   +
-    | **Место хранения**       | **Безопасность**       | **Удобство** | **Долговечность** |
-    |---------------------------|------------------------|--------------|-------------------|
+    | **Место хранения**        | **Безопасность**      | **Удобство** | **Долговечность** |
+    |---------------------------|-----------------------|--------------|-------------------|
     | Local Storage             | Уязвимо к XSS         | Высокое      | Высокая           |
     | Session Storage           | Уязвимо к XSS         | Среднее      | Средняя           |
     | In-Memory                 | Защищено от XSS       | Низкое       | Низкая            |
@@ -965,15 +1034,17 @@
     | Redis (сервер)            | Высокая               | Высокое      | Средняя           |
     | HTTP-only cookies         | Защищено от XSS/CSRF  | Высокое      | Средняя/высокая   |
   + Если требуется высокая безопасность
-    - Храните Access и Refresh Tokens на сервере (в базе данных или Redis).
-    - Используйте HTTP-only cookies для передачи сессионных данных.
+    - Храните Access и Refresh Tokens на сервере (в базе данных или Redis)
+    - Используйте HTTP-only cookies для передачи сессионных данных
   + Если важно удобство разработки
-    - Используйте Local Storage или Session Storage, но будьте готовы защищать приложение от XSS-атак.
+    - Используйте Local Storage или Session Storage
+    -  защищать приложение от XSS-атак
   + Гибридный подход
-     - Access Token в памяти клиента (In-Memory) для временного использования.
-     - Refresh Token в HTTP-only cookies для долговременного хранения и обновления Access Token.
-  + Frontend отправляет запросы к Backend, который использует токены для взаимодействия с внешними сервисами.
-    - Это обеспечивает, что токены никогда не покидают Backend.
+     - Access Token в памяти клиента (**In-Memory**) для временного использования
+     - Refresh Token в HTTP-only cookies для долговременного хранения и обновления Access Token
+  + Frontend отправляет запросы к Backend
+    - backend использует токены для взаимодействия с внешними сервисами
+    - токены никогда не покидают Backend
   + backend может использовать токены для взаимодействия с внешними API без необходимости передачи токенов на Frontend
   + получение Токенов
     - пользователь инициирует аутентификацию через Frontend
@@ -1085,6 +1156,10 @@
   + for instance, if you opt to create an API, ensure your routes are protected
 * views.py проверяет токен/подпись
 * alexey: Authorization and authorization logic on frontend — almost works
+* Implementing a remote authentication OAuth 2.0 authentication with 42 (subject)
+  + obtain the credentials and permissions from the authority to enable a secure login
+  + user-friendly login and authorization flows that adhere to best practices and security standards
+  + the secure exchange of authentication tokens and user information between the web application and the authentication provider
 
 ### cookie, localStorage, sessionStorage
 | **Свойство**        | **Cookie**                            | **LocalStorage**      | **SessionStorage**             |
@@ -1290,6 +1365,9 @@
   + 2 саособ лучше:
     - каждый компьютер использует VM, в ней изменяете файл хостов, чтобы связать IP-адрес исходной станции с URL-адресами
     - подключиться к другому компьютеру в кластере через его внутреннее доменное имя школы, добавить это в nginx.conf, чтобы веб-сервер разрешал связываться с вами в этом домене, а также на стороне django
+* from another computer (so local network is working) 
+  + When Ivan tried to login with 42Auth from another computer (not server) - he got error 400; however basic sign up with email is working 
+  + My login with 42Auth from server computer worked
 
 ### разное
 * трекинг **когда пользователь был онлайн**
@@ -1374,8 +1452,8 @@
   + I'll update you soon on the game websocket
 * basic requirements 20.01.2025 
   + All pong game part will be done by Amine? Do you need help with front-end (table, paddles, ball, some activity of JS or someone will do it?
-  + Tournament, registration and matchmaking system by Alexey? Do you need help? 
-  + Basic front-end will be done by Alexey? (profile page, other pages) or you need help?
+  + Tournament, registration and matchmaking system by Alexey
+  + Basic front-end will be done by Alexey? (profile page, other pages)
   + Security - probably we meet requirements by we need to validate input and follow some basic security rules on the front-end part.
 * Modules (only that needs some response / comment)
   + User management - I did back-end (almost); but we need profile page with history of games, possibility to change profile data; see statistics of wins and loses - who will be responsible for this part? I can do it but I need template of javascript page (single page structure should be already applied) 
@@ -1387,21 +1465,6 @@
   + Multiple language supports - who will implement it? 
   + Server-side pong  - do we need this module? Is it implemented by Amine? For this module we need API for paddle, ball and other features
   + User and Game Stats Dashboards - do we need this module? Who will do it?
-* settings.py logging.basicConfig
-  + глобальные настройки логирования в Python
-  + влияет на все логгеры, включая те, которые используются Django и Channels
-  + Django и Channels используют свои логгеры (LOGGING), может конфликтовать с их внутренними настройками
-  + не предоставляет тонкого контроля над логгерами (раздельное управление для django и channels)
-  + не рекомендуется для Django, так как может игнорировать встроенные настройки логирования
-* settings.py LOGGING
-  + настраивает Django и его зависимости через встроенную систему логирования
-  + можете настроить разные обработчики, уровни логирования и форматы для отдельных логгеров:
-    - django — для стандартных событий Django (запросы, ответы, ошибки).
-    - channels — для событий, связанных с WebSocket и канальным слоем.
-  + гибкий подход, позволяет разделять логи
-  + Позволяет управлять логированием для разных компонентов (например, django, channels, django.db)
-  + Совместимо с встроенной системой Django, которая использует LOGGING
-  + Рекомендуется для Django-проектов, особенно если вы хотите гибко управлять логами и выводить разные сообщения для компонентов
 * Live pong game on website
   + users must have the ability to participate in a live Pong game against another player directly on the website
   + Both players will use the same keyboard
