@@ -30,18 +30,69 @@
   + отправьте запрос и проверьте статус ответа (200 OK, 401 Unauthorized и т.д.) и тело ответа
 * Django предоставляет встроенные инструменты для тестирования HTTP
 * WebSocket-тесты с Django Channels + `pytest`:
-* websockets in room page
-* websockets in the game
-* connection
-  + Connection from another computer is working (so local network is working) 
-  + When Ivan tried to login with 42Auth from another computer (not server) - he got error 400; however basic sign up with email is working. 
-  + My login with 42Auth from server computer worked.
+* connection from another computer (so local network is working) 
+  + When Ivan tried to login with 42Auth from another computer (not server) - he got error 400; however basic sign up with email is working 
+  + My login with 42Auth from server computer worked
 * открываю 127.0.0.1:8000/chat/room1/ в разных местах, оба видят все сообщения
-* На данный момент только это надо проверять, потому что другое пока не реализовано.
 * F12
 * `docker-compose logs`
-* логи `docker logs your-nginx-container`
-  + или внутри контейнера
+* `docker logs backend`
+* логи внутри контейнера
+
+### game logic
+* a player should also be possible to propose a tournament (subject)
+  + a tournament displaies who is playing against whom and the order of the players (subject)
+• a matchmaking system: the tournament system organize the matchmaking of the participants, and announce the next fight
+• a registration system
+  + at the start of a tournament, each player must input their alias name
+  + the aliases will be reset when a new tournament begins
+  + this requirement can be modified using the Standard User Management module.
+* user management, authentication, users across tournaments (subject)
+  + Users can subscribe to the website in a secure way
+  + Registered users can log in in a secure way
+  + Users can select a unique display name to play the tournaments
+  + Users can update their information
+  + Users can upload an avatar, with a default option if none is provided
+  + Users can add others as friends and view their online status
+  + User profiles display stats, such as wins and losses
+  + Each user has a Match History including 1v1 games, dates, and relevant details, accessible to logged-in users
+  + the management of duplicate usernames/emails is at your discretion, you must provide a solution that makes sense
+* Remote players (subject)
+  + two distant players, each player is located on a separated computer, accessing the same website and playing the same Pong game
+  + think about **network issues**, like unexpected disconnection or lag
+  + you have to offer the best user experience possible
+* Minor module: Game Customization Options (subject) возможно будем
+  + customization options for all available games on the platform
+  + customization features, such as power-ups, attacks, or different maps, that enhance the gameplay experience
+  + allow users to choose a default version of the game with basic features if they prefer a simpler experience
+  + ensure that customization options are available and applicable to all games offered on the platform
+  + implement user-friendly settings menus or interfaces for adjusting game parameters
+  + maintain consistency in customization features across all games to provide a unified user experience
+  + to give users the flexibility to tailor their gaming experience across all available games by providing a variety of customization options while also offering a default version for those who prefer a straightforward gameplay experience
+* AI Opponent (subject)
+  + to introduce data-driven elements to the project, with the major module introducing an AI opponent for enhanced gameplay, and the minor module focusing on user and game statistics dashboards, offering users a minimalistic yet insightful glimpse into their gaming experiences
+  + an AI player into the game
+  + the use of the A* algorithm is not permitted 
+  + an AI opponent that provides a challenging and engaging gameplay experience for users
+  + the AI replicates human behavior, meaning that in your AI implementation, you must simulate keyboard input
+  + the AI refreshes its view of the game once per second, requiring it to anticipate bounces and other actions
+  + the AI utilizes **power-ups** if you have chosen to implement the Game customization options module
+  + AI logic and decision-making processes that enable the AI player to make intelligent and strategic moves
+  + explore alternative algorithms and techniques to create an effective AI player without relying on A*
+  + the AI adapts to different gameplay scenarios and user interactions
+  + to explain in detail how your AI is working 
+  + it must have the capability to win occasionally
+  + an AI opponent that adds excitement and competitiveness without relying on the A* algorithm
+* user and Game Stats Dashboards (subject) может быть будем делать
+  + dashboards that display statistics for individual users and game sessions
+  + user-friendly dashboards that provide users with insights into their own gaming statistics
+  + a separate dashboard for game sessions, showing detailed statistics, outcomes, historical data for each match
+  + the dashboards offer an intuitive and informative user interface for tracking and analyzing data
+  + data visualization techniques, such as charts and graphs, to present statistics in a clear and visually appealing manner
+  + users access and explore their own gaming history and performance metrics conveniently
+  + add any metrics you deem useful
+  + users monitor their gaming statistics and game session details through user-friendly dashboards
+  + a comprehensive view of their gaming experience
 
 ### frontend nginx server
 * try using **bolt.new** it's better at frontend
@@ -80,7 +131,8 @@
 * **Карточка Bootstrap**  
 * pop-up windows : login, chat, profile
 * страница comptetition, profile, настройки
-* compatible with the latest stable up-to-date version of Google Chrome
+* compatible with the latest stable up-to-date version of Google Chrome (subject)
+* The user should be able to use the Back and Forward buttons of the browser (subject)
   
 ### backend Daphne 
 * `python manage.py runserver 0.0.0.0:8000`
@@ -195,6 +247,21 @@
   * **какие ещё**
 * Используем **стандартные структуры юзера для авторизации и для моделей данных**
 * **Django Debug Toolbar** отслеживание работы проекта, включая middleware
+* settings.py logging.basicConfig
+  + глобальные настройки логирования в Python
+  + влияет на все логгеры, включая те, которые используются Django и Channels
+  + Django и Channels используют свои логгеры (LOGGING), может конфликтовать с их внутренними настройками
+  + не предоставляет тонкого контроля над логгерами (раздельное управление для django и channels)
+  + не рекомендуется для Django, так как может игнорировать встроенные настройки логирования
+* settings.py LOGGING
+  + настраивает Django и его зависимости через встроенную систему логирования
+  + можете настроить разные обработчики, уровни логирования и форматы для отдельных логгеров:
+    - django — для стандартных событий Django (запросы, ответы, ошибки).
+    - channels — для событий, связанных с WebSocket и канальным слоем.
+  + разделять логи
+  + управлять логированием для разных компонентов (например, django, channels, django.db)
+  + совместимо с встроенной системой Django, которая использует LOGGING
+  + выводить разные сообщения для компонентов
 
 ### django rest framework DRF
 * создаёт HTTP API с поддержкой **сериализации**, аутентификации, прав доступа
@@ -412,14 +479,14 @@
   + предоставляет **объект пользователя (scope["user"]) в consumer'ах**, если пользователь аутентифицирован
   + браузеры блокируют смешанный контент: если страница загружена по https://, то ws:// с другим или тем же доменом зачастую будет заблокирован, поэтому нужно использовать wss:// (это тот же WebSocket, но внутри TLS)
   +
-    | **Method**                | **Real-Time** | **Message Persistence**  | **Use Case**                           | **Complexity** |
-    |---------------------------|---------------|--------------------------|----------------------------------------|----------------|
-    | WebSocket (chat)          | Yes           | No                       | Real-time chats, games                 | High           |
-    | Redis (Pub/Sub, WebSocket)| Yes           | No                       | Notifications, chats                   | High           |
-    | Django Messages           | No            | Yes                      | System notifications, confirmations    | Low            |
-    | REST API                  | No            | Yes                      | Simple notifications, data requests    | Low            |
-    | Email                     | No            | Yes                      | Important notifications, confirmations | Medium         |
-    | Push Notifications        | Yes           | Yes (by service)         | Mobile device notifications            | Medium         |
+    | Method                | Real-Time | Message Persistence  | Use Case                           | Complexity |
+    |-----------------------|-----------|----------------------|------------------------------------|------------|
+    | WebSocket (chat)      | Yes       | No                   | Real-time chats, games             | High       |
+    | Redis (Pub/Sub, ws)   | Yes       | No                   | Notifications, chats               | High       |
+    | Django Messages       | No        | Yes                  | System notifications, confirmations| Low        |
+    | REST API              | No        | Yes                  | Simple notifications, data requests| Low        |
+    | Email                 | No        | Yes                  | Important notifications, confirmations| Medium  |
+    | Push Notifications    | Yes       | Yes (by service)     | Mobile device notifications        | Medium     |
 * специальные middleware
   + AuthenticationMiddlewareStack
     - проверяет, что ws-соединение аутентифицировано
@@ -643,7 +710,12 @@
 * bakyt: только кэш сообщений, чат и **системные**
 
 ### chat
-* **история в бд** (или в redis?)
+* the user sends direct messages to other users (subject)
+* the user blocks other users, they see no more messages from the account they blocked (subject)
+* the user invites other users to play through the chat interface (subject)
+* the tournament warns users expected for the next game (subject)
+* the user access other players profiles through the chat interface (subject)
+**история в бд** (или в redis?)
   + **чат надо сделать компонентом**
 * js обращается к rest api (post) endpoints /history, /users/, /send
   + login pages.js - запрос post к бэку
@@ -1074,6 +1146,10 @@
   + even if you decide not to use JWT tokens
   + for instance, if you opt to create an API, ensure your routes are protected
 * views.py проверяет токен/подпись
+* Implementing a remote authentication OAuth 2.0 authentication with 42 (subject)
+  + obtain the credentials and permissions from the authority to enable a secure login
+  + user-friendly login and authorization flows that adhere to best practices and security standards
+  + the secure exchange of authentication tokens and user information between the web application and the authentication provider
 
 ### cookie, localStorage, sessionStorage
 | **Свойство**        | **Cookie**                            | **LocalStorage**      | **SessionStorage**             |
@@ -1363,8 +1439,8 @@
   + I'll update you soon on the game websocket
 * basic requirements 20.01.2025 
   + All pong game part will be done by Amine? Do you need help with front-end (table, paddles, ball, some activity of JS or someone will do it?
-  + Tournament, registration and matchmaking system by Alexey? Do you need help? 
-  + Basic front-end will be done by Alexey? (profile page, other pages) or you need help?
+  + Tournament, registration and matchmaking system by Alexey
+  + Basic front-end will be done by Alexey? (profile page, other pages)
   + Security - probably we meet requirements by we need to validate input and follow some basic security rules on the front-end part.
 * Modules (only that needs some response / comment)
   + User management - I did back-end (almost); but we need profile page with history of games, possibility to change profile data; see statistics of wins and loses - who will be responsible for this part? I can do it but I need template of javascript page (single page structure should be already applied) 
@@ -1376,21 +1452,6 @@
   + Multiple language supports - who will implement it? 
   + Server-side pong  - do we need this module? Is it implemented by Amine? For this module we need API for paddle, ball and other features
   + User and Game Stats Dashboards - do we need this module? Who will do it?
-* settings.py logging.basicConfig
-  + глобальные настройки логирования в Python
-  + влияет на все логгеры, включая те, которые используются Django и Channels
-  + Django и Channels используют свои логгеры (LOGGING), может конфликтовать с их внутренними настройками
-  + не предоставляет тонкого контроля над логгерами (раздельное управление для django и channels)
-  + не рекомендуется для Django, так как может игнорировать встроенные настройки логирования
-* settings.py LOGGING
-  + настраивает Django и его зависимости через встроенную систему логирования
-  + можете настроить разные обработчики, уровни логирования и форматы для отдельных логгеров:
-    - django — для стандартных событий Django (запросы, ответы, ошибки).
-    - channels — для событий, связанных с WebSocket и канальным слоем.
-  + гибкий подход, позволяет разделять логи
-  + Позволяет управлять логированием для разных компонентов (например, django, channels, django.db)
-  + Совместимо с встроенной системой Django, которая использует LOGGING
-  + Рекомендуется для Django-проектов, особенно если вы хотите гибко управлять логами и выводить разные сообщения для компонентов
 * Live pong game on website
   + users must have the ability to participate in a live Pong game against another player directly on the website
   + Both players will use the same keyboard
