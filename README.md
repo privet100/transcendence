@@ -225,21 +225,19 @@
   + ASGI, Asynchronous Server Gateway Interface - продолжение WSGI, когда есть асинхронные задачи
 * `ASGI_APPLICATION = "myproject.asgi.application"`
   + Переменная `application` = точка входа для ASGI-сервера, ASGI-приложение, обрабатывает входящие запросы
-  + `django_asgi_app = get_asgi_application()` создаёт объект ASGI-приложения, exposes the ASGI callable as a **module-level variable**
-    - Initialize Django ASGI application: загрузка приложений из `INSTALLED_APPS`, конфигурация бд, **среда `AppRegistry`**
-    - to ensure the AppRegistry is populated before importing ORM models
-    - приложение Django инициализирется до использования **ORM**-моделей или других компонентов Django
-    - приложения готовы к работе _до_ конфигурации маршрутов WebSocket
-    - если снчала импортировать модели или др компоненты Django, будут ошибки, связанные с незарегистрированными приложениями или моделями
-* AllowedHostsOriginValidator проверяет допустимые хосты для WebSocket-соединений
+  + `django_asgi_app = get_asgi_application()`
+    - создаёт объект ASGI-приложения, exposes the ASGI callable as a **module-level variable**, initialize Django ASGI application: загрузка приложений из `INSTALLED_APPS`, конфигурация бд, **среда `AppRegistry`**
+    - AppRegistry shoul be populated before importing ORM models
+    - приложение Django инициализирется до использования ORM-моделей и других компонентов Django, _до_ конфигурации маршрутов ws
+* AllowedHostsOriginValidator проверяет допустимые хосты для WebSocket-соединений (**зачем дублировать с nginx**)
+* ORM
 * Amine: game backend using websockets (with 42 auth)
 
 
 ### ЯДРО DJANGO 
 * бэкенд-фреймворк
-* ключевые механики (аутентификация, управление базой данных, админка, API), функции и практики из коробки
 * диктует архитектуру (приложения, модели, views, urls, ...)
-* DJANGO_SETTINGS_MODULE настройки компонент Django (**ORM**, middleware, ...)
+* DJANGO_SETTINGS_MODULE настройки компонент Django
 * `settings.py` конфиг на высоком уровне
   + `ALLOWED_HOSTS` список доменов/IP, с которых разрешён доступ к Django-приложению (когда `DEBUG=False`)
   + `TEMPLATES` настройки шаблонов Django (**HTML-шаблоны**)
