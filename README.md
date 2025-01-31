@@ -33,9 +33,10 @@
 ### LIVE CHAT
 * **история в бд** (или в redis?)
 * **чат сделать компонентом**
+* **заменить textarea на div для лучшей стилизации и управления сообщениями**
 * the user sends direct messages to other users (subject)
 * the user blocks other users, they see no more messages from the account they blocked (subject)
-* the user invites other users to play through the chat interface (subject)
+* the user **invites** other users to play through the chat interface (subject)
 * the tournament warns users expected for the next game (subject)
 * the user access other players profiles through the chat interface (subject)
 * rest api строит и отдаёт html
@@ -248,6 +249,7 @@
     - приложение Django инициализирется до использования ORM-моделей и других компонентов Django, _до_ конфигурации маршрутов ws
 * AllowedHostsOriginValidator проверяет допустимые хосты для WebSocket-соединений (**зачем дублировать с nginx**)
 * ORM
+* Убедитесь, что ASGI-сервер запущен с корректными **SSL-сертификатами**
 * Amine: game backend using websockets (with 42 auth)
 
 
