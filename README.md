@@ -184,50 +184,39 @@
   + `django_asgi_app = get_asgi_application()` initialize Django ASGI appli, exposes the ASGI callable as a module-level variable (загрузка приложений `INSTALLED_APPS`, конфигурация бд, среда AppRegistry is populated 
     - before importing ORM models, до использования ORM-моделей и др компонентов Django, конфигурации маршрутов ws
   + переменная `application` = точка входа для ASGI-сервера, ASGI-приложение, обрабатывает запросы
-* проверить ws-соединения
-  + http://localhost:8000
-  + ws://localhost:8000
-  + https://localhost:4443/static/chat.html
-  + wss://localhost:4443/ws/...
+* проверить ws:
   + nNginx проксирует `location /ws/` к `backend:8000`  
   + daphne запущен на `backend:8000`  
-  + redis доступен по хосту `redis` на `6379` (иначе Channels не сможет работать)
-  + на клиенте `wss://localhost:4443/ws/chat/<room>/`
+  + redis доступен по хосту `redis` на `6379`
+  + `wss://localhost:4443/ws/chat/<room>/`
   + `F12` Network
-    - https://localhost:4443/static/chat.html`
     - js инициирует подключение к `wss://localhost:4443/ws/chat/room/`
     - в списке сетевых запросов элемент, отражающий WebSocket (101 Switching Protocols)
     - в столбце "Status" 101
-    - соединение останется "pending" (открытым)
+    - соединение "pending" (открыто), Network pending или active
     - заголовки `Upgrade: websocket`, `Connection: upgrade`
-    - Finished в колонке Status ws-подключения не означает, что ws-соединение разорвано - этап загрузки ресурса (первоначальный HTTP‐запрос на handshake) закончился
-    - в консоли Network pending или active
-    - выберите ws → Messages, если соединение активно, то тут входящие/исходящие сообщения, а в Timing (Headers) статус 101 Switching Protocols
-    - если соединение закрылось, вы увидите событие «Close» (code 1000 или другое)
+    - Finished в колонке Status ws-подключения = загрузка ресурса ок (первоначальный HTTP‐запрос на handshake) != ws-соединение разорвано 
+    - если соединение активно, то входящие/исходящие сообщения в ws → Messages, в Timing (Headers) статус 101 Switching Protocols (если закрылось, вы событие «Close» (code 1000 или другое))
   + WebSocket-тестер WebSocket King
-    - если нет готового frontend-кода
     - https://websocketking.com/
-    - введите URL `wss://localhost:4443/ws/chat/room/`
+    - URL `wss://localhost:4443/ws/chat/room/`
     - можно отправлять текстовые сообщения
   + WebSocket-тестер wscat (CLI-инструмент)
-    - `npm install -g wscat`
     - в консоли `wscat -c wss://localhost:4443/ws/chat/testroom/`
     - увидите `connected`
     - набрать любое сообщение
-    - если у вас самоподписанный сертификат, отключать проверку (`--no-check` / `NODE_TLS_REJECT_UNAUTHORIZED=0`)
+    - если самоподписанный сертификат, отключать проверку (`--no-check` / `NODE_TLS_REJECT_UNAUTHORIZED=0`)
   + `/var/log/nginx/error.log`, `/var/log/nginx/access.log`
    - при установке ws-соединения запрос пришёл с `Upgrade: websocket`
   + логи daphne
-   - обращение к `wss://<domain>/ws/...` -> nginx проксирует на `http://backend:8000/ws/...` - daphne с помощью Channels принимает WebSocket по пути `/ws/chat/<room>/` 
+   - `wss://<domain>/ws/...` -> nginx проксирует на `http://backend:8000/ws/...` - daphne принимает ws по пути `/ws/chat/<room>/` 
 * AllowedHostsOriginValidator проверяет допустимые хосты для WebSocket-соединений (**зачем дублировать с nginx**)
 * **ORM**
-* альтернатива ему: `python manage.py runserver 0.0.0.0:8000`
+* альтернатива: `python manage.py runserver 0.0.0.0:8000`
   + запускает Django-приложение с использованием встроенного **разработческого сервера**
     - может работать как с WSGI, так и с ASGI, в зависимости от конфигурации проекта
-    - если настроно Channels и указано `ASGI_APPLICATION`, то запускает ASGI-сервер вместо стандартного WSGI
-    - `runserver` не рекомендуется для продакшен
-    - Daphne: более высокая производительность и стабильность
-* альтернатива ему: wsgi
+    - не рекомендуется для продакшен, daphne: более высокая производительность и стабильность
+* альтернатива: wsgi
   + asgi, wsgi - интерфейсы, стандарты для взаимодействия между веб-сервером и веб-приложениями/фреймворками
     - иначе фреймворки, тулкиты и библиотеки питон не умеют взаимодействовать между собой, у каждого свой метод установки, настройки
   + WSGI, Web Server Gateway Interface
