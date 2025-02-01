@@ -111,18 +111,18 @@
     [notice] 1#1: start worker process 29
     [notice] 1#1: start worker process 30
     [notice] 1#1: start worker process 31
-    172.21.0.1 "GET / HTTP/1.1" 200 4644 "-" "Chrome"
-    172.21.0.1 "GET /staticfiles/css/popUpChat.css HTTP/1.1" 404 1882 "https://localhost:4443/" "Chrome"
-    172.21.0.1 "GET /favicon.ico HTTP/1.1" 404 5670 "https://localhost:4443/" "Chrome"
+    172.21.0.1 "GET /                               HTTP/1.1" 200 4644  "Chrome"
+    172.21.0.1 "GET /staticfiles/css/popUpChat.css  HTTP/1.1" 404 1882  "https://localhost:4443/" "Chrome"
+    172.21.0.1 "GET /favicon.ico                    HTTP/1.1" 404 5670  "https://localhost:4443/" "Chrome"
     172.21.0.1 "GET /staticfiles/admin/css/base.css HTTP/1.1" 200 22092 "Chrome"
-    172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189 "Chrome"
-    172.21.0.1 "GET /static/chat.html HTTP/1.1" 200 8204 "Chrome"
-    172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189 "https://localhost:4443/static/chat.html" "Chrome"
-    172.21.0.1 "GET /static/chat.html HTTP/1.1" 200 8204 "Chrome"
-    172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189 "https://localhost:4443/static/chat.html" "Chrome"
-    172.21.0.1 "GET /ws/chat/r/ HTTP/1.1" 404 5667 "Chrome"
-    172.21.0.1 "GET /ws/chat/r HTTP/1.1" 404 5664 "Chrome"
-    172.21.0.1 "GET /ws/chat HTTP/1.1" 404 5658 "-" "Chrome"
+    172.21.0.1 "GET /static/css/chat.css            HTTP/1.1" 200 3189  "Chrome"
+    172.21.0.1 "GET /static/chat.html               HTTP/1.1" 200 8204  "Chrome"
+    172.21.0.1 "GET /static/css/chat.css            HTTP/1.1" 200 3189  "https://localhost:4443/static/chat.html" "Chrome"
+    172.21.0.1 "GET /static/chat.html               HTTP/1.1" 200 8204  "Chrome"
+    172.21.0.1 "GET /static/css/chat.css            HTTP/1.1" 200 3189  "https://localhost:4443/static/chat.html" "Chrome"
+    172.21.0.1 "GET /ws/chat/r/                     HTTP/1.1" 404 5667  "Chrome"
+    172.21.0.1 "GET /ws/chat/r                      HTTP/1.1" 404 5664  "Chrome"
+    172.21.0.1 "GET /ws/chat                        HTTP/1.1" 404 5658  "Chrome"
   ```
 * `docker-compose logs backend`
   + При успешном подключении Channels пишет WebSocket CONNECT /ws/chat/<room_name>/
@@ -147,6 +147,14 @@
   + log Daphne `WebSocket CONNECT /ws/chat/rr/` (но 404 = значит ws‐route не сработал, Channels ничего не получил)
   + нет WebSocket‐Upgrade. Решайте с помощью исправления JS (`wss://` при HTTPS) и location `/ws/` с Upgrade-заголовками
     - Channels получит `WebSocket CONNECT`
+  + проверить, что Nginx видит заголовок Upgrade `curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Host: localhost:4443" -H "Origin: https://localhost:4443" --insecure  https://localhost:4443/ws/chat/test/`
+    - Если Nginx проксирует правильно, в ответ вы увидите что-то вроде:
+      ```
+      HTTP/1.1 101 Switching Protocols
+      Upgrade: websocket
+      Connection: Upgrade
+      ```
+    - Если сразу HTTP/1.1 404, значит Nginx не зашёл в нужный location
 
 
 ### LIVE CHAT
