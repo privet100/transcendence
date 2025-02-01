@@ -18,11 +18,11 @@
 * Endpoints: просматривать `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
 * Postman
   + импортируйте коллекцию эндпоинтов, если она уже создана  
-  + для изучения API, отправляя запросы на `/api/`, `/swagger/`, ... и исследуя доступные маршруты
-  + endpoints HTTP (API или страницы): введите `http://localhost:8000/api/endpoint/`
+  + отправляйте запросы на `/api/`, `/swagger/`, ... исследуя доступные маршруты
+  + `http://localhost:8000/api/endpoint/` endpoints HTTP (API или страницы)
   + метод (GET, POST, PUT, DELETE и т. д.)
   + если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`)
-  + отправьте запрос и проверьте статус ответа (200 OK, 401 Unauthorized и т.д.) и тело ответа
+  + отправьте запрос и проверьте статус ответа (200 OK, 401 Unauthorized, ...) и тело ответа
 * Django предоставляет встроенные инструменты для тестирования HTTP
 * WebSocket-тесты с Django Channels + `pytest`
 * F12
@@ -86,6 +86,14 @@
   + Закрытие: Соединение закрывается при закрытии модального окна или при повторном подключении к другой комнате
   + Отправка Сообщений: Пользователь может отправлять сообщения через поле ввода. Сообщения отображаются в логах чата с пометкой "You"
   + Получение Сообщений: Полученные сообщения отображаются в логах чата с пометкой "Server" (можно изменить на имя пользователя, если реализована аутентификация)
+* | Method                | Real-Time | Message Persistence  | Use Case                           | Complexity |
+  |-----------------------|-----------|----------------------|------------------------------------|------------|
+  | WebSocket (chat)      | Yes       | No                   | Real-time chats, games             | High       |
+  | Redis (Pub/Sub, ws)   | Yes       | No                   | Notifications, chats               | High       |
+  | Django Messages       | No        | Yes                  | System notifications, confirmations| Low        |
+  | REST API              | No        | Yes                  | Simple notifications, data requests| Low        |
+  | Email                 | No        | Yes                  | Important notifications, confirmations| Medium  |
+  | Push Notifications    | Yes       | Yes (by service)     | Mobile device notifications        | Medium     |
 
 
 ### JAVASCRIPT
@@ -430,15 +438,15 @@
     | **ViewSet** | API + автоматическая маршрутизация | Через `Router` |
 * позволяет **приложениям** взаимодействовать друг с другом
 * сессии не нужны, авторизация через токены
-* bakyt: API for Database - UserProfile works
 * реализуются
   + через **события**
   + через **статусы в ответах API**
   + не через механизм сообщений Django
+* bakyt: API for Database - UserProfile works
 
 
 ### DJANGO CHANNELS
-* расширение Django, framework, библиотека, надстройка для вебсокетов поверх стандартного стека Django, позволяя использовать привычные инструменты и структуры
+* расширение, framework, библиотека, надстройка для ws поверх стандартного стека Django: использовать привычные инструменты и структуры
 * добавляет поддержку асинхронных протоколов, асинхронного взаимодействия, **фоновых задач**, обновление интерфейса в режиме реального времени
 * слушает ws-запросы
   + непрерывное соединение, стрим
@@ -463,23 +471,36 @@
     - обязателен, если взаимодействие с сессиями на сервере (сессионное хранилище в бд, Redis, файловой системе,...)
     - можно без него, если JWT токены или др безсессионные методы аутентификации 
     - можно без него, если данные о сессии хранятся в зашифрованных cookie (без серверного хранилища)
-  + другие middleware могут быть:+ ограничение скорости, управление правами доступа, обработка ошибок
+  + другие middleware: ограничение скорости, управление правами доступа, обработка ошибок
   + consummer получает `{ "type": "chat.message", "message": "Hello, World!" } с заголовками
     - логика приёма и обработки ws-запросов и аутентификации/авторизации может быть вместо этого в кастомном middleware
-  + Backend Channel Layer
+  + redis Backend Channel Layer
   + consumer отправляет через ws обратно пользователю `{ "type": "chat.message", "message": "Hi there!" }` 
   + сессии передаются через cookie
   + если сертификат отсутствует, браузер может блокировать подключение WebSocket
   + если страница загружена по https://, то используйте wss:// 
-* | Method                | Real-Time | Message Persistence  | Use Case                           | Complexity |
-  |-----------------------|-----------|----------------------|------------------------------------|------------|
-  | WebSocket (chat)      | Yes       | No                   | Real-time chats, games             | High       |
-  | Redis (Pub/Sub, ws)   | Yes       | No                   | Notifications, chats               | High       |
-  | Django Messages       | No        | Yes                  | System notifications, confirmations| Low        |
-  | REST API              | No        | Yes                  | Simple notifications, data requests| Low        |
-  | Email                 | No        | Yes                  | Important notifications, confirmations| Medium  |
-  | Push Notifications    | Yes       | Yes (by service)     | Mobile device notifications        | Medium     |
 * назначение пользователей к группам каналов
+* в браузере https://localhost:4443/static/chat.html
+  + подключается к ws://localhost:4443/ws/chat/r/
+  + надо:         wss://localhost:4443/ws/chat/r/
+  + ошибка Mixed Content или блокировка
+  + в консоли `Connecting to WebSocket at: ws://localhost:4443/ws/chat/r/`
+* в Django логе 404 при обращении к /ws/chat/d/ как к обычному HTTP‐endpoint, а не WebSocket
+  + запрос ws не доходит в ASGI
+  + вместо этого идёт GET /ws/chat/d/, django видит /ws/chat/d/ как обычный GET
+    - либо в браузере «GET ws://… failed» => браузер не делает **Upgrade** до WebSocket, отправляет обычный HTTP GET => Django ищет URL /ws/chat/d/ в urls.py — не находит → 404
+    - либо ws:// заблокирован (Mixed Content), браузер не даёт WebSocket начаться, Django не видит WebSocket handshake
+* проверить, что Nginx принимает ws
+  + F12 → Network → ws
+  + если соединение удаётся, в списке появится WebSocket‐запрос, обычно со статусом 101 (Switching Protocols)
+  + если статус 404/400/500, смотрите вкладку «Headers» — там может быть ответ от Nginx
+* console после нажатия Join Room, какой URL логируется?
+  + Connecting to WebSocket at: wss://localhost:4443/ws/chat/r/
+  + если wss://…, но статус = (failed), зайдите в Network → WS и гляньте причину
+  + если всё ещё ws://, значит старый JS код или кэш
+  + docker-compose logs frontend: что-то вроде 400 Bad Request, Request: GET /ws/chat/... HTTP/1.1", 101 Switching Protocols при успехе
+* если на старте Daphne (Channels) не видите «WebSocket CONNECT …», то запрос не доходит как WebSocket
+  + если всё ок, вы бы увидели WebSocket CONNECT /ws/chat/r/ …
 
 
 ### CHANNEL LAYERS
