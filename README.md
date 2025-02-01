@@ -106,6 +106,11 @@
   + like custom colors custom map
 * проверяет сертификаты SSL, расшифровывает с использованием SSL-сертификата
   + внутренний трафик не шифруется
+  + если сертификат самоподписанный, браузер может выдавать предупреждение «Not secure»
+    - у вас: «Non sécurisé»
+    - иногда это мешает wss://‐подключению
+    - в большинстве случаев всё равно WebSocket должен подключиться
+    - если браузер категорически отказывается, можно в тестовом режиме добавить исключение для самоподписанного сертификата
 * запросы к статическим файлам отдает его из /usr/share/nginx/html/static/
 * запросы на /api/ (JSON, HTML, WebSocket) идут на Django (аутентификаци, получения/отправки данных)
   + `proxy_set_header ...` передает заголовки (Host, IP-адрес клиента, протокол, ...), чтобы бэкенд понимал, откуда запрос
@@ -175,6 +180,7 @@
   + http://localhost:8000
   + ws://localhost:8000
   + https://localhost:4443/static/chat.html
+  + wss://localhost:4443/ws/...
   + nNginx проксирует `location /ws/` к `backend:8000`  
   + daphne запущен на `backend:8000`  
   + redis доступен по хосту `redis` на `6379` (иначе Channels не сможет работать)
@@ -322,7 +328,7 @@
 * используем **стандартные структуры юзера для авторизации и для моделей данных**
 * технические детали
   + на базе Python
-* ORM генерирует SQL-запросы    
+* ORM генерирует SQL-запросы  
 
 
 ### DJANGO REST FRAMEWORK DRF
@@ -426,25 +432,21 @@
 * сессии не нужны, авторизация через токены
 * bakyt: API for Database - UserProfile works
 * реализуются
-  + через события
-  + через статусы в ответах API
+  + через **события**
+  + через **статусы в ответах API**
   + не через механизм сообщений Django
 
 
 ### DJANGO CHANNELS
-* расширение Django, framework, библиотека, надстройка для вебсокетов
+* расширение Django, framework, библиотека, надстройка для вебсокетов поверх стандартного стека Django, позволяя использовать привычные инструменты и структуры
 * добавляет поддержку асинхронных протоколов, асинхронного взаимодействия, **фоновых задач**, обновление интерфейса в режиме реального времени
-* работает поверх стандартного стека Django, позволяя использовать привычные инструменты и структуры
 * слушает ws-запросы
   + непрерывное соединение, стрим
   + js инициирует соединение через **WebSocket API**: `new WebSocket`
   + daphne устанавливает ws-соединение
   + daphne передаёт ws-соединение в ASGI-приложение
-  + создает ws
-  + создает consumer
-  + связывает URL запроса с обработчиками `consumers.ChatConsumer.as_asgi()`
-    - URLRouter маршрутизирует запросы на consumers 
-  + назначение пользователей к группам каналов
+  + связывает URL запроса с обработчиками `consumers.ChatConsumer.as_asgi()`, URLRouter маршрутизирует запросы на consumers
+    - создает consumer
   + закрытие соединений
 * обслуживание ws
   + AuthenticationMiddlewareStack
@@ -477,6 +479,7 @@
   | REST API              | No        | Yes                  | Simple notifications, data requests| Low        |
   | Email                 | No        | Yes                  | Important notifications, confirmations| Medium  |
   | Push Notifications    | Yes       | Yes (by service)     | Mobile device notifications        | Medium     |
+* назначение пользователей к группам каналов
 
 
 ### CHANNEL LAYERS
@@ -859,6 +862,18 @@
   + Source Map хранит сопоставление (mapping) между сжатым и исходным кодом
   + видеть исходный код для отладки кода в браузере
   + в продакшен отключают генерацию .map-файлов, чтобы уменьшить вес приложения и не раскрывать детали исходного кода
+* ошибка с “MIME type ('text/html') is not a supported stylesheet” #see
+  + в логах «Refused to apply style from '/static/css/chat.css' because its MIME type ('text/html') is not a supported stylesheet MIME type» => nginx отдает chat.css с заголовком Content-Type: text/html вместо text/css
+  + убедитесь, что файл существует по пути /static/css/chat.css (или /app/static/css/chat.css) и настроены правильные заголовки MIME
+  + как минимум, в Nginx можно прописать:
+    ```
+    location /static/ {
+        alias /path/to/collected/static/;
+        try_files $uri =404;
+        # И MIME-тип автоматически определит, что *.css -> text/css
+    }
+    или включить include /etc/nginx/mime.types;
+```
 
 
 ### ТОКЕНЫ БЕЗОПАСНОСТЬ
