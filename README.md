@@ -34,49 +34,49 @@
     - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 313, in resolve_request resolver_match = resolver.resolve(request.path_info)
     - File "/usr/local/lib/python3.10/site-packages/django/urls/resolvers.py", line 705, in resolve raise Resolver**404**({"tried": tried, "path": new_path})
   + django.urls.exceptions.Resolver**404**: {'tried': [[<URLResolver <URLPattern list> (admin:admin) 'admin/'>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) 'auth/'>], [<URLResolver <module 'chat.urls' from '/app/chat/urls.py'> (None:None) 'chat/'>], [<URLResolver <module 'myapp.urls' from '/app/myapp/urls.py'> (None:None) ''>, <URLPattern '' [name='index']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'callback/' [name='callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'logout/' [name='logout_view']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'login/' [name='loginemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/email/' [name='authemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'signup/' [name='signup']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/callback' [name='oauth_callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'profile/' [name='profile']>], [<URLPattern 'user_42/<int:user_id>/' [name='get_user_42']>], [<URLPattern 'users_42/' [name='get_all_users_42']>], [<URLPattern 'users/' [name='get_all_userprofiles']>], [<URLPattern 'user/<int:id>/' [name='user-detail']>], [<URLPattern 'tour/<int:id>/' [name='tournament-detail']>], [<URLPattern 'game/<int:id>/' [name='game-detail']>]], 'path': 'ws/chat/rr/'}
-+ During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 883, in _resolve_lookup  current = current[bit]
-+ TypeError: **'URLResolver' object is not subscriptable**
-+ During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 893, in _resolve_lookup current = getattr(current, bit)
-+ AttributeError: 'URLResolver' object has no attribute **'name'**
-+ During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 899, in _resolve_lookup current = current[int(bit)]
-+ ValueError: invalid literal for int() with base 10: **'name'**
-+ During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 906, in _resolve_lookup raise VariableDoesNotExist(
-+ django.template.base.VariableDoesNotExist: Failed lookup for key [name] in <URLResolver <URLPattern list> (admin:admin) 'admin/'>
-+ Exception while **resolving variable 'name' in template 'unknown'**
-  - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner response = get_response(request)
-  - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 181, in _get_response callback, callback_args, callback_kwargs = self.resolve_request(request)
-  - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 313, in resolve_request resolver_match = resolver.resolve(request.path_info)
-  - File "/usr/local/lib/python3.10/site-packages/django/urls/resolvers.py", line 705, in resolve raise Resolver**404**({"tried": tried, "path": new_path})
-+ django.urls.exceptions.Resolver**404**: {'tried': [[<URLResolver <URLPattern list> (admin:admin) 'admin/'>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) 'auth/'>], [<URLResolver <module 'chat.urls' from '/app/chat/urls.py'> (None:None) 'chat/'>], [<URLResolver <module 'myapp.urls' from '/app/myapp/urls.py'> (None:None) ''>, <URLPattern '' [name='index']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'callback/' [name='callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'logout/' [name='logout_view']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'login/' [name='loginemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/email/' [name='authemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'signup/' [name='signup']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/callback' [name='oauth_callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'profile/' [name='profile']>], [<URLPattern 'user_42/<int:user_id>/' [name='get_user_42']>], [<URLPattern 'users_42/' [name='get_all_users_42']>], [<URLPattern 'users/' [name='get_all_userprofiles']>], [<URLPattern 'user/<int:id>/' [name='user-detail']>], [<URLPattern 'tour/<int:id>/' [name='tournament-detail']>], [<URLPattern 'game/<int:id>/' [name='game-detail']>]], 'path': 'ws/chat/rr/'}
-+ During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 883, in _resolve_lookup current = current[bit]
-+ TypeError: 'URLResolver' object is not subscriptable
-+ During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 893, in _resolve_lookup current = getattr(current, bit)
-+ AttributeError: 'URLResolver' object has no attribute 'name'
-+ During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 899, in _resolve_lookup current = current[int(bit)]
-+ ValueError: invalid literal for int() with base 10: 'name'
-+ During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 906, in _resolve_lookup raise VariableDoesNotExist(
-+ django.template.base.VariableDoesNotExist: Failed lookup for key [name] in <URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) 'auth/'>
-+ Exception while resolving variable **'name'** in template 'unknown'.
-+ Traceback (most recent call last):
-  - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner response = get_response(request)
-  - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 181, in _get_response callback, callback_args, callback_kwargs = self.resolve_request(request)
- - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 313, in resolve_request resolver_match = resolver.resolve(request.path_info)
-  - File "/usr/local/lib/python3.10/site-packages/django/urls/resolvers.py", line 705, in resolve raise Resolver**404**({"tried": tried, "path": new_path})
-+ django.urls.exceptions.Resolver**404**: {'tried': [[<URLResolver <URLPattern list> (admin:admin) 'admin/'>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) 'auth/'>], [<URLResolver <module 'chat.urls' from '/app/chat/urls.py'> (None:None) 'chat/'>], [<URLResolver <module 'myapp.urls' from '/app/myapp/urls.py'> (None:None) ''>, <URLPattern '' [name='index']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'callback/' [name='callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'logout/' [name='logout_view']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'login/' [name='loginemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/email/' [name='authemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'signup/' [name='signup']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/callback' [name='oauth_callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'profile/' [name='profile']>], [<URLPattern 'user_42/<int:user_id>/' [name='get_user_42']>], [<URLPattern 'users_42/' [name='get_all_users_42']>], [<URLPattern 'users/' [name='get_all_userprofiles']>], [<URLPattern 'user/<int:id>/' [name='user-detail']>], [<URLPattern 'tour/<int:id>/' [name='tournament-detail']>], [<URLPattern 'game/<int:id>/' [name='game-detail']>]], 'path': 'ws/chat/rr/'}
-+ During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 883, in _resolve_lookup current = current[bit]
-+ TypeError: 'URLResolver' object is not subscriptable
-+ During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 893, in _resolve_lookup current = getattr(current, bit)
-+ AttributeError: 'URLResolver' object has no attribute **'name'**
-+ During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 899, in _resolve_lookup current = current[int(bit)]
-+ ValueError: invalid literal for int() with base 10: **'name'**
-+ During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 906, in _resolve_lookup raise VariableDoesNotExist(
-+ django.template.base.VariableDoesNotExist: Failed lookup for key [name] in <URLResolver <module 'chat.urls' from '/app/chat/urls.py'> (None:None) 'chat/'>
-+ **Not Found: /ws/chat/rr/**
-+ "GET /ws/chat/rr/ HTTP/1.1" **404** 5670
-+ File /usr/local/lib/python3.10/site-packages/django/contrib/messages/storage/cookie.py first seen with mtime 1738426491.0360327
-+ File /usr/local/lib/python3.10/site-packages/django/contrib/messages/storage/session.py first seen with mtime 1738426491.0400329
-+ File /usr/local/lib/python3.10/site-packages/django/contrib/messages/storage/fallback.py first seen with mtime 1738426491.0400329
-+ File /usr/local/lib/python3.10/site-packages/django/contrib/sessions/serializers.py first seen with mtime 1738426491.1720328
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 883, in _resolve_lookup  current = current[bit]
+  + TypeError: **'URLResolver' object is not subscriptable**
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 893, in _resolve_lookup current = getattr(current, bit)
+  + AttributeError: 'URLResolver' object has no attribute **'name'**
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 899, in _resolve_lookup current = current[int(bit)]
+  + ValueError: invalid literal for int() with base 10: **'name'**
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 906, in _resolve_lookup raise VariableDoesNotExist(
+  + django.template.base.VariableDoesNotExist: Failed lookup for key [name] in <URLResolver <URLPattern list> (admin:admin) 'admin/'>
+  + Exception while **resolving variable 'name' in template 'unknown'**
+    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner response = get_response(request)
+    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 181, in _get_response callback, callback_args, callback_kwargs = self.resolve_request(request)
+    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 313, in resolve_request resolver_match = resolver.resolve(request.path_info)
+    - File "/usr/local/lib/python3.10/site-packages/django/urls/resolvers.py", line 705, in resolve raise Resolver**404**({"tried": tried, "path": new_path})
+  + django.urls.exceptions.Resolver**404**: {'tried': [[<URLResolver <URLPattern list> (admin:admin) 'admin/'>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) 'auth/'>], [<URLResolver <module 'chat.urls' from '/app/chat/urls.py'> (None:None) 'chat/'>], [<URLResolver <module 'myapp.urls' from '/app/myapp/urls.py'> (None:None) ''>, <URLPattern '' [name='index']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'callback/' [name='callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'logout/' [name='logout_view']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'login/' [name='loginemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/email/' [name='authemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'signup/' [name='signup']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/callback' [name='oauth_callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'profile/' [name='profile']>], [<URLPattern 'user_42/<int:user_id>/' [name='get_user_42']>], [<URLPattern 'users_42/' [name='get_all_users_42']>], [<URLPattern 'users/' [name='get_all_userprofiles']>], [<URLPattern 'user/<int:id>/' [name='user-detail']>], [<URLPattern 'tour/<int:id>/' [name='tournament-detail']>], [<URLPattern 'game/<int:id>/' [name='game-detail']>]], 'path': 'ws/chat/rr/'}
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 883, in _resolve_lookup current = current[bit]
+  + TypeError: 'URLResolver' object is not subscriptable
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 893, in _resolve_lookup current = getattr(current, bit)
+  + AttributeError: 'URLResolver' object has no attribute 'name'
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 899, in _resolve_lookup current = current[int(bit)]
+  + ValueError: invalid literal for int() with base 10: 'name'
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 906, in _resolve_lookup raise VariableDoesNotExist(
+  + django.template.base.VariableDoesNotExist: Failed lookup for key [name] in <URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) 'auth/'>
+  + Exception while resolving variable **'name'** in template 'unknown'.
+  + Traceback (most recent call last):
+    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner response = get_response(request)
+    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 181, in _get_response callback, callback_args, callback_kwargs = self.resolve_request(request)
+   - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 313, in resolve_request resolver_match = resolver.resolve(request.path_info)
+    - File "/usr/local/lib/python3.10/site-packages/django/urls/resolvers.py", line 705, in resolve raise Resolver**404**({"tried": tried, "path": new_path})
+  + django.urls.exceptions.Resolver**404**: {'tried': [[<URLResolver <URLPattern list> (admin:admin) 'admin/'>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) 'auth/'>], [<URLResolver <module 'chat.urls' from '/app/chat/urls.py'> (None:None) 'chat/'>], [<URLResolver <module 'myapp.urls' from '/app/myapp/urls.py'> (None:None) ''>, <URLPattern '' [name='index']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'callback/' [name='callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'logout/' [name='logout_view']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'login/' [name='loginemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/email/' [name='authemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'signup/' [name='signup']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/callback' [name='oauth_callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'profile/' [name='profile']>], [<URLPattern 'user_42/<int:user_id>/' [name='get_user_42']>], [<URLPattern 'users_42/' [name='get_all_users_42']>], [<URLPattern 'users/' [name='get_all_userprofiles']>], [<URLPattern 'user/<int:id>/' [name='user-detail']>], [<URLPattern 'tour/<int:id>/' [name='tournament-detail']>], [<URLPattern 'game/<int:id>/' [name='game-detail']>]], 'path': 'ws/chat/rr/'}
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 883, in _resolve_lookup current = current[bit]
+  + TypeError: 'URLResolver' object is not subscriptable
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 893, in _resolve_lookup current = getattr(current, bit)
+  + AttributeError: 'URLResolver' object has no attribute **'name'**
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 899, in _resolve_lookup current = current[int(bit)]
+  + ValueError: invalid literal for int() with base 10: **'name'**
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 906, in _resolve_lookup raise VariableDoesNotExist(
+  + django.template.base.VariableDoesNotExist: Failed lookup for key [name] in <URLResolver <module 'chat.urls' from '/app/chat/urls.py'> (None:None) 'chat/'>
+  + **Not Found: /ws/chat/rr/**
+  + "GET /ws/chat/rr/ HTTP/1.1" **404** 5670
+  + File /usr/local/lib/python3.10/site-packages/django/contrib/messages/storage/cookie.py first seen with mtime 1738426491.0360327
+  + File /usr/local/lib/python3.10/site-packages/django/contrib/messages/storage/session.py first seen with mtime 1738426491.0400329
+  + File /usr/local/lib/python3.10/site-packages/django/contrib/messages/storage/fallback.py first seen with mtime 1738426491.0400329
+  + File /usr/local/lib/python3.10/site-packages/django/contrib/sessions/serializers.py first seen with mtime 1738426491.1720328
 * `docker-compose logs frontend`
   + если нет упоминания GET /ws/chat/…, запрос не доходит
   + если есть, но возвращает **404**/400, значит либо Nginx, либо Channels отказывает
@@ -126,7 +126,27 @@
   ```
 * `docker-compose logs backend`
   + При успешном подключении Channels пишет WebSocket CONNECT /ws/chat/<room_name>/
+* F12 → Network, найдите запрос, посмотрите Response Headers
+  + если server: nginx, скорее всего это Nginx 404
+  + если server: WSGIServer/… или Content-Type: text/html; charset=utf-8 и Traceback HTML от Django — это Django 404
+* Nginx и Daphne добавляют заголовки Server: или X-Powered-By
+  + если 404 вернул Nginx, в ответе может быть Server: nginx.
+  + если 404 вернул Daphne, Server: Daphne или не указывать, нодобавит Content-Type: text/html; charset=utf-8
+* дошёл ли ws-запрос до Channels ?
+  + если в Nginx GET /ws/chat/... HTTP/1.1" 404…, но Channels молчит, значит Nginx не сделал proxy_pass или сделал как HTTP-запрос без Upgrade
+  + channels при успешном ws handshake выводит в логе WebSocket CONNECT /ws/chat/....
 * `docker-compose logs redis`
+* запрос `GET /ws/chat/rr/` обрабатывается как обычный, не как WebSocket‐handshake - проверить:
+  + `frontend "GET /ws/chat/rr/ HTTP/1.1" 404 ...`: js‐код формирует `ws://` или `wss://`, но браузер блокирует/не делает Upgrade
+  + консоль `wss://localhost:4443/ws/chat/rr/` OK
+  + location `/ws/`: `proxy_pass http://backend:8000;`, проксирует `/ws/chat/` OK
+  + nginx передаёт Upgrade‐заголовки `Upgrade: websocket` и `Connection: upgrade` OK
+  + браузер делает WebSocket‐handshake
+  + F12 Network WS: `101 Switching Protocols` (но `GET /ws/chat/rr/ 404` значит браузер не отправляет Upgrade или Nginx вырезает заголовок)
+  + `backend Not Found: /ws/chat/rr/` django не находит `/ws/chat/rr/` в `urlpatterns` => 404
+  + log Daphne `WebSocket CONNECT /ws/chat/rr/` (но 404 = значит ws‐route не сработал, Channels ничего не получил)
+  + нет WebSocket‐Upgrade. Решайте с помощью исправления JS (`wss://` при HTTPS) и location `/ws/` с Upgrade-заголовками
+    - Channels получит `WebSocket CONNECT`
 
 
 ### LIVE CHAT
