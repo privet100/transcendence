@@ -104,11 +104,9 @@
   + the ui is fire here
 * **game customization** it's just gonna be front
   + like custom colors custom map
-* подписывается на **WebSocket-каналы**
-* проверяет сертификаты SSL
-* расшифровывает с использованием SSL-сертификата
+* проверяет сертификаты SSL, расшифровывает с использованием SSL-сертификата
   + внутренний трафик не шифруется
-* если запрос к статическому файлу, отдает его из /usr/share/nginx/html/static/
+* запросы к статическим файлам отдает его из /usr/share/nginx/html/static/
 * запросы на /api/ (JSON, HTML, WebSocket) идут на Django (аутентификаци, получения/отправки данных)
   + `proxy_set_header ...` передает заголовки (Host, IP-адрес клиента, протокол, ...), чтобы бэкенд понимал, откуда запрос
   + **сохраняет заголовки WebSocket**
@@ -198,8 +196,39 @@
   + запустите daphne c опцией SSL: daphne -e ssl:4443:privateKey=key.pem:certKey=cert.pem yourproject.asgi:application
   + daphne крутится с поддержкой SSL на 4443
   + логи daphne
-* Nginx принимает зашифрованные соединения и проксирует трафик к Daphne
-  + Daphne не настраивается под SSL и слушает на обычном HTTP-порту 8000
+* Nginx принимает зашифрованные соединения и проксирует трафик к Daphne, Daphne не настраивается под SSL и слушает на обычном HTTP-порту 8000
+* проверить ws-соединения
+  + план
+    - daphne запущен на порту 8000 на `backend`  
+    - redis доступен по хосту `redis` на `6379`, иначе Channels не сможет работать
+    - nNginx проксирует `location /ws/` к `backend:8000`  
+    - на клиенте `wss://<domain>/ws/chat/<room_name>/`
+  + `F12` Network"
+    - откройте `https://<your-domain>/static/chat.html`), где установливаете ws-соединение
+    - если js-код инициирует подключение к `wss://<your-domain>/ws/chat/<room_name>/`, то в списке сетевых запросов элемент, отражающий WebSocket (может быть помечен как 101 Switching Protocols)
+   - в столбце "Status" 101
+   - соединение останется "pending" (открытым)
+   - проверить заголовки `Upgrade: websocket`, `Connection: upgrade`
+  + с помощью WebSocket-тестера WebSocket King (веб-инструмент)
+    - если нет готового frontend-кода, можно протестировать 
+    - [WebSocket King](https://websocketking.com/)
+    - введите URL вашего WebSocket `wss://<your-domain>/ws/chat/testroom/`
+    - можно отправлять текстовые сообщения, если Daphne и ваш `ChatConsumer` настроены принимать и логировать, вы должны увидеть какие-то ответы или по крайней мере подтверждение, что соединение установлено
+  + с помощью WebSocket-тестера wscat (CLI-инструмент)
+    - `npm install -g wscat`
+    - в консоли `wscat -c wss://<your-domain>/ws/chat/testroom/`
+    - увидите `connected`
+    - набрать любое сообщение – если `ChatConsumer` что-то ответит (в зависимости от реализации), вы увидите это
+    - если у вас самоподписанный сертификат, `wscat` может пожаловаться, нужно отключать проверку сертификата (`--no-check` / `NODE_TLS_REJECT_UNAUTHORIZED=0`)
+  + логи nginx логи `/var/log/nginx/error.log` и `access.log`
+   - при установке ws-соединения должно отражаться, что запрос пришёл с `Upgrade: websocket`
+   - ошибки `400 Bad Request`, `405 Not Allowed`, `403 Forbidden`, `502 Bad Gateway`?
+  + логи daphne
+   - ASGI-приложение получает соединение по `ws/chat/<room_name>/`?
+   - если есть ошибки в `ChatConsumer`, будет видно (`Connection refused`, `Handshake failure`, ...)
+ + при обращении к `wss://<domain>/ws/...`, nginx проксирует на `http://backend:8000/ws/...`
+  - Daphne принимает WebSocket по пути `/ws/chat/<room_name>/` (с помощью Channels)
+
 
 ### ЯДРО DJANGO 
 * бэкенд-фреймворк
