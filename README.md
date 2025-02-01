@@ -178,7 +178,7 @@
   + nNginx проксирует `location /ws/` к `backend:8000`  
   + daphne запущен на `backend:8000`  
   + redis доступен по хосту `redis` на `6379` (иначе Channels не сможет работать)
-  + на клиенте `wss://<domain>/ws/chat/<room_name>/`
+  + на клиенте `wss://localhost:4443/ws/chat/<room>/`
   + `F12` Network
     - https://localhost:4443/static/chat.html`
     - js инициирует подключение к `wss://localhost:4443/ws/chat/room/`
@@ -186,6 +186,10 @@
     - в столбце "Status" 101
     - соединение останется "pending" (открытым)
     - заголовки `Upgrade: websocket`, `Connection: upgrade`
+    - Finished в колонке Status ws-подключения не означает, что ws-соединение разорвано - этап загрузки ресурса (первоначальный HTTP‐запрос на handshake) закончился
+    - в консоли Network pending или active
+    - выберите ws → Messages, если соединение активно, то тут входящие/исходящие сообщения, а в Timing (Headers) статус 101 Switching Protocols
+    - если соединение закрылось, вы увидите событие «Close» (code 1000 или другое)
   + WebSocket-тестер WebSocket King
     - если нет готового frontend-кода
     - https://websocketking.com/
