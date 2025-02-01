@@ -29,18 +29,17 @@
 * если подключены библиотеки для документирования API, то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
 * `docker logs backend`
 * frontend  | 172.21.0.1 - - [01/Feb/2025:16:26:40 +0000] "GET /favicon.ico HTTP/1.1" 404 5670 "https://localhost:4443/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36" "-"
-  + не содержит всех заголовков запроса, лишь основные заголовки (User-Agent, Referer) и метод/URL
-  + содерждит ключевую информацию: IP, время, метод, URL, код ответа, «Referer», «User-Agent», ...
+  + основные заголовки (User-Agent, Referer) и метод/URL
   + 172.21.0.1 IP-адрес клиента (в контейнерной сети может быть внутренний адрес Docker)
-  + `- - ` две позиции для идентификации (RFC 1413) и имени пользователя (Basic Auth), которые по умолчанию `-` (отсутствуют)
-  + дата и время запроса в часовом поясе сервера (UTC +0000)
-  + `GET /favicon.ico HTTP/1.1` Request Line: GET метод запроса, /favicon.ico путь, HTTP/1.1 версия протокола
+  + `-` **идентификация (RFC 1413)**, по умолчанию отсутствует
+  + `-` имя пользователя (Basic Auth), по умолчанию отсутствует
+  + дата и время запроса в часовом поясе сервера
+  + `GET /favicon.ico HTTP/1.1` request Line: метод запроса, путь, версия протокола
   + 404 код ответа HTTP (Not Found)
   + 5670 объём переданных сервером байт в теле ответа
-  + `https://localhost:4443/` referer — URL, откуда пользователь (или браузер) перешёл
-  + `Mozilla/5.0 ... Safari/537.36` User-Agent — строка, идентифицирующая браузер
-  + `-` в некоторых форматах там пишут «X-Forwarded-For» или «request time» — зависит от конфигурации лога
-  + если нужно увидеть все заголовки: включить «Debug» логирование в Nginx, или использовать tcpdump/Wireshark, или смотреть вкладку Network в DevTools браузера, или настроить специальный access_log формат, выводящий больше заголовков (через `log_format` и `$http_*` переменные)
+  + `https://localhost:4443/` URL, откуда пользователь (или браузер) перешёл
+  + `Mozilla/5.0` браузер
+  + если нужно все заголовки: «Debug» логирование в Nginx, tcpdump/Wireshark, F12 Network в DevTools браузера, настроить access_log формат
 * `docker-compose logs frontend`
   /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
   /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
