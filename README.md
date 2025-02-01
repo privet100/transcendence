@@ -28,50 +28,54 @@
 * F12
 * если подключены библиотеки для документирования API, то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
 * `docker logs backend`
-* frontend  | 172.21.0.1 - - [01/Feb/2025:16:26:40 +0000] "GET /favicon.ico HTTP/1.1" 404 5670 "https://localhost:4443/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36" "-"
-  + основные заголовки (User-Agent, Referer) и метод/URL
-  + 172.21.0.1 IP-адрес клиента (в контейнерной сети может быть внутренний адрес Docker)
-  + `-` **идентификация (RFC 1413)**, по умолчанию отсутствует
-  + `-` имя пользователя (Basic Auth), по умолчанию отсутствует
-  + дата и время запроса в часовом поясе сервера
-  + `GET /favicon.ico HTTP/1.1` request Line: метод запроса, путь, версия протокола
-  + 404 код ответа HTTP (Not Found)
-  + 5670 объём переданных сервером байт в теле ответа
-  + `https://localhost:4443/` URL, откуда пользователь (или браузер) перешёл
-  + `Mozilla/5.0` браузер
-  + если нужно все заголовки: «Debug» логирование в Nginx, tcpdump/Wireshark, F12 Network в DevTools браузера, настроить access_log формат
 * `docker-compose logs frontend`
-  /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-  /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-  /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-  10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-  10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
-  /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-  /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-  /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-  /docker-entrypoint.sh: Configuration complete; ready for start up
-  [notice] 1#1: using the "epoll" event method
-  [notice] 1#1: nginx/1.27.3
-  [notice] 1#1: built by gcc 12.2.0 (Debian 12.2.0-14) 
-  [notice] 1#1: OS: Linux 5.15.0-131-generic
-  [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
-  [notice] 1#1: start worker processes
-  [notice] 1#1: start worker process 28
-  [notice] 1#1: start worker process 29
-  [notice] 1#1: start worker process 30
-  [notice] 1#1: start worker process 31
-  172.21.0.1 "GET / HTTP/1.1" 200 4644 "-" "Chrome/130.0.0.0"
-  172.21.0.1 "GET /staticfiles/css/popUpChat.css HTTP/1.1" 404 1882 "https://localhost:4443/" "Chrome/130.0.0.0"
-  172.21.0.1 "GET /favicon.ico HTTP/1.1" 404 5670 "https://localhost:4443/" "Chrome/130.0.0.0"
-  172.21.0.1 "GET /staticfiles/admin/css/base.css HTTP/1.1" 200 22092 "Chrome/130.0.0.0"
-  172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189 "Chrome/130.0.0.0"
-  172.21.0.1 "GET /static/chat.html HTTP/1.1" 200 8204 "Chrome/130.0.0.0"
-  172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189 "https://localhost:4443/static/chat.html" "Chrome/130.0.0.0"
-  172.21.0.1 "GET /static/chat.html HTTP/1.1" 200 8204 "Chrome/130.0.0.0"
-  172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189 "https://localhost:4443/static/chat.html" "Chrome/130.0.0.0"
-  172.21.0.1 "GET /ws/chat/r/ HTTP/1.1" 404 5667 "Chrome/130.0.0.0"
-  172.21.0.1 "GET /ws/chat/r HTTP/1.1" 404 5664 "Chrome/130.0.0.0 Safari/537.36"
-  172.21.0.1 "GET /ws/chat HTTP/1.1" 404 5658 "-" "Chrome/130.0.0.0"
+  + если нет упоминания GET /ws/chat/…, запрос не доходит
+  + если есть, но возвращает 404/400, значит либо Nginx, либо Channels отказывает
+  + 172.21.0.1 - - [01/Feb/2025:16:26:40 +0000] "GET /favicon.ico HTTP/1.1" 404 5670 "https://localhost:4443/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36" "-"
+    - основные заголовки (User-Agent, Referer) и метод/URL
+    - 172.21.0.1 IP-адрес клиента (в контейнерной сети может быть внутренний адрес Docker)
+    - `-` **идентификация (RFC 1413)**, по умолчанию отсутствует
+    - `-` имя пользователя (Basic Auth), по умолчанию отсутствует
+    - `GET /favicon.ico HTTP/1.1` request Line: метод запроса, путь, версия протокола
+    - 404 код ответа HTTP (Not Found)
+    - 5670 объём переданных сервером байт в теле ответа
+    - `https://localhost:4443/` URL, откуда пользователь (или браузер) перешёл
+    - `Mozilla/5.0` браузер
+  + если нужно все заголовки: «Debug» логирование в Nginx, tcpdump/Wireshark, F12 Network в DevTools браузера, настроить access_log формат
+  + 
+    ```
+    /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+    /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+    /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+    10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+    10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
+    /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+    /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+    /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+    /docker-entrypoint.sh: Configuration complete; ready for start up
+    [notice] 1#1: using the "epoll" event method
+    [notice] 1#1: nginx/1.27.3
+    [notice] 1#1: built by gcc 12.2.0 (Debian 12.2.0-14) 
+    [notice] 1#1: OS: Linux 5.15.0-131-generic
+    [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+    [notice] 1#1: start worker processes
+    [notice] 1#1: start worker process 28
+    [notice] 1#1: start worker process 29
+    [notice] 1#1: start worker process 30
+    [notice] 1#1: start worker process 31
+    172.21.0.1 "GET / HTTP/1.1" 200 4644 "-" "Chrome/130.0.0.0"
+    172.21.0.1 "GET /staticfiles/css/popUpChat.css HTTP/1.1" 404 1882 "https://localhost:4443/" "Chrome/130.0.0.0"
+    172.21.0.1 "GET /favicon.ico HTTP/1.1" 404 5670 "https://localhost:4443/" "Chrome/130.0.0.0"
+    172.21.0.1 "GET /staticfiles/admin/css/base.css HTTP/1.1" 200 22092 "Chrome/130.0.0.0"
+    172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189 "Chrome/130.0.0.0"
+    172.21.0.1 "GET /static/chat.html HTTP/1.1" 200 8204 "Chrome/130.0.0.0"
+    172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189 "https://localhost:4443/static/chat.html" "Chrome/130.0.0.0"
+    172.21.0.1 "GET /static/chat.html HTTP/1.1" 200 8204 "Chrome/130.0.0.0"
+    172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189 "https://localhost:4443/static/chat.html" "Chrome/130.0.0.0"
+    172.21.0.1 "GET /ws/chat/r/ HTTP/1.1" 404 5667 "Chrome/130.0.0.0"
+    172.21.0.1 "GET /ws/chat/r HTTP/1.1" 404 5664 "Chrome/130.0.0.0 Safari/537.36"
+    172.21.0.1 "GET /ws/chat HTTP/1.1" 404 5658 "-" "Chrome/130.0.0.0"
+  ```
 * `docker-compose logs backend`
   + При успешном подключении Channels пишет WebSocket CONNECT /ws/chat/<room_name>/
 * `docker-compose logs redis`
