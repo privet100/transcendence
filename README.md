@@ -89,9 +89,7 @@
     - 404 код ответа HTTP (Not Found)
     - 5670 объём переданных сервером байт в теле ответа
     - `https://localhost:4443/` URL, откуда пользователь перешёл
-  + если нужно все заголовки: «Debug» логирование в Nginx, tcpdump/Wireshark, F12 Network в DevTools браузера, настроить access_log формат
-  + 
-    ```
+  + ```
     /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
     /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
     /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
