@@ -27,9 +27,12 @@
 * WebSocket-тесты с Django Channels + `pytest`
 * F12
 * если подключены библиотеки для документирования API, то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
-* `docker-compose logs`
 * `docker logs backend`
-* логи внутри контейнера
+* `docker-compose logs`
+* `docker-compose logs frontend`
+* `docker-compose logs backend`
+  + При успешном подключении Channels пишет WebSocket CONNECT /ws/chat/<room_name>/
+* `docker-compose logs redis`
 
 
 ### LIVE CHAT
@@ -200,17 +203,24 @@
   + WebSocket-тестер WebSocket King
     - https://websocketking.com/
     - URL `wss://localhost:4443/ws/chat/room/`
-    - можно отправлять текстовые сообщения
+    - можно отправлять текстовые сообщенияет
   + WebSocket-тестер wscat (CLI-инструмент)
     - в консоли `wscat -c wss://localhost:4443/ws/chat/testroom/`
     - увидите `connected`
     - набрать любое сообщение
     - если самоподписанный сертификат, отключать проверку (`--no-check` / `NODE_TLS_REJECT_UNAUTHORIZED=0`)
   + `/var/log/nginx/error.log`, `/var/log/nginx/access.log`
-   - при установке ws-соединения запрос пришёл с `Upgrade: websocket`
+    - при установке ws-соединения запрос пришёл с `Upgrade: websocket`
   + логи daphne
-   - `wss://<domain>/ws/...` -> nginx проксирует на `http://backend:8000/ws/...` - daphne принимает ws по пути `/ws/chat/<room>/` 
-* AllowedHostsOriginValidator проверяет допустимые хосты для WebSocket-соединений (**зачем дублировать с nginx**)
+    - `wss://<domain>/ws/...` -> nginx проксирует на `http://backend:8000/ws/...` - daphne принимает ws по пути `/ws/chat/<room>/` 
+  + views.py обрабатвает HTTP Django URLs /chat/<room> 
+    - WebSocket Channels обрабатывает /ws/chat/<room> (ASGI routing)
+    - если в urls.py есть в path("ws/chat/<room>", views...), Django перехватывает его как HTTP и выдаваёт 404, или ищет шаблон
+    - маршруты Channels: websocket_urlpatterns = [re_path(r'^ws/chat/(?P<room_name>\w+)/$', ChatConsumer.as_asgi()),]
+    - если есть что-то вроде path('ws/chat/<room>/', some_view), то Django перехватывает HTTP‐запрос (а не Channels)
+  + убрать AllowedHostsOriginValidator ради теста
+* AllowedHostsOriginValidator проверяет допустимые хосты для WebSocket-соединений (**зачем дублировать с nginx
+  + проверяет заголовок Origin против ALLOWED_HOSTS
 * **ORM**
 * альтернатива: `python manage.py runserver 0.0.0.0:8000`
   + запускает Django-приложение с использованием встроенного **разработческого сервера**
@@ -487,7 +497,7 @@
   + Connecting to WebSocket at: wss://localhost:4443/ws/chat/r/
   + если wss://…, но статус = (failed), зайдите в Network → WS и гляньте причину
   + если всё ещё ws://, значит старый JS код или кэш
-  + docker-compose logs frontend: что-то вроде 400 Bad Request, Request: GET /ws/chat/... HTTP/1.1", 101 Switching Protocols при успехе
+  + docker-compose logs frontend: 400 Bad Request, Request: GET /ws/chat/... HTTP/1.1", 101 Switching Protocols при успехе
 * если на старте Daphne (Channels) не видите «WebSocket CONNECT …», то запрос не доходит как WebSocket
   + если всё ок, вы бы увидели WebSocket CONNECT /ws/chat/r/ …
 
@@ -596,7 +606,6 @@
 * проверка 
   + `docker-compose exec redis redis-cli PING` - PONG
   + добавить `redis-cli` в Dockerfile или docker-compose
-  + `docker compose logs redis`
 * как устроен технически
   + работает в оперативной памяти => высокая скорость записи и чтения
   + может сохранять данные на **диск**, чтобы избежать потери при сбоях #see
@@ -853,8 +862,6 @@
   + если CSS-файл кэшировался, браузер может залипать на устаревшей версии
     - добавить ?v=123 в конце ссылки или очистить кэш
   + `python manage.py findstatic css/popUpChat.css`
-  + `docker-compose logs frontend`
-  + `docker-compose logs backend`
   + docker exec -it frontend ls -la /usr/share/nginx/html/static/frontend/css/ убедиться что Nginx имеет права на чтение
   + файлы в `staticfiles` **только чтение** для Nginx
   + DevTools → Network
