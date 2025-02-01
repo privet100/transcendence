@@ -99,73 +99,6 @@
 * {% load static %} загрузка стат файлов Django (table.css), нам не надо
 
 
-### GAME LOGIC
-* a player should also be possible to propose a tournament (subject)
-  + a tournament displaies who is playing against whom and the order of the players (subject)
-• a matchmaking system: the tournament system organize the matchmaking of the participants, and announce the next fight
-• a registration system
-  + at the start of a tournament, each player must input their alias name
-  + the aliases will be reset when a new tournament begins
-  + this requirement can be modified using the Standard User Management module.
-* user management, authentication, users across tournaments (subject)
-  + Users can subscribe to the website in a secure way
-  + Registered users can log in in a secure way
-  + Users can select a unique display name to play the tournaments
-  + Users can update their information
-  + Users can upload an avatar, with a default option if none is provided
-  + Users can add others as friends and view their online status
-  + User profiles display stats, such as wins and losses
-  + Each user has a Match History including 1v1 games, dates, and relevant details, accessible to logged-in users
-  + the management of duplicate usernames/emails is at your discretion, you must provide a solution that makes sense
-* Remote players (subject)
-  + two distant players, each player is located on a separated computer, accessing the same website and playing the same Pong game
-  + think about **network issues**, like unexpected disconnection or lag
-  + you have to offer the best user experience possible
-* Game Customization Options (subject) возможно будем
-  + customization options for all available games on the platform
-  + customization features, such as power-ups, attacks, or different maps, that enhance the gameplay experience
-  + allow users to choose a default version of the game with basic features if they prefer a simpler experience
-  + ensure that customization options are available and applicable to all games offered on the platform
-  + implement user-friendly settings menus or interfaces for adjusting game parameters
-  + maintain consistency in customization features across all games to provide a unified user experience
-  + to give users the flexibility to tailor their gaming experience across all available games by providing a variety of customization options while also offering a default version for those who prefer a straightforward gameplay experience
-* AI Opponent (subject)
-  + to introduce data-driven elements to the project, with the major module introducing an AI opponent for enhanced gameplay, and the minor module focusing on user and game statistics dashboards, offering users a minimalistic yet insightful glimpse into their gaming experiences
-  + an AI player into the game
-  + the use of the A* algorithm is not permitted 
-  + an AI opponent that provides a challenging and engaging gameplay experience for users
-  + the AI replicates human behavior, meaning that in your AI implementation, you must simulate keyboard input
-  + the AI refreshes its view of the game once per second, requiring it to anticipate bounces and other actions
-  + the AI utilizes **power-ups** if you have chosen to implement the Game customization options module
-  + AI logic and decision-making processes that enable the AI player to make intelligent and strategic moves
-  + explore alternative algorithms and techniques to create an effective AI player without relying on A*
-  + the AI adapts to different gameplay scenarios and user interactions
-  + to explain in detail how your AI is working 
-  + it must have the capability to win occasionally
-  + an AI opponent that adds excitement and competitiveness without relying on the A* algorithm
-* user and Game Stats Dashboards (subject) может быть будем делать
-  + dashboards that display statistics for individual users and game sessions
-  + user-friendly dashboards that provide users with insights into their own gaming statistics
-  + a separate dashboard for game sessions, showing detailed statistics, outcomes, historical data for each match
-  + the dashboards offer an intuitive and informative user interface for tracking and analyzing data
-  + data visualization techniques, such as charts and graphs, to present statistics in a clear and visually appealing manner
-  + users access and explore their own gaming history and performance metrics conveniently
-  + add any metrics you deem useful
-  + users monitor their gaming statistics and game session details through user-friendly dashboards
-  + a comprehensive view of their gaming experience
-* game logic, because we need it to do the multiplayer
-* трекинг **когда пользователь был онлайн**
-  + models.py: last online для индикатива
-  + три решения 
-    - через библиотеку channels - по вебсокетам следим пользователь онлайн или нет - НАМ ЭТОТ СПОСОБ
-    - через Django sessions - как только юзер делает какое либо действие, Джанго сохраняет в базу данных дату этого действия 
-    - через redis - но не понял как это работает
-* pass reset будет ли?
-* change username, email будет ли?
-* myapp: логика пользовательских профилей, турниров, историй игр
-* alexey: Tournaments – working 
-
-
 ### FRONTEND NGINX
 * try using **bolt.new** it's better at frontend
   + the ui is fire here
@@ -220,6 +153,8 @@
 * proxy_http_version 1.1
   + ws‐подключения для **апгрейда соединения** используют HTTP/1.1
   + если оставить по умолчанию HTTP/1.0, Nginx не будет корректно передавать заголовки Upgrade и Connection: upgrade, и вебсокеты могут не работать
+* /var/log/nginx/access.log 
+* /var/log/nginx/error.log 
 * Amine: game front using javascript
 * alexey: Layout on the pages – working on it
   + расположение и структура элементов пользовательского интерфейса на веб-страницах
@@ -261,7 +196,10 @@
   + для проверки ws://localhost:8000
   + для проверки https://localhost:4443/static/chat.html
   + запустите daphne c опцией SSL: daphne -e ssl:4443:privateKey=key.pem:certKey=cert.pem yourproject.asgi:application
-
+  + daphne крутится с поддержкой SSL на 4443
+  + логи daphne
+* Nginx принимает зашифрованные соединения и проксирует трафик к Daphne
+  + Daphne не настраивается под SSL и слушает на обычном HTTP-порту 8000
 
 ### ЯДРО DJANGO 
 * бэкенд-фреймворк
@@ -762,6 +700,73 @@
    public | myapp_userprofile_groups           | table | myuser
    public | myapp_userprofile_user_permissions | table | myuser
   ```
+
+
+### GAME LOGIC
+* a player should also be possible to propose a tournament (subject)
+  + a tournament displaies who is playing against whom and the order of the players (subject)
+• a matchmaking system: the tournament system organize the matchmaking of the participants, and announce the next fight
+• a registration system
+  + at the start of a tournament, each player must input their alias name
+  + the aliases will be reset when a new tournament begins
+  + this requirement can be modified using the Standard User Management module.
+* user management, authentication, users across tournaments (subject)
+  + Users can subscribe to the website in a secure way
+  + Registered users can log in in a secure way
+  + Users can select a unique display name to play the tournaments
+  + Users can update their information
+  + Users can upload an avatar, with a default option if none is provided
+  + Users can add others as friends and view their online status
+  + User profiles display stats, such as wins and losses
+  + Each user has a Match History including 1v1 games, dates, and relevant details, accessible to logged-in users
+  + the management of duplicate usernames/emails is at your discretion, you must provide a solution that makes sense
+* Remote players (subject)
+  + two distant players, each player is located on a separated computer, accessing the same website and playing the same Pong game
+  + think about **network issues**, like unexpected disconnection or lag
+  + you have to offer the best user experience possible
+* Game Customization Options (subject) возможно будем
+  + customization options for all available games on the platform
+  + customization features, such as power-ups, attacks, or different maps, that enhance the gameplay experience
+  + allow users to choose a default version of the game with basic features if they prefer a simpler experience
+  + ensure that customization options are available and applicable to all games offered on the platform
+  + implement user-friendly settings menus or interfaces for adjusting game parameters
+  + maintain consistency in customization features across all games to provide a unified user experience
+  + to give users the flexibility to tailor their gaming experience across all available games by providing a variety of customization options while also offering a default version for those who prefer a straightforward gameplay experience
+* AI Opponent (subject)
+  + to introduce data-driven elements to the project, with the major module introducing an AI opponent for enhanced gameplay, and the minor module focusing on user and game statistics dashboards, offering users a minimalistic yet insightful glimpse into their gaming experiences
+  + an AI player into the game
+  + the use of the A* algorithm is not permitted 
+  + an AI opponent that provides a challenging and engaging gameplay experience for users
+  + the AI replicates human behavior, meaning that in your AI implementation, you must simulate keyboard input
+  + the AI refreshes its view of the game once per second, requiring it to anticipate bounces and other actions
+  + the AI utilizes **power-ups** if you have chosen to implement the Game customization options module
+  + AI logic and decision-making processes that enable the AI player to make intelligent and strategic moves
+  + explore alternative algorithms and techniques to create an effective AI player without relying on A*
+  + the AI adapts to different gameplay scenarios and user interactions
+  + to explain in detail how your AI is working 
+  + it must have the capability to win occasionally
+  + an AI opponent that adds excitement and competitiveness without relying on the A* algorithm
+* user and Game Stats Dashboards (subject) может быть будем делать
+  + dashboards that display statistics for individual users and game sessions
+  + user-friendly dashboards that provide users with insights into their own gaming statistics
+  + a separate dashboard for game sessions, showing detailed statistics, outcomes, historical data for each match
+  + the dashboards offer an intuitive and informative user interface for tracking and analyzing data
+  + data visualization techniques, such as charts and graphs, to present statistics in a clear and visually appealing manner
+  + users access and explore their own gaming history and performance metrics conveniently
+  + add any metrics you deem useful
+  + users monitor their gaming statistics and game session details through user-friendly dashboards
+  + a comprehensive view of their gaming experience
+* game logic, because we need it to do the multiplayer
+* трекинг **когда пользователь был онлайн**
+  + models.py: last online для индикатива
+  + три решения 
+    - через библиотеку channels - по вебсокетам следим пользователь онлайн или нет - НАМ ЭТОТ СПОСОБ
+    - через Django sessions - как только юзер делает какое либо действие, Джанго сохраняет в базу данных дату этого действия 
+    - через redis - но не понял как это работает
+* pass reset будет ли?
+* change username, email будет ли?
+* myapp: логика пользовательских профилей, турниров, историй игр
+* alexey: Tournaments – working 
 
 
 ### СТАТИЧЕСКИЕ ФАЙЛЫ html js CSS изображения шрифты
