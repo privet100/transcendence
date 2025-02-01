@@ -252,13 +252,15 @@
 * AllowedHostsOriginValidator проверяет допустимые хосты для WebSocket-соединений (**зачем дублировать с nginx**)
 * ORM
 * Amine: game backend using websockets (with 42 auth)
-* SSL-сертификат #see
-  + сервер слушает на localhost:4443
+* сервер слушает на wss://localhost:4443 #see
   + сервер принимает wss:// соединения
-  + сертификат подключен при запуске сервера
   + сервер настроен на SSL
+  + сертификат подключен при запуске сервера
   + страница загружается по https:// => браузер открывает wss://
-  + временно http://localhost:8000 и ws:// 
+  + для проверки http://localhost:8000
+  + для проверки ws://localhost:8000
+  + для проверки https://localhost:4443/static/chat.html
+  + запустите daphne c опцией SSL: daphne -e ssl:4443:privateKey=key.pem:certKey=cert.pem yourproject.asgi:application
 
 
 ### ЯДРО DJANGO 
