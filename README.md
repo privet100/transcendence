@@ -161,73 +161,62 @@
 
 ### BACKEND DAPHNE 
 * ASGI сервер 
-* `python manage.py runserver 0.0.0.0:8000`
+* хорошо интегрируется с Django Channels
+* поддерживает ws из коробки
+* не настраивается под SSL
+* слушает внутри контейнера на порту 8000 API-запросы, HTTP-запросы фронтенда
+* принимает wss:// соединения
+  + страница загружается по https:// => браузер открывает wss://
+* `ASGI_APPLICATION = "myproject.asgi.application"`
+  + `django_asgi_app = get_asgi_application()` initialize Django ASGI appli, exposes the ASGI callable as a module-level variable (загрузка приложений `INSTALLED_APPS`, конфигурация бд, среда AppRegistry is populated 
+    - before importing ORM models, до использования ORM-моделей и др компонентов Django, конфигурации маршрутов ws
+  + переменная `application` = точка входа для ASGI-сервера, ASGI-приложение, обрабатывает запросы
+* проверить ws-соединения
+  + http://localhost:8000
+  + ws://localhost:8000
+  + https://localhost:4443/static/chat.html
+  + nNginx проксирует `location /ws/` к `backend:8000`  
+  + daphne запущен на `backend:8000`  
+  + redis доступен по хосту `redis` на `6379` (иначе Channels не сможет работать)
+  + на клиенте `wss://<domain>/ws/chat/<room_name>/`
+  + `F12` Network
+    - https://localhost:4443/static/chat.html`
+    - js инициирует подключение к `wss://localhost:4443/ws/chat/room/`
+    - в списке сетевых запросов элемент, отражающий WebSocket (101 Switching Protocols)
+    - в столбце "Status" 101
+    - соединение останется "pending" (открытым)
+    - заголовки `Upgrade: websocket`, `Connection: upgrade`
+  + WebSocket-тестер WebSocket King
+    - если нет готового frontend-кода
+    - https://websocketking.com/
+    - введите URL `wss://localhost:4443/ws/chat/room/`
+    - можно отправлять текстовые сообщения
+  + WebSocket-тестер wscat (CLI-инструмент)
+    - `npm install -g wscat`
+    - в консоли `wscat -c wss://localhost:4443/ws/chat/testroom/`
+    - увидите `connected`
+    - набрать любое сообщение
+    - если у вас самоподписанный сертификат, отключать проверку (`--no-check` / `NODE_TLS_REJECT_UNAUTHORIZED=0`)
+  + `/var/log/nginx/error.log`, `/var/log/nginx/access.log`
+   - при установке ws-соединения запрос пришёл с `Upgrade: websocket`
+  + логи daphne
+   - обращение к `wss://<domain>/ws/...` -> nginx проксирует на `http://backend:8000/ws/...` - daphne с помощью Channels принимает WebSocket по пути `/ws/chat/<room>/` 
+* AllowedHostsOriginValidator проверяет допустимые хосты для WebSocket-соединений (**зачем дублировать с nginx**)
+* **ORM**
+* альтернатива ему: `python manage.py runserver 0.0.0.0:8000`
   + запускает Django-приложение с использованием встроенного **разработческого сервера**
     - может работать как с WSGI, так и с ASGI, в зависимости от конфигурации проекта
     - если настроно Channels и указано `ASGI_APPLICATION`, то запускает ASGI-сервер вместо стандартного WSGI
     - `runserver` не рекомендуется для продакшен
     - Daphne: более высокая производительность и стабильность
-* слушает внутри контейнера на порту 8000 API-запросы, HTTP-запросы фронтенда
-* хорошо интегрируется с Django Channels, поддерживает ws из коробки
-* asgi, wsgi
-  + интерфейсы, стандарты для взаимодействия между веб-сервером и веб-приложениями/фреймворками
-  + т.к. фреймворки, тулкиты и библиотеки питон не умеют взаимодействовать между собой, у каждого свой метод установки, настройки
+* альтернатива ему: wsgi
+  + asgi, wsgi - интерфейсы, стандарты для взаимодействия между веб-сервером и веб-приложениями/фреймворками
+    - иначе фреймворки, тулкиты и библиотеки питон не умеют взаимодействовать между собой, у каждого свой метод установки, настройки
   + WSGI, Web Server Gateway Interface
     - поддерживает только синхронные запросы HTTP, не подходит для реального времени или протокола ws
-    - бывает нужен: некоторые инструменты поддерживают только синхронные HTTP-запросы; Django-приложений без асинхронных функций стабильнее
+    - но бывает нужен: некоторые инструменты поддерживают только HTTP-запросы; Django-приложений без асинхронных функций стабильнее
   + ASGI, Asynchronous Server Gateway Interface - продолжение WSGI, когда есть асинхронные задачи
-* `ASGI_APPLICATION = "myproject.asgi.application"`
-  + Переменная `application` = точка входа для ASGI-сервера, ASGI-приложение, обрабатывает входящие запросы
-  + `django_asgi_app = get_asgi_application()`
-    - создаёт объект ASGI-приложения, exposes the ASGI callable as a **module-level variable**, initialize Django ASGI application: загрузка приложений из `INSTALLED_APPS`, конфигурация бд, **среда `AppRegistry`**
-    - AppRegistry shoul be populated before importing ORM models
-    - приложение Django инициализирется до использования ORM-моделей и других компонентов Django, _до_ конфигурации маршрутов ws
-* AllowedHostsOriginValidator проверяет допустимые хосты для WebSocket-соединений (**зачем дублировать с nginx**)
-* **ORM**
 * Amine: game backend using websockets (with 42 auth)
-* сервер слушает на wss://localhost:4443 #see
-  + сервер принимает wss:// соединения
-  + сервер настроен на SSL
-  + сертификат подключен при запуске сервера
-  + страница загружается по https:// => браузер открывает wss://
-  + для проверки http://localhost:8000
-  + для проверки ws://localhost:8000
-  + для проверки https://localhost:4443/static/chat.html
-  + запустите daphne c опцией SSL: daphne -e ssl:4443:privateKey=key.pem:certKey=cert.pem yourproject.asgi:application
-  + daphne крутится с поддержкой SSL на 4443
-  + логи daphne
-* dphne слушает на обычном HTTP-порту 8000§ не настраивается под SSL
-* проверить ws-соединения
-  + план
-    - daphne запущен на порту 8000 на `backend`  
-    - redis доступен по хосту `redis` на `6379`, иначе Channels не сможет работать
-    - nNginx проксирует `location /ws/` к `backend:8000`  
-    - на клиенте `wss://<domain>/ws/chat/<room_name>/`
-  + `F12` Network"
-    - откройте `https://<your-domain>/static/chat.html`), где установливаете ws-соединение
-    - если js-код инициирует подключение к `wss://<your-domain>/ws/chat/<room_name>/`, то в списке сетевых запросов элемент, отражающий WebSocket (может быть помечен как 101 Switching Protocols)
-   - в столбце "Status" 101
-   - соединение останется "pending" (открытым)
-   - проверить заголовки `Upgrade: websocket`, `Connection: upgrade`
-  + с помощью WebSocket-тестера WebSocket King (веб-инструмент)
-    - если нет готового frontend-кода, можно протестировать 
-    - [WebSocket King](https://websocketking.com/)
-    - введите URL вашего WebSocket `wss://<your-domain>/ws/chat/testroom/`
-    - можно отправлять текстовые сообщения, если Daphne и ваш `ChatConsumer` настроены принимать и логировать, вы должны увидеть какие-то ответы или по крайней мере подтверждение, что соединение установлено
-  + с помощью WebSocket-тестера wscat (CLI-инструмент)
-    - `npm install -g wscat`
-    - в консоли `wscat -c wss://<your-domain>/ws/chat/testroom/`
-    - увидите `connected`
-    - набрать любое сообщение – если `ChatConsumer` что-то ответит (в зависимости от реализации), вы увидите это
-    - если у вас самоподписанный сертификат, `wscat` может пожаловаться, нужно отключать проверку сертификата (`--no-check` / `NODE_TLS_REJECT_UNAUTHORIZED=0`)
-  + логи nginx логи `/var/log/nginx/error.log` и `access.log`
-   - при установке ws-соединения должно отражаться, что запрос пришёл с `Upgrade: websocket`
-   - ошибки `400 Bad Request`, `405 Not Allowed`, `403 Forbidden`, `502 Bad Gateway`?
-  + логи daphne
-   - ASGI-приложение получает соединение по `ws/chat/<room_name>/`?
-   - если есть ошибки в `ChatConsumer`, будет видно (`Connection refused`, `Handshake failure`, ...)
- + при обращении к `wss://<domain>/ws/...`, nginx проксирует на `http://backend:8000/ws/...`
-  - Daphne принимает WebSocket по пути `/ws/chat/<room_name>/` (с помощью Channels)
 
 
 ### ЯДРО DJANGO 
@@ -551,14 +540,6 @@
   + Push-уведомления из кода в конкретный WebSocket‐консьюмер
 * **websocket один для всех пользователей для чата (лёша)**
 * channels_redis поддержка групповой рассылки
-* встроенный в Django Channels **in-memory channel layer** может заменить channel layer
-  - не требует дополнительных зависимостей
-  - подходит для небольших проектов или одиночных контейнеров
-  - не нужно устанавливать и настраивать дополнительные сервисы
-  - работает только внутри одного процесса
-  - при перезапуске сервера данные в памяти будут потеряны, потеря сообщений
-  - для чата с обменом сообщениями между клиентами и одним общим чатом 
-  - не используйте в продакшен, так как не поддерживает многопроцессные или распределённые среды (**только эта принчина?**)
 
 
 ### CELERY
@@ -638,10 +619,10 @@
   + Найдите модули или файлы, связанные с чатом (`chat.service`, `chat.controller`)
     - если сообщения отправляются на брокер или WebSocket, это может быть признаком Pub/Sub
   + `package.json` зависимости, связанные с Pub/Sub `cat package.json | grep -E "redis|socket.io|nestjs/microservices"`
-  + Отправьте сообщение в чат и проверьте:
-    - Логирование на сервере. Часто Pub/Sub системы логируют публикацию и доставку сообщений.
+  + отправьте сообщение в чат и проверьте:
+    - логирование на сервере
     - Задержки при передаче сообщения. Если сообщение доходит мгновенно, вероятно используется WebSocket с логикой Pub/Sub
-* заменой ему могут быть различные реализации того же абстрактного интерфейса, что и `channels_redis.core.RedisChannelLayer`
+* альтернатива ему - различные реализации того же абстрактного интерфейса, что и `channels_redis.core.RedisChannelLayer`
   + встроенный в Django Channels **InMemoryChannelLayer**
     - класс из пакета `channels.layers`  
     - хранит сообщения в памяти процесса Python  
