@@ -31,16 +31,15 @@
 * `docker-compose logs frontend`
   + если нет упоминания GET /ws/chat/…, запрос не доходит
   + если есть, но возвращает 404/400, значит либо Nginx, либо Channels отказывает
-  + 172.21.0.1 - - [01/Feb/2025:16:26:40 +0000] "GET /favicon.ico HTTP/1.1" 404 5670 "https://localhost:4443/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36" "-"
+  + 172.21.0.1 - - [01/Feb/2025:16:26:40 +0000] "GET /favicon.ico HTTP/1.1" 404 5670 "https://localhost:4443/" "Chrome" "-"
     - основные заголовки (User-Agent, Referer) и метод/URL
     - 172.21.0.1 IP-адрес клиента (в контейнерной сети может быть внутренний адрес Docker)
     - `-` **идентификация (RFC 1413)**, по умолчанию отсутствует
-    - `-` имя пользователя (Basic Auth), по умолчанию отсутствует
+    - `-` **имя пользователя (Basic Auth)**, по умолчанию отсутствует
     - `GET /favicon.ico HTTP/1.1` request Line: метод запроса, путь, версия протокола
     - 404 код ответа HTTP (Not Found)
     - 5670 объём переданных сервером байт в теле ответа
     - `https://localhost:4443/` URL, откуда пользователь (или браузер) перешёл
-    - `Mozilla/5.0` браузер
   + если нужно все заголовки: «Debug» логирование в Nginx, tcpdump/Wireshark, F12 Network в DevTools браузера, настроить access_log формат
   + 
     ```
@@ -63,18 +62,18 @@
     [notice] 1#1: start worker process 29
     [notice] 1#1: start worker process 30
     [notice] 1#1: start worker process 31
-    172.21.0.1 "GET / HTTP/1.1" 200 4644 "-" "Chrome/130.0.0.0"
-    172.21.0.1 "GET /staticfiles/css/popUpChat.css HTTP/1.1" 404 1882 "https://localhost:4443/" "Chrome/130.0.0.0"
-    172.21.0.1 "GET /favicon.ico HTTP/1.1" 404 5670 "https://localhost:4443/" "Chrome/130.0.0.0"
-    172.21.0.1 "GET /staticfiles/admin/css/base.css HTTP/1.1" 200 22092 "Chrome/130.0.0.0"
-    172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189 "Chrome/130.0.0.0"
-    172.21.0.1 "GET /static/chat.html HTTP/1.1" 200 8204 "Chrome/130.0.0.0"
-    172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189 "https://localhost:4443/static/chat.html" "Chrome/130.0.0.0"
-    172.21.0.1 "GET /static/chat.html HTTP/1.1" 200 8204 "Chrome/130.0.0.0"
-    172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189 "https://localhost:4443/static/chat.html" "Chrome/130.0.0.0"
-    172.21.0.1 "GET /ws/chat/r/ HTTP/1.1" 404 5667 "Chrome/130.0.0.0"
-    172.21.0.1 "GET /ws/chat/r HTTP/1.1" 404 5664 "Chrome/130.0.0.0 Safari/537.36"
-    172.21.0.1 "GET /ws/chat HTTP/1.1" 404 5658 "-" "Chrome/130.0.0.0"
+    172.21.0.1 "GET / HTTP/1.1" 200 4644 "-" "Chrome"
+    172.21.0.1 "GET /staticfiles/css/popUpChat.css HTTP/1.1" 404 1882 "https://localhost:4443/" "Chrome"
+    172.21.0.1 "GET /favicon.ico HTTP/1.1" 404 5670 "https://localhost:4443/" "Chrome"
+    172.21.0.1 "GET /staticfiles/admin/css/base.css HTTP/1.1" 200 22092 "Chrome"
+    172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189 "Chrome"
+    172.21.0.1 "GET /static/chat.html HTTP/1.1" 200 8204 "Chrome"
+    172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189 "https://localhost:4443/static/chat.html" "Chrome"
+    172.21.0.1 "GET /static/chat.html HTTP/1.1" 200 8204 "Chrome"
+    172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189 "https://localhost:4443/static/chat.html" "Chrome"
+    172.21.0.1 "GET /ws/chat/r/ HTTP/1.1" 404 5667 "Chrome"
+    172.21.0.1 "GET /ws/chat/r HTTP/1.1" 404 5664 "Chrome"
+    172.21.0.1 "GET /ws/chat HTTP/1.1" 404 5658 "-" "Chrome"
   ```
 * `docker-compose logs backend`
   + При успешном подключении Channels пишет WebSocket CONNECT /ws/chat/<room_name>/
