@@ -561,11 +561,11 @@
 
 ### REDIS
 * Remote Dictionary Server  
-* хранение данных
+* два процесса на одном сервере (c разными ключами и настройками): кэширование + обслуживание channel layers
+* **хранение данных**
 * маршрутизация данных
-* подсчёт статистики, **временных данных**
-* много соединений
-* два процесса на одном сервере Redis: кэширование + обслуживание channel layers (c разными ключами и настройками)
+* **подсчёт статистики, временных данных**
+* `redis-cli -n 1 flushdb` очистить кэш 
 * настройка
   + доступен только внутри сети Docker
   + время жизни кэша (`TIMEOUT`), ...
@@ -574,7 +574,6 @@
     - `vm.overcommit_memory = 1` в `/etc/sysctl.conf` сохранить настройку после перезагрузки
     - `redis-cli info memory` Redis не перегружен?
   + **защищён паролем** #see
-  + `redis-cli -n 1 flushdb` очистить кэш 
 * проверка 
   + `docker-compose exec redis redis-cli PING` - PONG
   + `docker compose logs redis`
@@ -1328,10 +1327,23 @@
   + rebuild you container after your changes
   + craft **your own docker image** with root as unique UID
 * virtual environment не нужно, потому что у нас докер
+* настроить `sysctl`-параметры для контейнера
+  + минимальные образы не содержат `/etc/sysctl.conf`, системные параметры (sysctl) ориентированы на хостовый kernel, контейнеры используют ядро хоста, не своё собственное
+  + `docker run --name redis --sysctl net.core.somaxconn=1024 -d your_image`
+  + или docker-compose
+    ```yaml
+    services:
+      redis:
+        image: ...
+        sysctls:
+          net.core.somaxconn: 1024
+          net.ipv4.tcp_syncookies: 1
+    ```
+  + проверить значения sysctl в рантайме `cat /proc/sys/net/core/somaxconn`
 
 
 ### ЗАПУСК
-* **ASGI_APPLICATION = "myproject.asgi.application" установили, а зачем CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]**
+* ASGI_APPLICATION = "myproject.asgi.application" есть, **зачем CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]**
 * For Ecole42 computers, I've updated settings of docker file in DEV branch 
   + порт, который нужен для django, занят
   + поменять номера портов в docker и в nginx
