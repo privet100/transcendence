@@ -31,7 +31,8 @@
       - `-` **имя пользователя (Basic Auth)**, по умолчанию отсутствует
       - `GET /favicon.ico HTTP/1.1` request Line: метод запроса, путь, версия протокола, осн. заголовки (User-Agent, Referer), метод/URL
       - 404 код ответа HTTP
-      - `https://localhost:4443/` откуда пользователь перешёл
+      - https://localhost:4443/` откуда пользователь перешёл
+  + `curl -I -k https://localhost:4443/staticfiles/admin/css/base.css` проверить contecnt-type 
 * daphne
   + daphne запущен на `backend:8000`  
   + http://localhost:8000/admin/
@@ -991,7 +992,7 @@
         # И MIME-тип автоматически определит, что *.css -> text/css
     }
     или включить include /etc/nginx/mime.types;
-    ```
+* Daphne не занимается статическими файлами напрямую. В Django этим занимается встроенное приложение django.contrib.staticfiles при разработке.
 
 
 ### ТОКЕНЫ БЕЗОПАСНОСТЬ
