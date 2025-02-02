@@ -240,7 +240,23 @@
 * четыре server{}-блока = один процесс
 * **Bootstrap toolkit**
 * **Карточка Bootstrap**  
-* proxy_http_version 1.1: ws‐подключения для апгрейда используют HTTP/1.1, если оставить по умолчанию HTTP/1.0, Nginx не будет корректно передавать заголовки Upgrade и Connection: upgrade
+* proxy_http_version 1.1: ws‐подключения для апгрейда используют HTTP/1.1, если оставить по умолчанию HTTP/1.0, Nginx не передаcn заголовки Upgrade и Connection: upgrade
+* locaiton /ws/
+  proxy_http_version 1.1; позволяет Upgrade c WebSocket (HTTP/1.0 не умеет)
+  proxy_set_header Upgrade $http_upgrade; Передаём клиентский заголовок Upgrade: websocket дальше на backend.
+  proxy_set_header Connection "upgrade"; То же для Connection: upgrade. 
+  proxy_set_header Host $host; Пробрасываем заголовок Host, чтобы backend знал исходный хост (например, для ALLOWED_HOSTS или логики).
+  proxy_set_header X-Real-IP $remote_addr; Передаём реальный IP клиента.
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; Цепочка IP-адресов: чтобы приложение знало, кто настоящий клиент, если есть несколько прокси.
+  proxy_set_header X-Forwarded-Proto $scheme; Показывает, что изначальный протокол был https (или http).
+  proxy_read_timeout 3600s; proxy_send_timeout 3600s; Увеличиваем таймауты для WebSocket: чтобы не обрывать длинные соединения.
+* location /
+  proxy_http_version 1.1; позволяет использовать некоторые современные фичи: chunked transfer encoding, keep‐alive соединения, ..., рекомендуют, не мешает простым запросам, может улучшить поведение прокси (поддержка chunked‐ответов от бэкенда, ...)
+  proxy_set_header Host $host; Сохраняем оригинальный хост в заголовке Host
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; 
+  proxy_set_header X-Forwarded-Proto $scheme; 
+  В блоках proxy_set_header X-... и Host нужно, чтобы Django видел правильные заголовки (и знал, что мы за SSL/TLS, реальный IP и т.д.).
 * Amine: game front using javascript
 * alexey: Layout on the pages – working on it
   + расположение и структура элементов пользовательского интерфейса на веб-страницах
