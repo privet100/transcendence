@@ -4,11 +4,34 @@
   + `/var/log/nginx/access.log`
   + в контейнере `nginx -t`
   + https://localhost:4443/
+  + https://localhost:4443/static/css/chat.css
   + https://localhost:4443/staticfiles/admin/css/base.css
-  + https://localhost:4443/static/css/popUpChat.css
-  + https://localhost:4443/chat: HTTP-запрос для загрузки страницы (HTML, CSS, JavaScript)
+  + https://localhost:4443/chat: HTTP-запрос для загрузки страницы 
   + `curl -I http://localhost:4444` : статус 301 с Location: https://localhost:4443/... 
   + `curl -I --insecure https://localhost:4443` : `HTTP/1.1 200 OK`
+  * `docker-compose logs frontend`
+    - ```
+      /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+      /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+      /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+      10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+      10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
+      /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+      /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+      /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+      /docker-entrypoint.sh: Configuration complete; ready for start up
+      172.21.0.1 "GET /static/chat.html               HTTP/1.1" 200 8204  "Chrome"
+      172.21.0.1 "GET /static/css/chat.css            HTTP/1.1" 200 3189  "https://localhost:4443/static/chat.html" "Chrome"
+      172.21.0.1 "GET /ws/chat/r/                     HTTP/1.1" 404 5667  "Chrome"
+      172.21.0.1 "GET /ws/chat                        HTTP/1.1" 404 5658  "Chrome"
+      ```
+    -
+      - 172.21.0.1 IP-адрес клиента (в контейнерной сети внутренний адрес Docker)
+      - `-` **идентификация (RFC 1413)**, по умолчанию отсутствует
+      - `-` **имя пользователя (Basic Auth)**, по умолчанию отсутствует
+      - `GET /favicon.ico HTTP/1.1` request Line: метод запроса, путь, версия протокола, осн. заголовки (User-Agent, Referer), метод/URL
+      - 404 код ответа HTTP
+      - `https://localhost:4443/` откуда пользователь перешёл
 * daphne
   + daphne запущен на `backend:8000`  
   + http://localhost:8000/admin/
@@ -44,6 +67,11 @@
     - маршруты Channels: websocket_urlpatterns = [re_path(r'^ws/chat/(?P<room_name>\w+)/$', ChatConsumer.as_asgi()),]
     - если есть что-то вроде path('ws/chat/<room>/', some_view), то Django перехватывает HTTP‐запрос (а не Channels)
   + убрать AllowedHostsOriginValidator ради теста
+    + нет GET /ws/chat/… => запрос не доходит ...
+    + GET /ws/chat/... HTTP/1.1" 404 или 400 => Nginx илм Channels отказывает
+    + GET /ws/chat/... HTTP/1.1" 404…, Channels молчит => nginx не сделал proxy_pass или сделал как HTTP без Upgrade, запрос не дошёл до channels
+    + WebSocket CONNECT /ws/chat/.... : channels выводит при успешном ws handshake  
+    * Nginx и Daphne добавляют заголовки Server: или X-Powered-By
 * endpoints
   + `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
   + postman
@@ -62,42 +90,6 @@
 
 
 ### LOGS
-* /var/log/nginx/access.log 
-* /var/log/nginx/error.log 
-* `docker-compose logs frontend`
-  + ```
-    /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-    /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-    /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-    10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-    10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
-    /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-    /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-    /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-    /docker-entrypoint.sh: Configuration complete; ready for start up
-    [notice] 1#1: using the "epoll" event method
-    [notice] 1#1: nginx/1.27.3
-    172.21.0.1 "GET /                               HTTP/1.1" 200 4644  "Chrome"
-    172.21.0.1 "GET /staticfiles/css/popUpChat.css  HTTP/1.1" 404 1882  "https://localhost:4443/" "Chrome"
-    172.21.0.1 "GET /staticfiles/admin/css/base.css HTTP/1.1" 200 22092 "Chrome"
-    172.21.0.1 "GET /static/css/chat.css            HTTP/1.1" 200 3189  "Chrome"
-    172.21.0.1 "GET /static/chat.html               HTTP/1.1" 200 8204  "Chrome"
-    172.21.0.1 "GET /static/css/chat.css            HTTP/1.1" 200 3189  "https://localhost:4443/static/chat.html" "Chrome"
-    172.21.0.1 "GET /ws/chat/r/                     HTTP/1.1" 404 5667  "Chrome"
-    172.21.0.1 "GET /ws/chat                        HTTP/1.1" 404 5658  "Chrome"
-    ```
-  +
-    - 172.21.0.1 IP-адрес клиента (в контейнерной сети внутренний адрес Docker)
-    - `-` **идентификация (RFC 1413)**, по умолчанию отсутствует
-    - `-` **имя пользователя (Basic Auth)**, по умолчанию отсутствует
-    - `GET /favicon.ico HTTP/1.1` request Line: метод запроса, путь, версия протокола, осн. заголовки (User-Agent, Referer), метод/URL
-    - 404 код ответа HTTP
-    - `https://localhost:4443/` откуда пользователь перешёл
-  + нет GET /ws/chat/… => запрос не доходит ...
-  + GET /ws/chat/... HTTP/1.1" 404 или 400 => Nginx илм Channels отказывает
-  + GET /ws/chat/... HTTP/1.1" 404…, Channels молчит => nginx не сделал proxy_pass или сделал как HTTP без Upgrade, запрос не дошёл до channels
-  + WebSocket CONNECT /ws/chat/.... : channels выводит при успешном ws handshake  
-  * Nginx и Daphne добавляют заголовки Server: или X-Powered-By
 * F12 - Network - запрос - Response Headers
   + "server: nginx" => Nginx 404
   + "server: WSGIServer/…" или "Content-Type: text/html; charset=utf-8" и "Traceback HTML от Django" => Django 404
@@ -216,6 +208,7 @@
 
 
 ### FRONTEND NGINX
+* **зачем копировать nginx.conf**
 * compatible with the latest stable up-to-date version of Google Chrome (subject)
 * The user should be able to use the Back and Forward buttons of the browser (subject)
 * try using **bolt.new** it's better at frontend
@@ -1022,6 +1015,9 @@
 * js обращается к rest api (post) endpoints /history, /users/, /send
   + login pages.js - запрос post к бэку
   + в заголовке запроса каждый раз CSRF токен, чтобы знать, что это не юзер с третьего сайта
+  + F12 network выбрать сокет: accept-encoding:
+    - cookie: csrftoken=KRaxdt052lYdhYUoahiFkhwGgB00H4jg
+    - sec-websocket-key: BNMxSoHDbO66J+298LsweQ==
 * **csrf MW проверяет токен, а до этого не надо его проверять?**
 * можно вообще без сессий: если вся информация хранится в токенах или сессии вообще не нужны (например, чисто API-проект)
 **если используется исключительно токен-авторизация (JWT), можно отключить django.contrib.sessions.middleware.SessionMiddleware и  django.middleware.csrf.CsrfViewMiddleware**
