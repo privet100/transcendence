@@ -1,73 +1,64 @@
 ### TEST
-* как должлнго работать:
-  + Nginx увидит запрос с заголовками Upgrade: websocket
-  + Найдёт location /ws/ { ... }
-  + Проксирует запрос на ваш backend (Daphne)
-  + Daphne ответит HTTP/1.1 101 Switching Protocols
-  + nginx вернёт 101
-  + соединение перейдёт в WebSocket‐режим
-* https://localhost:4443/
-* https://localhost:4443/chat: HTTP-запрос для загрузки страницы (HTML, CSS, JavaScript)
-* https://localhost:4443/staticfiles/admin/css/base.css
-* https://localhost:4443/static/css/popUpChat.css
-* wss://localhost:4443/ws/chat/
-* wss://localhost:4443/ws/chat/dd/
-* http://127.0.0.1:8000/admin/
-* http://127.0.0.1:8000/user/1/
-* http://localhost:8000/chat/d/
-* 127.0.0.1:8000/chat/room1/ в разных местах, оба видят все сообщения
-* http://localhost:8000/staticfiles/admin/css/base.css
-* ws://localhost:4443/ws/chat/<roomName>/ ws-запрос на /ws/chat/
-* http://95.217.129.132:8000/
-* https://tr.naurzalinov.me/users/
-* `curl -I http://localhost:4444` : статус 301 с Location: https://localhost:4443/... OK
-* `curl -I --insecure https://localhost:4443` : `HTTP/1.1 200 OK` OK
-* endpoints: `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
-* postman
-  + импортируйте коллекцию эндпоинтов, если она уже создана  
-  + отправляйте запросы на `/api/`, `/swagger/`, ... исследуя доступные маршруты
-  + `http://localhost:8000/api/endpoint/` endpoints HTTP (API или страницы)
-  + метод (GET, POST, PUT, DELETE и т. д.)
-  + если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`)
-  + статус ответа (200 OK, 401 Unauthorized, ...) 
-* django: встроенные инструменты для тестирования HTTP
-* **Django Debug Toolbar** отслеживание работы проекта
-* Django Channels + `pytest` : ws-тесты
-* `http://localhost:8000/swagger/`, `http://localhost:8000/redoc/`, если есть подключены библиотеки для документирования API
 * nginx
+  + `/var/log/nginx/error.log`
+  + `/var/log/nginx/access.log`
   + в контейнере `nginx -t`
-* ws:
-  + nginx проксирует `location /ws/` к `backend:8000`  
+  + https://localhost:4443/
+  + https://localhost:4443/staticfiles/admin/css/base.css
+  + https://localhost:4443/static/css/popUpChat.css
+  + https://localhost:4443/chat: HTTP-запрос для загрузки страницы (HTML, CSS, JavaScript)
+  + `curl -I http://localhost:4444` : статус 301 с Location: https://localhost:4443/... 
+  + `curl -I --insecure https://localhost:4443` : `HTTP/1.1 200 OK`
+* daphne
   + daphne запущен на `backend:8000`  
-  + redis доступен по хосту `redis` на `6379`
-  + `wss://localhost:4443/ws/chat/<room>/`
-  + `F12` Network
+  + http://localhost:8000/admin/
+  + http://localhost:8000/user/1/
+  + http://localhost:8000/chat/d/
+  + http://localhost:8000/chat/room/ в разных местах
+  + http://localhost:8000/staticfiles/admin/css/base.css
+  + `http://localhost:8000/swagger/`, `http://localhost:8000/redoc/`, если есть подключены библиотеки для документирования API
+* ws
+  + как работает утсновка соединения:
     - js инициирует подключение к `wss://localhost:4443/ws/chat/room/`
-    - в списке сетевых запросов элемент, отражающий WebSocket (101 Switching Protocols)
-    - в столбце "Status" 101
-    - соединение "pending" (открыто), Network pending или active
-    - заголовки `Upgrade: websocket`, `Connection: upgrade`
-    - Finished в колонке Status ws-подключения = загрузка ресурса ок (первоначальный HTTP‐запрос на handshake) != ws-соединение разорвано 
-    - если соединение активно, то входящие/исходящие сообщения в ws → Messages, в Timing (Headers) статус 101 Switching Protocols (если закрылось, вы событие «Close» (code 1000 или другое))
-  + WebSocket-тестер WebSocket King
-    - https://websocketking.com/
-    - URL `wss://localhost:4443/ws/chat/room/`
-    - можно отправлять текстовые сообщенияет
-  + WebSocket-тестер wscat (CLI-инструмент)
-    - в консоли `wscat -c wss://localhost:4443/ws/chat/testroom/`
-    - увидите `connected`
-    - набрать любое сообщение
-    - если самоподписанный сертификат, отключать проверку (`--no-check` / `NODE_TLS_REJECT_UNAUTHORIZED=0`)
-  + `/var/log/nginx/error.log`, `/var/log/nginx/access.log`
+    - F12 в списке сетевых запросов элемент, отражающий WebSocket (101 Switching Protocols), "Status" 101, network pending или active
+    - nginx видит запрос с заголовками Upgrade: websocket
+    - nginx Найдёт location /ws/ { ... }
+    - nginx проксирует запрос на backend
+    - daphne отвечает HTTP/1.1 101 Switching Protocols
     - при установке ws-соединения запрос пришёл с `Upgrade: websocket`
-  + логи daphne
-    - `wss://<domain>/ws/...` -> nginx проксирует на `http://backend:8000/ws/...` - daphne принимает ws по пути `/ws/chat/<room>/` 
+    - nginx вернёт 101
+    - соединение переходит в ws‐режим
+  + как работает обмен сообщениями:
+    - `wss://<domain>/ws/...` -> `http://backend:8000/ws/...` - daphne принимает ws по пути `/ws/chat/<room>/` 
+  * wss://localhost:4443/ws/chat/
+  * ws://localhost:4443/ws/chat/room/ ws-запрос на /ws/chat/
+  * wss://localhost:4443/ws/chat/room/
+  + `F12` Network
+    - Finished в колонке Status ws-подключения = загрузка ресурса ок (первоначальный HTTP‐запрос на handshake) != ws-соединение разорвано 
+    - F12 - ws- messages: входящие/исходящие сообщения, в Timing (Headers) статус 101 Switching Protocols
+  + WebSocket-тестер https://websocketking.com/
+  + WebSocket-тестер wscat (CLI-инструмент)
   + views.py обрабатвает HTTP Django URLs /chat/<room> 
     - WebSocket Channels обрабатывает /ws/chat/<room> (ASGI routing)
     - если в urls.py есть в path("ws/chat/<room>", views...), Django перехватывает его как HTTP и выдаваёт 404, или ищет шаблон
     - маршруты Channels: websocket_urlpatterns = [re_path(r'^ws/chat/(?P<room_name>\w+)/$', ChatConsumer.as_asgi()),]
     - если есть что-то вроде path('ws/chat/<room>/', some_view), то Django перехватывает HTTP‐запрос (а не Channels)
   + убрать AllowedHostsOriginValidator ради теста
+* endpoints
+  + `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
+  + postman
+    - импортируйте коллекцию эндпоинтов, если она уже создана  
+    - отправляйте запросы на `/api/`, `/swagger/`, ... исследуя доступные маршруты
+    - `http://localhost:8000/api/endpoint/` endpoints HTTP (API или страницы)
+    - метод (GET, POST, PUT, DELETE и т. д.)
+    - если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`)
+    - статус ответа (200 OK, 401 Unauthorized, ...) 
+* django: встроенные инструменты для тестирования HTTP
+* **Django Debug Toolbar** отслеживание работы проекта
+* Django Channels + `pytest` : ws-тесты
+* redis
+  + доступен `redis` `6379`
+  + `docker-compose logs redis`
 
 
 ### LOGS
@@ -142,7 +133,6 @@
       Referrer-Policy: same-origin
       Cross-Origin-Opener-Policy: same-origin
       ```
-* `docker-compose logs redis`
 * `docker-compose logs backend` : WebSocket CONNECT /ws/chat/<room_name>/
   + Exception while resolving variable **'name'** in template 'unknown'.
     - File "/usr/.../handlers/exception.py", line 55, in inner response = get_response(request)
