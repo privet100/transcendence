@@ -928,23 +928,23 @@
   + может с библиотекой WhiteNoise
   + стили для jango приходят с фронтенда (собранный **бандл**)
 * общий том, чтобы Nginx и backend контейнеры обменивались статическими файлами 
-* nginx обслуживает ваши стат фалйы и те, что созданы Django: по пути STATIC_URL = '/static/
-  + '/static/' = url для nginx, не папка
-  + Django формирует ссылку <link rel="stylesheet" href="/static/admin/css/base.css">
-    + браузер стучится по https://<HOST>/static/admin/css/base.css
+* nginx обслуживает ваши стат фалйы и стат фалйы Django
+   + по пути STATIC_URL = '/static/ (url для nginx, не папка)
+   + Django формирует ссылку <link rel="stylesheet" href="/static/admin/css/base.css">
+    + браузер стучится по https://HOST/static/admin/css/base.css
     + nginx видит location /static/ { alias /usr/share/nginx/html/static/;} }
     + nginx берёт в /usr/share/nginx/html/static/backend/admin/css/base.css
-* ошибка с “MIME type ('text/html') is not a supported stylesheet” #see
-  + в логах «Refused to apply style from '/static/css/chat.css' because its MIME type ('text/html') is not a supported stylesheet MIME type» => nginx отдает chat.css с заголовком Content-Type: text/html вместо text/css
-  + убедитесь, что файл существует по пути /static/css/chat.css (или /app/static/css/chat.css) и настроены правильные заголовки MIME
-  + Nginx:
-    ```
+* ошибка “MIME type ('text/html') is not a supported stylesheet” #see
+  + лог: Refused to apply style from '/static/css/chat.css' because its MIME type ('text/html') is not a supported stylesheet MIME type
+  + nginx отдает chat.css с заголовком Content-Type: text/html вместо text/css
+  + убедитесь, что /static/css/chat.css (или /app/static/css/chat.css) существует
+  + убедить, что настроены правильные заголовки MIME
+  + **MIME-тип** автоматически определит, что *.css -> text/css
     location /static/ {
         alias /path/to/collected/static/;
-        try_files $uri =404;
-        # И MIME-тип автоматически определит, что *.css -> text/css
+        try_files $uri =404; 
     }
-    или включить include /etc/nginx/mime.types;
+   + или включить **include /etc/nginx/mime.types;**
 * django.contrib.staticfiles.testing.**StaticLiveServerTestCase**: to transparently serve all the assets during execution of these tests in a way very similar to what we get at development time with DEBUG = True, i.e. without having to collect them using collectstatic first
 * CSS-OM = дереао как DOM
 * bootstrap готовые стили, можно создавать кастомные на основе них
