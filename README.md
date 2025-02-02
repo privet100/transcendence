@@ -1,4 +1,11 @@
 ### TEST
+* как должлнго работать:
+  + Nginx увидит запрос с заголовками Upgrade: websocket
+  + Найдёт location /ws/ { ... }
+  + Проксирует запрос на ваш backend (Daphne)
+  + Daphne ответит HTTP/1.1 101 Switching Protocols
+  + nginx вернёт 101
+  + соединение перейдёт в WebSocket‐режим
 * https://localhost:4443/
 * https://localhost:4443/chat: HTTP-запрос для загрузки страницы (HTML, CSS, JavaScript)
 * https://localhost:4443/staticfiles/admin/css/base.css
@@ -13,8 +20,8 @@
 * ws://localhost:4443/ws/chat/<roomName>/ ws-запрос на /ws/chat/
 * http://95.217.129.132:8000/
 * https://tr.naurzalinov.me/users/
-* `curl -I http://localhost:4444` должен вернуть статус 301 с заголовком Location: https://localhost:4443/...
-* `curl -I --insecure https://localhost:4443` должен вернуть `HTTP/1.1 200 OK`
+* `curl -I http://localhost:4444` : статус 301 с Location: https://localhost:4443/... OK
+* `curl -I --insecure https://localhost:4443` : `HTTP/1.1 200 OK` OK
 * endpoints: `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
 * postman
   + импортируйте коллекцию эндпоинтов, если она уже создана  
@@ -22,293 +29,15 @@
   + `http://localhost:8000/api/endpoint/` endpoints HTTP (API или страницы)
   + метод (GET, POST, PUT, DELETE и т. д.)
   + если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`)
-  + отправьте запрос и проверьте статус ответа (200 OK, 401 Unauthorized, ...) и тело ответа
-* django предоставляет встроенные инструменты для тестирования HTTP
-* ws-тесты с Django Channels + `pytest`
-* F12
-* если подключены библиотеки для документирования API, то `http://localhost:8000/swagger/` или `http://localhost:8000/redoc/`
-* `docker logs backend`
-  + Exception while resolving variable **'name'** in template 'unknown'.
-    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner response = get_response(request)
-    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 181, in _get_respons callback, callback_args, callback_kwargs = self.resolve_request(request)
-    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 313, in resolve_request resolver_match = resolver.resolve(request.path_info)
-    - File "/usr/local/lib/python3.10/site-packages/django/urls/resolvers.py", line 705, in resolve raise Resolver**404**({"tried": tried, "path": new_path})
-  + django.urls.exceptions.Resolver**404**: {'tried': [[<URLResolver <URLPattern list> (admin:admin) 'admin/'>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) 'auth/'>], [<URLResolver <module 'chat.urls' from '/app/chat/urls.py'> (None:None) 'chat/'>], [<URLResolver <module 'myapp.urls' from '/app/myapp/urls.py'> (None:None) ''>, <URLPattern '' [name='index']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'callback/' [name='callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'logout/' [name='logout_view']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'login/' [name='loginemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/email/' [name='authemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'signup/' [name='signup']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/callback' [name='oauth_callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'profile/' [name='profile']>], [<URLPattern 'user_42/<int:user_id>/' [name='get_user_42']>], [<URLPattern 'users_42/' [name='get_all_users_42']>], [<URLPattern 'users/' [name='get_all_userprofiles']>], [<URLPattern 'user/<int:id>/' [name='user-detail']>], [<URLPattern 'tour/<int:id>/' [name='tournament-detail']>], [<URLPattern 'game/<int:id>/' [name='game-detail']>]], 'path': 'ws/chat/rr/'}
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 883, in _resolve_lookup  current = current[bit]
-  + TypeError: **'URLResolver' object is not subscriptable**
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 893, in _resolve_lookup current = getattr(current, bit)
-  + AttributeError: 'URLResolver' object has no attribute **'name'**
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 899, in _resolve_lookup current = current[int(bit)]
-  + ValueError: invalid literal for int() with base 10: **'name'**
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 906, in _resolve_lookup raise VariableDoesNotExist(
-  + django.template.base.VariableDoesNotExist: Failed lookup for key [name] in <URLResolver <URLPattern list> (admin:admin) 'admin/'>
-  + Exception while **resolving variable 'name' in template 'unknown'**
-    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner response = get_response(request)
-    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 181, in _get_response callback, callback_args, callback_kwargs = self.resolve_request(request)
-    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 313, in resolve_request resolver_match = resolver.resolve(request.path_info)
-    - File "/usr/local/lib/python3.10/site-packages/django/urls/resolvers.py", line 705, in resolve raise Resolver**404**({"tried": tried, "path": new_path})
-  + django.urls.exceptions.Resolver**404**: {'tried': [[<URLResolver <URLPattern list> (admin:admin) 'admin/'>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) 'auth/'>], [<URLResolver <module 'chat.urls' from '/app/chat/urls.py'> (None:None) 'chat/'>], [<URLResolver <module 'myapp.urls' from '/app/myapp/urls.py'> (None:None) ''>, <URLPattern '' [name='index']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'callback/' [name='callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'logout/' [name='logout_view']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'login/' [name='loginemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/email/' [name='authemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'signup/' [name='signup']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/callback' [name='oauth_callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'profile/' [name='profile']>], [<URLPattern 'user_42/<int:user_id>/' [name='get_user_42']>], [<URLPattern 'users_42/' [name='get_all_users_42']>], [<URLPattern 'users/' [name='get_all_userprofiles']>], [<URLPattern 'user/<int:id>/' [name='user-detail']>], [<URLPattern 'tour/<int:id>/' [name='tournament-detail']>], [<URLPattern 'game/<int:id>/' [name='game-detail']>]], 'path': 'ws/chat/rr/'}
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 883, in _resolve_lookup current = current[bit]
-  + TypeError: 'URLResolver' object is not subscriptable
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 893, in _resolve_lookup current = getattr(current, bit)
-  + AttributeError: 'URLResolver' object has no attribute 'name'
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 899, in _resolve_lookup current = current[int(bit)]
-  + ValueError: invalid literal for int() with base 10: 'name'
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 906, in _resolve_lookup raise VariableDoesNotExist(
-  + django.template.base.VariableDoesNotExist: Failed lookup for key [name] in <URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) 'auth/'>
-  + Exception while resolving variable **'name'** in template 'unknown'.
-  + Traceback (most recent call last):
-    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner response = get_response(request)
-    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 181, in _get_response callback, callback_args, callback_kwargs = self.resolve_request(request)
-   - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 313, in resolve_request resolver_match = resolver.resolve(request.path_info)
-    - File "/usr/local/lib/python3.10/site-packages/django/urls/resolvers.py", line 705, in resolve raise Resolver**404**({"tried": tried, "path": new_path})
-  + django.urls.exceptions.Resolver**404**: {'tried': [[<URLResolver <URLPattern list> (admin:admin) 'admin/'>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) 'auth/'>], [<URLResolver <module 'chat.urls' from '/app/chat/urls.py'> (None:None) 'chat/'>], [<URLResolver <module 'myapp.urls' from '/app/myapp/urls.py'> (None:None) ''>, <URLPattern '' [name='index']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'callback/' [name='callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'logout/' [name='logout_view']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'login/' [name='loginemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/email/' [name='authemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'signup/' [name='signup']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/callback' [name='oauth_callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'profile/' [name='profile']>], [<URLPattern 'user_42/<int:user_id>/' [name='get_user_42']>], [<URLPattern 'users_42/' [name='get_all_users_42']>], [<URLPattern 'users/' [name='get_all_userprofiles']>], [<URLPattern 'user/<int:id>/' [name='user-detail']>], [<URLPattern 'tour/<int:id>/' [name='tournament-detail']>], [<URLPattern 'game/<int:id>/' [name='game-detail']>]], 'path': 'ws/chat/rr/'}
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 883, in _resolve_lookup current = current[bit]
-  + TypeError: 'URLResolver' object is not subscriptable
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 893, in _resolve_lookup current = getattr(current, bit)
-  + AttributeError: 'URLResolver' object has no attribute **'name'**
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 899, in _resolve_lookup current = current[int(bit)]
-  + ValueError: invalid literal for int() with base 10: **'name'**
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 906, in _resolve_lookup raise VariableDoesNotExist(
-  + django.template.base.VariableDoesNotExist: Failed lookup for key [name] in <URLResolver <module 'chat.urls' from '/app/chat/urls.py'> (None:None) 'chat/'>
-  + **Not Found: /ws/chat/rr/**
-  + "GET /ws/chat/rr/ HTTP/1.1" **404** 5670
-  + File /usr/local/lib/python3.10/site-packages/django/contrib/messages/storage/cookie.py first seen with mtime 1738426491.0360327
-  + File /usr/local/lib/python3.10/site-packages/django/contrib/messages/storage/session.py first seen with mtime 1738426491.0400329
-  + File /usr/local/lib/python3.10/site-packages/django/contrib/messages/storage/fallback.py first seen with mtime 1738426491.0400329
-  + File /usr/local/lib/python3.10/site-packages/django/contrib/sessions/serializers.py first seen with mtime 1738426491.1720328
-* `docker-compose logs frontend`
-  + если нет упоминания GET /ws/chat/…, запрос не доходит
-  + если есть, но возвращает **404**/400, значит либо Nginx, либо Channels отказывает
-  + 172.21.0.1 - - [01/Feb/2025:16:26:40 +0000] "GET /favicon.ico HTTP/1.1" 404 5670 "https://localhost:4443/" "Chrome" "-"
-    - основные заголовки (User-Agent, Referer) и метод/URL
-    - 172.21.0.1 IP-адрес клиента (в контейнерной сети может быть внутренний адрес Docker)
-    - `-` **идентификация (RFC 1413)**, по умолчанию отсутствует
-    - `-` **имя пользователя (Basic Auth)**, по умолчанию отсутствует
-    - `GET /favicon.ico HTTP/1.1` request Line: метод запроса, путь, версия протокола
-    - 404 код ответа HTTP (Not Found)
-    - 5670 объём переданных сервером байт в теле ответа
-    - `https://localhost:4443/` URL, откуда пользователь перешёл
-  + ```
-    /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-    /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-    /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-    10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-    10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
-    /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-    /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-    /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-    /docker-entrypoint.sh: Configuration complete; ready for start up
-    [notice] 1#1: using the "epoll" event method
-    [notice] 1#1: nginx/1.27.3
-    [notice] 1#1: built by gcc 12.2.0 (Debian 12.2.0-14) 
-    [notice] 1#1: OS: Linux 5.15.0-131-generic
-    [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
-    [notice] 1#1: start worker processes
-    [notice] 1#1: start worker process 28
-    [notice] 1#1: start worker process 29
-    [notice] 1#1: start worker process 30
-    [notice] 1#1: start worker process 31
-    172.21.0.1 "GET /                               HTTP/1.1" 200 4644  "Chrome"
-    172.21.0.1 "GET /staticfiles/css/popUpChat.css  HTTP/1.1" 404 1882  "https://localhost:4443/" "Chrome"
-    172.21.0.1 "GET /favicon.ico                    HTTP/1.1" 404 5670  "https://localhost:4443/" "Chrome"
-    172.21.0.1 "GET /staticfiles/admin/css/base.css HTTP/1.1" 200 22092 "Chrome"
-    172.21.0.1 "GET /static/css/chat.css            HTTP/1.1" 200 3189  "Chrome"
-    172.21.0.1 "GET /static/chat.html               HTTP/1.1" 200 8204  "Chrome"
-    172.21.0.1 "GET /static/css/chat.css            HTTP/1.1" 200 3189  "https://localhost:4443/static/chat.html" "Chrome"
-    172.21.0.1 "GET /static/chat.html               HTTP/1.1" 200 8204  "Chrome"
-    172.21.0.1 "GET /static/css/chat.css            HTTP/1.1" 200 3189  "https://localhost:4443/static/chat.html" "Chrome"
-    172.21.0.1 "GET /ws/chat/r/                     HTTP/1.1" 404 5667  "Chrome"
-    172.21.0.1 "GET /ws/chat/r                      HTTP/1.1" 404 5664  "Chrome"
-    172.21.0.1 "GET /ws/chat                        HTTP/1.1" 404 5658  "Chrome"
-  ```
-* `docker-compose logs backend`
-  + При успешном подключении Channels пишет WebSocket CONNECT /ws/chat/<room_name>/
-* F12 → Network, найдите запрос, посмотрите Response Headers
-  + если server: nginx, скорее всего это Nginx 404
-  + если server: WSGIServer/… или Content-Type: text/html; charset=utf-8 и Traceback HTML от Django — это Django 404
-* Nginx и Daphne добавляют заголовки Server: или X-Powered-By
-  + если 404 вернул Nginx, в ответе может быть Server: nginx.
-  + если 404 вернул Daphne, Server: Daphne или не указывать, нодобавит Content-Type: text/html; charset=utf-8
-* дошёл ли ws-запрос до Channels ?
-  + если в Nginx GET /ws/chat/... HTTP/1.1" 404…, но Channels молчит, значит Nginx не сделал proxy_pass или сделал как HTTP-запрос без Upgrade
-  + channels при успешном ws handshake выводит в логе WebSocket CONNECT /ws/chat/....
-* `docker-compose logs redis`
-* запрос `GET /ws/chat/rr/` обрабатывается как обычный, не как WebSocket‐handshake - проверить:
-  + `frontend "GET /ws/chat/rr/ HTTP/1.1" 404 ...`: js‐код формирует `ws://` или `wss://`, но браузер блокирует/не делает Upgrade
-  + консоль `wss://localhost:4443/ws/chat/rr/` OK
-  + location `/ws/`: `proxy_pass http://backend:8000;`, проксирует `/ws/chat/` OK
-  + nginx передаёт Upgrade‐заголовки `Upgrade: websocket` и `Connection: upgrade` OK
-  + браузер делает WebSocket‐handshake
-  + F12 Network WS: `101 Switching Protocols` (но `GET /ws/chat/rr/ 404` значит браузер не отправляет Upgrade или Nginx вырезает заголовок)
-  + `backend Not Found: /ws/chat/rr/` django не находит `/ws/chat/rr/` в `urlpatterns` => 404
-  + log Daphne `WebSocket CONNECT /ws/chat/rr/` (но 404 = значит ws‐route не сработал, Channels ничего не получил)
-  + нет WebSocket‐Upgrade. Решайте с помощью исправления JS (`wss://` при HTTPS) и location `/ws/` с Upgrade-заголовками
-    - Channels получит `WebSocket CONNECT`
-  + проверить, что Nginx видит заголовок Upgrade `curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Host: localhost:4443" -H "Origin: https://localhost:4443" --insecure  https://localhost:4443/ws/chat/test/`
-    - Если Nginx проксирует правильно, в ответ вы увидите что-то вроде:
-      ```
-      HTTP/1.1 101 Switching Protocols
-      Upgrade: websocket
-      Connection: Upgrade
-      ```
-    - Если сразу HTTP/1.1 404, значит Nginx не зашёл в нужный location
-
-
-### LIVE CHAT
-* **история в бд** (или в redis?)
-* **чат сделать компонентом**
-* **заменить textarea на div для лучшей стилизации и управления сообщениями**
-* the user sends direct messages to other users (subject)
-* the user blocks other users, they see no more messages from the account they blocked (subject)
-* the user **invites** other users to play through the chat interface (subject)
-* the tournament warns users expected for the next game (subject)
-* the user access other players profiles through the chat interface (subject)
-* rest api строит и отдаёт html
-* js получает ответ (get)
-* с каждым пользователем у бэкенда 2 вебсовета: чат, положение ракетки
-* websocket объект js
-* websocket: кому пишем сообщение? в запросе
-* prepMsg забирает инпут и делает ws запрос
-  + взять список пользователей из базы
-* @login_required только если залогинен, если нет токена или он неправильный - не пропустит
-* fetch() запрос обычный (не websocket)
-* **AbsTimeUser** (непралвьно написано) наш класс наследует
-* johnResponse - временный
-* view.py не html
-  + jsonResponse или httpResponse
-* createuser встроенная, т.к. наследуем от ... 
-* **[2302]** в контейнере бэк: python manage.py make migrations
-* если логин - присылает **session id token**
-* первый логин - header CSRF токен
-  + посмотреть это: F12 Applocation storage cookies
-  + в js фенкция post - в header токен CSRF
-  + session id приязывает сессия + юзер в приложении
-* сначала выполняется header, потом подгружаются стили
-* 1 эндпоинт слушает чат
-  + в заголовке запроса - кому сообщение
-* если сообщение не дошло, то пользователя нет
-* в контейнере бэк: python manage.py superuser то ли python manage.py createsuperuser, с именем админ пародлем админ
-  + после этого migrations
-* pathname = часть адреса после корня
-* login = new ws connexion
-* ws system msgs
-* ws user communications
-* базовый функционал чата
-  + Обновите шаблоны HTML
-  + База данных: модель для хранения сообщений
-  + сохранение сообщений в `ChatConsumer` при получении данных
-  + сообщения передаются через каналы
-  + Проверьте сохранение сообщений в базе данных
-* Аутентификация Пользователей: Если ваш чат требует аутентификации, убедитесь, что пользователи проходят проверку перед подключением к WebSocket. В ChatConsumer вы можете использовать self.scope['user'] для доступа к объекту пользователя.
-* Обработка Ошибок: Добавьте обработку ошибок в JavaScript для улучшения устойчивости чата. Например, попытки переподключения при разрыве соединения.
-* Улучшение UX: Вместо textarea для отображения сообщений рассмотрите использование более продвинутых компонентов, таких как div с динамически создаваемыми элементами <p> или <div> для сообщений. Это позволит лучше стилизовать сообщения и добавлять различные элементы (например, аватары, имена пользователей).
-* Динамическое Выбор Комнаты: Если ваш SPA позволяет пользователям выбирать разные комнаты, интегрируйте этот функционал внутрь модального окна. Можно добавить поле ввода для имени комнаты или список доступных комнат
-* управление WebSocket Соединением
-  + Инициализация: WebSocket-соединение устанавливается после ввода имени комнаты и нажатия кнопки "Join Room"
-  + Закрытие: Соединение закрывается при закрытии модального окна или при повторном подключении к другой комнате
-  + Отправка Сообщений: Пользователь может отправлять сообщения через поле ввода. Сообщения отображаются в логах чата с пометкой "You"
-  + Получение Сообщений: Полученные сообщения отображаются в логах чата с пометкой "Server" (можно изменить на имя пользователя, если реализована аутентификация)
-* | Method                | Real-Time | Message Persistence  | Use Case                           | Complexity |
-  |-----------------------|-----------|----------------------|------------------------------------|------------|
-  | WebSocket (chat)      | Yes       | No                   | Real-time chats, games             | High       |
-  | Redis (Pub/Sub, ws)   | Yes       | No                   | Notifications, chats               | High       |
-  | Django Messages       | No        | Yes                  | System notifications, confirmations| Low        |
-  | REST API              | No        | Yes                  | Simple notifications, data requests| Low        |
-  | Email                 | No        | Yes                  | Important notifications, confirmations| Medium  |
-  | Push Notifications    | Yes       | Yes (by service)     | Mobile device notifications        | Medium     |
-
-
-### JAVASCRIPT
-* js меняет параметры html
-* class = стиль
-* open chat
-  + на странице login, profile, решгистрация нету
-  + во время игры - статистика, другой user
-  + приложение, отправлятть сообщение через js !!
-  + django channel = framework для сокетов
-* {% load static %} загрузка стат файлов Django (table.css), нам не надо
-
-
-### FRONTEND NGINX
-* try using **bolt.new** it's better at frontend
-  + the ui is fire here
-* **game customization** it's just gonna be front
-  + like custom colors custom map
-* проверяет сертификаты SSL, расшифровывает с использованием SSL-сертификата
-  + внутренний трафик не шифруется
-  + если сертификат самоподписанный, браузер может выдавать предупреждение «Not secure»
-    - у вас: «Non sécurisé»
-    - иногда это мешает wss://‐подключению
-    - в большинстве случаев всё равно WebSocket должен подключиться
-    - если браузер категорически отказывается, можно в тестовом режиме добавить исключение для самоподписанного сертификата
-* запросы к статическим файлам отдает его из /usr/share/nginx/html/static/
-* запросы на /api/ (JSON, HTML, WebSocket) идут на Django (аутентификаци, получения/отправки данных)
-  + `proxy_set_header ...` передает заголовки (Host, IP-адрес клиента, протокол, ...), чтобы бэкенд понимал, откуда запрос
-  + **сохраняет заголовки WebSocket**
-* фронт самописный или с использованием минимальных библиотек (jQuery, Bootstrap, ...), не на SPA-фреймворке
-* балансировщик нагрузки (если много сообщений, **что будет**?)
-* в модели пользователя сохраняю аватарки
-  + **у фронтэнда есть требования к аватаркам или они могут сами отрисовывать?** вдруг пользователь сохранит свою фотографию 1000 х 1000 пикселей, на фронте вы сможете отрисовать аватарку ?
-* `frontend/static/app.js`
-  + `fetch('http://backend:8000/api/user-data/')`: HTTP-запрос к эндпоинту `/api/user-data/`, получить данные JSON 
-  + динамически обновляет DOM§ пользовательского интерфейса с использованием данных, полученных от бэка
-  + это не делает приложение SPA-фреймворком — это обычная логика на чистом JS
-  + `response => response.json()` конвертирует ответ JSON от сервера в объект JavaScript
-  + после получения данных пользовательский интерфейс (UI) обновляется без перезагрузки страницы
-  + `async/await` для упрощения чтения
-*  a single-page application (subject)
-  + один html
-  + меняется с помощью js
-  + код внутри {} исполняется в django, он выполняет и заново отправляет html
-  + не надо: в завимисости от какого-то условия, показываем или нет какие-то части страницы
-* проверить: в контейнере `nginx -t`
-* **SSL Labs** проверить корректность настройки SSL
-* четыре server{}-блока = один процесс
-* **Bootstrap toolkit**
-* **Карточка Bootstrap**  
-* pop-up windows : login, chat, profile
-* страница comptetition, profile, настройки
-* compatible with the latest stable up-to-date version of Google Chrome (subject)
-* The user should be able to use the Back and Forward buttons of the browser (subject)
-* класс router обрабатывает перемещения по сайту
-  + popstate кнопки назад вперёд в брузере
-* на место .app подставляется div
-  + class Component базовый, абстрактный
-  + фиксированная часть страницы доступна в js
-  + div = homapage, profile, ... (наследуют от Component)
-  + constructor() создаёт класс
-  + state = переменные 
-  + % body % кберем, т.к. у нас SPA
-  + fetch (в js) = запрос к бэку
-  + функция render своя в каждом компоненте
-    - например нужен username - делаем запрос к бэку fetchuserprofile
-  + событие DomContactLoaded = html полностью загрузился (у нас только 1 раз)
-* proxy_http_version 1.1
-  + ws‐подключения для **апгрейда соединения** используют HTTP/1.1
-  + если оставить по умолчанию HTTP/1.0, Nginx не будет корректно передавать заголовки Upgrade и Connection: upgrade, и вебсокеты могут не работать
-* /var/log/nginx/access.log 
-* /var/log/nginx/error.log 
-* Amine: game front using javascript
-* alexey: Layout on the pages – working on it
-  + расположение и структура элементов пользовательского интерфейса на веб-страницах
-  + Работа с CSS-фреймворками (например, Tailwind CSS или Bootstrap)
-  
-
-### BACKEND DAPHNE 
-* ASGI сервер 
-* хорошо интегрируется с Django Channels
-* поддерживает ws из коробки
-* не настраивается под SSL
-* слушает внутри контейнера на порту 8000 API-запросы, HTTP-запросы фронтенда
-* принимает wss:// соединения
-  + страница загружается по https:// => браузер открывает wss://
-* `ASGI_APPLICATION = "myproject.asgi.application"`
-  + `django_asgi_app = get_asgi_application()` initialize Django ASGI appli, exposes the ASGI callable as a module-level variable (загрузка приложений `INSTALLED_APPS`, конфигурация бд, среда AppRegistry is populated 
-    - before importing ORM models, до использования ORM-моделей и др компонентов Django, конфигурации маршрутов ws
-  + переменная `application` = точка входа для ASGI-сервера, ASGI-приложение, обрабатывает запросы
-* проверить ws:
-  + nNginx проксирует `location /ws/` к `backend:8000`  
+  + статус ответа (200 OK, 401 Unauthorized, ...) 
+* django: встроенные инструменты для тестирования HTTP
+* **Django Debug Toolbar** отслеживание работы проекта
+* Django Channels + `pytest` : ws-тесты
+* `http://localhost:8000/swagger/`, `http://localhost:8000/redoc/`, если есть подключены библиотеки для документирования API
+* nginx
+  + в контейнере `nginx -t`
+* ws:
+  + nginx проксирует `location /ws/` к `backend:8000`  
   + daphne запущен на `backend:8000`  
   + redis доступен по хосту `redis` на `6379`
   + `wss://localhost:4443/ws/chat/<room>/`
@@ -339,9 +68,266 @@
     - маршруты Channels: websocket_urlpatterns = [re_path(r'^ws/chat/(?P<room_name>\w+)/$', ChatConsumer.as_asgi()),]
     - если есть что-то вроде path('ws/chat/<room>/', some_view), то Django перехватывает HTTP‐запрос (а не Channels)
   + убрать AllowedHostsOriginValidator ради теста
-* AllowedHostsOriginValidator проверяет допустимые хосты для WebSocket-соединений (**зачем дублировать с nginx
+
+
+### LOGS
+* /var/log/nginx/access.log 
+* /var/log/nginx/error.log 
+* `docker-compose logs frontend`
+  + ```
+    /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+    /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+    /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+    10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+    10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
+    /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+    /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+    /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+    /docker-entrypoint.sh: Configuration complete; ready for start up
+    [notice] 1#1: using the "epoll" event method
+    [notice] 1#1: nginx/1.27.3
+    172.21.0.1 "GET /                               HTTP/1.1" 200 4644  "Chrome"
+    172.21.0.1 "GET /staticfiles/css/popUpChat.css  HTTP/1.1" 404 1882  "https://localhost:4443/" "Chrome"
+    172.21.0.1 "GET /staticfiles/admin/css/base.css HTTP/1.1" 200 22092 "Chrome"
+    172.21.0.1 "GET /static/css/chat.css            HTTP/1.1" 200 3189  "Chrome"
+    172.21.0.1 "GET /static/chat.html               HTTP/1.1" 200 8204  "Chrome"
+    172.21.0.1 "GET /static/css/chat.css            HTTP/1.1" 200 3189  "https://localhost:4443/static/chat.html" "Chrome"
+    172.21.0.1 "GET /ws/chat/r/                     HTTP/1.1" 404 5667  "Chrome"
+    172.21.0.1 "GET /ws/chat                        HTTP/1.1" 404 5658  "Chrome"
+    ```
+  +
+    - 172.21.0.1 IP-адрес клиента (в контейнерной сети внутренний адрес Docker)
+    - `-` **идентификация (RFC 1413)**, по умолчанию отсутствует
+    - `-` **имя пользователя (Basic Auth)**, по умолчанию отсутствует
+    - `GET /favicon.ico HTTP/1.1` request Line: метод запроса, путь, версия протокола, осн. заголовки (User-Agent, Referer), метод/URL
+    - 404 код ответа HTTP
+    - `https://localhost:4443/` откуда пользователь перешёл
+  + нет GET /ws/chat/… => запрос не доходит ...
+  + GET /ws/chat/... HTTP/1.1" 404 или 400 => Nginx илм Channels отказывает
+  + GET /ws/chat/... HTTP/1.1" 404…, Channels молчит => nginx не сделал proxy_pass или сделал как HTTP без Upgrade, запрос не дошёл до channels
+  + WebSocket CONNECT /ws/chat/.... : channels выводит при успешном ws handshake  
+  * Nginx и Daphne добавляют заголовки Server: или X-Powered-By
+* F12 - Network - запрос - Response Headers
+  + "server: nginx" => Nginx 404
+  + "server: WSGIServer/…" или "Content-Type: text/html; charset=utf-8" и "Traceback HTML от Django" => Django 404
+* запрос `GET /ws/chat/rr/` обрабатывается как обычный, не как WebSocket‐handshake - проверить:
+  + `frontend "GET /ws/chat/rr/ HTTP/1.1" 404 ...`: js‐код формирует `ws://` или `wss://`, но браузер блокирует/не делает Upgrade
+  + консоль `wss://localhost:4443/ws/chat/rr/` OK
+  + location `/ws/`: `proxy_pass http://backend:8000;`, проксирует `/ws/chat/` OK
+  + nginx передаёт Upgrade‐заголовки `Upgrade: websocket` и `Connection: upgrade` OK
+  + браузер делает WebSocket‐handshake
+  + F12 Network WS: `101 Switching Protocols` (но `GET /ws/chat/rr/ 404` значит браузер не отправляет Upgrade или Nginx вырезает заголовок)
+  + `backend Not Found: /ws/chat/rr/` django не находит `/ws/chat/rr/` в `urlpatterns` => 404
+  + log Daphne `WebSocket CONNECT /ws/chat/rr/` (но 404 = значит ws‐route не сработал, Channels ничего не получил)
+  + нет WebSocket‐Upgrade. Решайте с помощью исправления JS (`wss://` при HTTPS) и location `/ws/` с Upgrade-заголовками
+    - Channels получит `WebSocket CONNECT`
+  + проверить, что Nginx видит заголовок Upgrade `curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Host: localhost:4443" -H "Origin: https://localhost:4443" --insecure  https://localhost:4443/ws/chat/test/`
+    - Если Nginx проксирует правильно, в ответ вы увидите что-то вроде:
+      ```
+      HTTP/1.1 101 Switching Protocols
+      Upgrade: websocket
+      Connection: Upgrade
+      ```
+    - Если сразу HTTP/1.1 404, значит Nginx не зашёл в нужный location
+    -
+      ```
+      HTTP/1.1 404 Not Found
+      Server: nginx/1.27.3
+      Date: Sat, 01 Feb 2025 23:09:13 GMT
+      Content-Type: text/html; charset=utf-8
+      Content-Length: 5676
+      Connection: keep-alive
+      X-Frame-Options: DENY
+      X-Content-Type-Options: nosniff
+      Referrer-Policy: same-origin
+      Cross-Origin-Opener-Policy: same-origin
+      ```
+* `docker-compose logs redis`
+* `docker-compose logs backend` : WebSocket CONNECT /ws/chat/<room_name>/
+  + Exception while resolving variable **'name'** in template 'unknown'.
+    - File "/usr/.../handlers/exception.py", line 55, in inner response = get_response(request)
+    - File "/usr/.../handlers/base.py", line 181, in _get_respons callback, callback_args, callback_kwargs = self.resolve_request(request)
+    - File "/usr/.../handlers/base.py", line 313, in resolve_request resolver_match = resolver.resolve(request.path_info)
+    - File "/usr/.../urls/resolvers.py", line 705, in resolve raise Resolver**404**({"tried": tried, "path": new_path})
+  + django.urls.exceptions.Resolver**404**: {'tried': [[<URLResolver <URLPattern list> (admin:admin) 'admin/'>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) 'auth/'>], [<URLResolver <module 'chat.urls' from '/app/chat/urls.py'> (None:None) 'chat/'>], [<URLResolver <module 'myapp.urls' from '/app/myapp/urls.py'> (None:None) ''>, <URLPattern '' [name='index']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'callback/' [name='callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'logout/' [name='logout_view']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'login/' [name='loginemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/email/' [name='authemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'signup/' [name='signup']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/callback' [name='oauth_callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'profile/' [name='profile']>], [<URLPattern 'user_42/<int:user_id>/' [name='get_user_42']>], [<URLPattern 'users_42/' [name='get_all_users_42']>], [<URLPattern 'users/' [name='get_all_userprofiles']>], [<URLPattern 'user/<int:id>/' [name='user-detail']>], [<URLPattern 'tour/<int:id>/' [name='tournament-detail']>], [<URLPattern 'game/<int:id>/' [name='game-detail']>]], 'path': 'ws/chat/rr/'}
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 883, in _resolve_lookup  current = current[bit]
+  + TypeError: **'URLResolver' object is not subscriptable**
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 893, in _resolve_lookup current = getattr(current, bit)
+  + AttributeError: 'URLResolver' object has no attribute **'name'**
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 899, in _resolve_lookup current = current[int(bit)]
+  + ValueError: invalid literal for int() with base 10: **'name'**
+  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 906, in _resolve_lookup raise VariableDoesNotExist(
+  + django.template.base.VariableDoesNotExist: Failed lookup for key [name] in <URLResolver <URLPattern list> (admin:admin) 'admin/'>
+  + Exception while **resolving variable 'name' in template 'unknown'**
+    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner response = get_response(request)
+    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 181, in _get_response callback, callback_args, callback_kwargs = self.resolve_request(request)
+    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 313, in resolve_request resolver_match = resolver.resolve(request.path_info)
+    - File "/usr/local/lib/python3.10/site-packages/django/urls/resolvers.py", line 705, in resolve raise Resolver**404**({"tried": tried, "path": new_path})
+  + django.urls.exceptions.Resolver**404**: ...
+  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 883, in _resolve_lookup current = current[bit]
+  + TypeError: 'URLResolver' object is not subscriptable
+  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 893, in _resolve_lookup current = getattr(current, bit)
+  + AttributeError: 'URLResolver' object has no attribute 'name'
+  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 899, in _resolve_lookup current = current[int(bit)]
+  + ValueError: invalid literal for int() with base 10: 'name'
+  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 906, in _resolve_lookup raise VariableDoesNotExist(
+  + django.template.base.VariableDoesNotExist: Failed lookup for key [name] in <URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) 'auth/'>
+  + Exception while resolving variable **'name'** in template 'unknown'.
+  + Traceback (most recent call last):
+    - File "/usr/.../handlers/exception.py", line 55, in inner response = get_response(request)
+    - File "/usr/.../handlers/base.py", line 181, in _get_response callback, callback_args, callback_kwargs = self.resolve_request(request)
+   - File "/usr/.../handlers/base.py", line 313, in resolve_request resolver_match = resolver.resolve(request.path_info)
+    - File "/usr/.../urls/resolvers.py", line 705, in resolve raise Resolver**404**({"tried": tried, "path": new_path})
+  + django.urls.exceptions.Resolver**404**: ...
+  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 883, in _resolve_lookup current = current[bit]
+  + TypeError: 'URLResolver' object is not subscriptable
+  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 893, in _resolve_lookup current = getattr(current, bit)
+  + AttributeError: 'URLResolver' object has no attribute **'name'**
+  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 899, in _resolve_lookup current = current[int(bit)]
+  + ValueError: invalid literal for int() with base 10: **'name'**
+  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 906, in _resolve_lookup raise VariableDoesNotExist(
+  + django.template.base.VariableDoesNotExist: Failed lookup for key [name] in <URLResolver <module 'chat.urls' from '/app/chat/urls.py'> (None:None) 'chat/'>
+  + **Not Found: /ws/chat/rr/**
+  + "GET /ws/chat/rr/ HTTP/1.1" **404** 5670
+  + File /usr/...storage/cookie.py first seen with mtime 1738426491.0360327
+  + File /usr/...storage/session.py first seen with mtime 1738426491.0400329
+  + File /usr/.../storage/fallback.py first seen with mtime 1738426491.0400329
+  + File /usr/.../sessions/serializers.py first seen with mtime 1738426491.1720328
+
+### LIVE CHAT
+* **история в бд** (или в redis?)
+* **чат сделать компонентом**
+* the user sends direct messages to other users (subject)
+* the user blocks other users, they see no more messages from the account they blocked (subject)
+* the user **invites** other users to play through the chat interface (subject)
+* the tournament warns users expected for the next game (subject)
+* the user access other players profiles through the chat interface (subject)
+* **заччем общий чат**
+* с каждым пользователем у бэкенда 2 вебсовета: чат, положение ракетки
+* 1 эндпоинт слушает чат
+  + в заголовке запроса - кому сообщение
+* если сообщение не дошло, пользователя нет
+* pathname = часть адреса после корня
+* сделать базовый функционал чата
+  + Обновите шаблоны HTML
+  + База данных: модель для хранения сообщений
+  + сохранение сообщений в `ChatConsumer` при получении данных
+  + сообщения передаются через каналы
+  + проверьте сохранение сообщений в базе данных
+* аутентификация: проверка перед подключением к ws, в ChatConsumer self.scope['user'] для доступа к объекту пользователя
+* | Method                | Real-Time | Message Persistence  | Use Case                           | Complexity |
+  |-----------------------|-----------|----------------------|------------------------------------|------------|
+  | WebSocket (chat)      | Yes       | No                   | Real-time chats, games             | High       |
+  | Redis (Pub/Sub, ws)   | Yes       | No                   | Notifications, chats               | High       |
+  | Django Messages       | No        | Yes                  | System notifications, confirmations| Low        |
+  | REST API              | No        | Yes                  | Simple notifications, data requests| Low        |
+  | Email                 | No        | Yes                  | Important notifications, confirmations| Medium  |
+  | Push Notifications    | Yes       | Yes (by service)     | Mobile device notifications        | Medium     |
+
+
+### FRONTEND NGINX
+* compatible with the latest stable up-to-date version of Google Chrome (subject)
+* The user should be able to use the Back and Forward buttons of the browser (subject)
+* try using **bolt.new** it's better at frontend
+  + the ui is fire here
+* **game customization** it's just gonna be front
+  + like custom colors custom map
+* проверяет сертификаты SSL, расшифровывает с использованием SSL-сертификата
+  + внутренний трафик не шифруется
+  + если сертификат самоподписанный, браузер может выдавать предупреждение «Not secure»
+    - у вас: «Non sécurisé»
+    - иногда это мешает wss://‐подключению
+    - в большинстве случаев всё равно WebSocket должен подключиться
+    - если браузер категорически отказывается, добавить исключение для самоподписанного сертификата
+* запросы к статическим файлам: отдает из /usr/share/nginx/html/static/
+* запросы на /api/ (JSON, HTML, WebSocket) идут на Django (аутентификаци, получения/отправки данных)
+  + `proxy_set_header ...` передает заголовки (Host, IP-адрес клиента, протокол, ...), чтобы бэкенд понимал, откуда запрос
+  + **сохраняет заголовки WebSocket**
+* фронт самописный или с использованием минимальных библиотек (jQuery, Bootstrap, ...), не на SPA-фреймворке
+* балансировщик нагрузки (если много сообщений, **что будет**?)
+* в модели пользователя аватарки: **у фронтэнда есть требования к аватаркам или они могут сами отрисовывать?** вдруг пользователь сохранит свою фотографию 1000 х 1000 пикселей, на фронте вы сможете отрисовать аватарку ?
+* **SSL Labs** проверить корректность настройки SSL
+* четыре server{}-блока = один процесс
+* **Bootstrap toolkit**
+* **Карточка Bootstrap**  
+* proxy_http_version 1.1: ws‐подключения для апгрейда используют HTTP/1.1, если оставить по умолчанию HTTP/1.0, Nginx не будет корректно передавать заголовки Upgrade и Connection: upgrade
+* Amine: game front using javascript
+* alexey: Layout on the pages – working on it
+  + расположение и структура элементов пользовательского интерфейса на веб-страницах
+  + Работа с CSS-фреймворками (например, Tailwind CSS или Bootstrap)
+
+
+### JAVASCRIPT
+* js меняет параметры html
+* class = стиль
+* open chat
+  + на странице login, profile, решгистрация нету
+  + во время игры - статистика, другой user
+  + приложение, отправлятть сообщение через js !!
+  + django channel = framework для сокетов
+* {% load static %} загрузка стат файлов Django (table.css), нам не надо
+* websocket объект js
+* prepMsg забирает инпут и делает ws запрос
+  + взять список пользователей из базы
+* @login_required только если залогинен, если нет токена или он неправильный - не пропустит
+* fetch() запрос обычный (не websocket)
+* **AbsTimeUser** (непралвьно написано) наш класс наследует
+* johnResponse - временный
+* view.py не html
+  + jsonResponse или httpResponse
+* createuser встроенная, т.к. наследуем от ... 
+* сначала выполняется header, потом подгружаются стили
+* login = new ws connexion
+* если логин - присылает **session id token**
+* первый логин - header CSRF токен
+  + посмотреть: F12 Applocation storage cookies
+  + в js функция post - в header токен CSRF
+  + session id приязывает сессия + юзер в приложении
+* обработка ошибок в js для устойчивости чата (попытки переподключения при разрыве соединения, ...)
+* div вместо textarea позволит добавлять различные элементы (аватары, имена пользователе, ...)
+* a single-page application (subject)
+  + один html
+  + меняется с помощью js
+  + код внутри {} исполняется в django, он выполняет и заново отправляет html
+  + не надо: в завимисости от какого-то условия, показываем или нет какие-то части страницы
+* на место .app подставляется div
+  + class Component базовый, абстрактный
+  + фиксированная часть страницы доступна в js
+  + div = homapage, profile, ... (наследуют от Component)
+  + constructor() создаёт класс
+  + state = переменные 
+  + % body % кберем, т.к. у нас SPA
+  + fetch (в js) = запрос к бэку
+  + функция render своя в каждом компоненте
+    - например нужен username - делаем запрос к бэку fetchuserprofile
+  + событие DomContactLoaded = html полностью загрузился (у нас только 1 раз)
+* класс router обрабатывает перемещения по сайту
+  + popstate кнопки назад вперёд в брузере
+* `frontend/static/app.js`
+  + `fetch('http://backend:8000/api/user-data/')`: HTTP-запрос к эндпоинту `/api/user-data/`, получить данные JSON 
+  + динамически обновляет DOM§ пользовательского интерфейса с использованием данных, полученных от бэка
+  + это не делает приложение SPA-фреймворком — это обычная логика на чистом JS
+  + `response => response.json()` конвертирует ответ JSON от сервера в объект JavaScript
+  + после получения данных пользовательский интерфейс (UI) обновляется без перезагрузки страницы
+  + `async/await` для упрощения чтения
+* pop-up windows : login, chat, profile
+
+
+### BACKEND DAPHNE 
+* ASGI сервер 
+* хорошо интегрируется с Django Channels
+* поддерживает ws из коробки
+* не настраивается под SSL
+* слушает внутри контейнера на порту 8000 API-запросы, HTTP-запросы фронтенда
+* принимает wss:// соединения
+  + страница загружается по https:// => браузер открывает wss://
+* переменная `application` = точка входа для ASGI-сервера, ASGI-приложение, обрабатывает запросы
+* `ASGI_APPLICATION = "myproject.asgi.application"`
+  + `get_asgi_application()` initialize ASGI appli, exposes the ASGI callable as a module-level variable (загрузка приложений `INSTALLED_APPS`, конфигурация бд, среда AppRegistry is populated)
+    - before importing ORM models, до использования ORM-моделей и др компонентов Django, конфигурации маршрутов ws
+* AllowedHostsOriginValidator проверяет допустимые хосты для ws-соединений (**зачем дублировать с nginx**)
   + проверяет заголовок Origin против ALLOWED_HOSTS
-* **ORM**
+* ws-маршруты Channels работают через ASGI, а не через файлы 
 * альтернатива: `python manage.py runserver 0.0.0.0:8000`
   + запускает Django-приложение с использованием встроенного **разработческого сервера**
     - может работать как с WSGI, так и с ASGI, в зависимости от конфигурации проекта
@@ -353,14 +339,13 @@
     - поддерживает только синхронные запросы HTTP, не подходит для реального времени или протокола ws
     - но бывает нужен: некоторые инструменты поддерживают только HTTP-запросы; Django-приложений без асинхронных функций стабильнее
   + ASGI, Asynchronous Server Gateway Interface - продолжение WSGI, когда есть асинхронные задачи
-* Amine: game backend using websockets (with 42 auth)
 
 
 ### ЯДРО DJANGO 
 * бэкенд-фреймворк
 * диктует архитектуру (приложения, модели, views, urls, ...)
-* DJANGO_SETTINGS_MODULE настройки компонент Django
-* `settings.py` конфиг на высоком уровне
+* DJANGO_SETTINGS_MODULE настройки
+* `settings.py`
   + `ALLOWED_HOSTS` список доменов/IP, с которых разрешён доступ к Django-приложению (когда `DEBUG=False`)
   + `TEMPLATES` настройки шаблонов Django (**HTML-шаблоны**)
   + `REST_FRAMEWORK` **рендеры**, по умолчанию JSON и **Browsable API**
@@ -368,8 +353,6 @@
   + logging.basicConfig настройки логирования в Python, может конфликтовать с настройками логгеров Django и Channels
   + LOGGING можете настроить разные обработчики, уровни логирования и форматы для логгеров django, channels, django.db
 * myproject/ конфигурация Django, корневой маршрутизатор, запуск, управление проектом
-* `models.py` структура данных, связи (пользователи, профили, чаты, сообщения, статистика игры, ...)
-  + **`migrations/`** для моделей
 * manage.py django-утилита
   + интерфейс для настройки, разработки, управлением проектом
   + python manage.py runserver запуск сервера разработки, daphne обращается к проекту напрямую или через `mysite.asgi`
@@ -378,7 +361,7 @@
   + `if __name__ == '__main__':` точка входа программы, если файл запущен напрямую (не импортирован как модуль), выполняется `main()`
   + [auth]: changepassword, [contenttypes] remove_stale_contenttypes, [django] check compilemessages createcachetable dbshell diffsettings dumpdata flush inspectdb loaddata makemessages makemigrations optimizemigration sendtestemail shell showmigrations sqlflush sqlmigrate sqlsequencereset squashmigrations startapp startproject test testserverт, [rest_framework] generateschema, [sessions] clearsessions, [staticfiles] collectstatic findstatic, можнго создавать собственные команды
 * /admin встроеный интерфейс для управления данными (пользователи, чаты, статистика, ...)
-* суперпользователь Django Admin: все права в системе, полный доступ к системе управления данными (!= суперпользователь базы данных)
+* суперпользователь Django Admin: все права, полный доступ к системе управления данными (!= суперпользователь бд)
 * вcтроенные django app модульные приложения
   + 'django.contrib.messages'
   + 'django.contrib.admin',
@@ -442,25 +425,23 @@
     - добавление заголовков безопасности
 * базовый serializers.ModelForm
 * базовые механизмы аутентификации django.contrib.auth (**как связано с AuthenticationMiddleware**)
-  + модель пользователей, проверка паролей, сессии
-* проверка **токена/сессии** при каждом запросе с фронтенда
 * регистрация и авторизация (в том числе OAuth/SSO)
-* модель пользователей
+* модель пользователей, проверка паролей, сессии
 * простая модель групп и разрешений django.contrib.auth.models.Permission
   + разграничение доступа к страницам (приватные/публичные чаты, комнаты, ...)
+* проверка **токена/сессии** при каждом запросе с фронтенда
 * инструменты по защите от распространённых уязвимостей (**CSRF, XSS, SQL Injection**)
 * **среда `AppRegistry`** управляет регистрацией приложений и моделей
-* **Django Debug Toolbar** отслеживание работы проекта
 * DPR Data Processing and Rendering: данные (JSON, ...) обрабатываются на сервере с помощью Django, передаются в представление для рендеринга на клиентской стороне
 * используем **стандартные структуры юзера для авторизации и для моделей данных**
-* технические детали
-  + на базе Python
 * ORM генерирует SQL-запросы  
+* `models.py` структура данных, связи (пользователи, профили, чаты, сообщения, статистика игры, ...)
+* Amine: game backend using websockets (with 42 auth)
 
 
 ### DJANGO REST FRAMEWORK DRF
 * расширяет Django, строит над Django более мощный стек для работы с RESTful API
-* базовые модели, виджеты, фильтры, классы для работы с API
+* модели, виджеты, фильтры, классы для работы с API
 * модуль сериализации данных для работы с JSON или API #see
   + преобразование моделей Django и других объектов Python в форматы JSON/XML и обратно
   + создавать сложные структуры
@@ -472,13 +453,13 @@
   + Basic Authentication
   + авторизация по API-ключам
 * модуль прав доступа Permissions #see
-  + контролировать доступ к API на основе классов прав доступа (`AllowAny`, `IsAuthenticated`, `IsAdminUser`, `IsAuthenticatedOrReadOnly`) или кастомных permissions
+  + контролировать доступ к API (`AllowAny`, `IsAuthenticated`, `IsAdminUser`, `IsAuthenticatedOrReadOnly`, кастомные)
 * Throttles
-  + вспомогательный компонент DRF, работает в тандеме с модулями сериализации, аутентификации, прав доступа
+  + вспомогательный компонент, работает в тандеме с модулями сериализации, аутентификации, прав доступа
   + контролируют частоту запросов пользователей
   + защита от DoS-атак и чрезмерной нагрузки на сервер (**nginx недостаточно?**)
 * APIView
-  + вспомогательный компонент DRF, работает в тандеме с модулями сериализации, аутентификации, прав доступа
+  + вспомогательный компонент, работает в тандеме с модулями сериализации, аутентификации, прав доступа
   + может работать в связке с сериализаторами для обработки данных запросов и формирования ответов
   + базовый класс представлений (views)
   + создавать собственные представления для обработки запросов
@@ -489,11 +470,11 @@
   + вручную определять маршруты и методы для каждого запроса
   + подходит, если проект небольшой или требует точной настройки
 * ViewSets
-  + вспомогательный компонент DRF, работает в тандеме с модулями сериализации, аутентификации, прав доступа
+  + вспомогательный компонент, работает в тандеме с модулями сериализации, аутентификации, прав доступа
   + автоматизирует маршрутизацию и типичные CRUD-операции с помощью Routers
   + объединяют логику CRUD-операций в одном классе
 * Routers
-  + вспомогательный компонент DRF, работает в тандеме с модулями сериализации, аутентификации, прав доступа
+  + вспомогательный компонент, работает в тандеме с модулями сериализации, аутентификации, прав доступа
   + помогает автоматизировать и упрощать маршрутизацию RESTful API
   + автоматически связывают URL-маршруты с ViewSets
   + роутеры наследуются от базового класса BaseRouter
@@ -506,14 +487,13 @@
 + базовые подходы django
   + FBV function based views
     - представления, основанные на функциях
-    - гибкий подход
     - ручная обработкя запросов (`GET`, `POST`, ...)
     - проще
     - def my_view(request): return JsonResponse({"message": "Hello, world!"})
   + class based views CBV
     - представления как классы, ООП-подход 
     - встроенная логика обработки запросов (`get()`, `post()`, ...)
-    - позволяют переопределять только нужные методы (`get`, `post`), а также использовать миксины
+    - переопределять только нужные методы (`get`, `post`), а также использовать миксины
     - def get(self, request): return JsonResponse({"message": "Hello, world!"})
 * каждый запрос обрабатывается отдельно, клиент получает ответ сразу
 * рендеринг шаблонов (Server-Side Rendering) у нас нет
@@ -539,12 +519,12 @@
   + APIView`
     - класс, наследуется от класса View
     - CBV предназначенный для создания REST API
-    - добавляет поддержку сериализации,  аутентификации, работы с JSON, вспомогательные методы для обработки HTTP `GET` `POST` `PUT` `DELETE`, др API-функций
+    - добавляет сериализацию, аутентификацию, работу с JSON, вспом. методы для обработки HTTP `GET` `POST` `PUT` `DELETE`, др API-функций
     - для простых API с базовой логикой
   + ViewSet
     - расширенный вариант APIView
     - использует методы по умолчанию, предоставляемые DRF (избежать написания методов для HTTP-запросов `GET`, `POST`, `PUT`, `DELETE`)
-    - добавляет автоматическую обработку запросов для стандартных операций CRUD (Create, Read, Update, Delete) над данными, которые уже есть в базе
+    - добавляет автом. обработку запросов для стандартных операций CRUD (Create, Read, Update, Delete) над данными, которые уже есть в базе
     - работает в связке с Router, что упрощает маршрутизацию API
     - генерирует маршруты для операций с ресурсами (создание нового объекта, получение списка объектов, обновление, удаление)
     - предоставляет стандартные действия для модели
@@ -557,6 +537,7 @@
     | **ViewSet** | API + автоматическая маршрутизация | Через `Router` |
 * позволяет **приложениям** взаимодействовать друг с другом
 * сессии не нужны, авторизация через токены
+* строит и отдаёт html
 * реализуются
   + через **события**
   + через **статусы в ответах API**
@@ -566,7 +547,7 @@
 
 ### DJANGO CHANNELS
 * расширение, framework, библиотека, надстройка для ws поверх стандартного стека Django: использовать привычные инструменты и структуры
-* добавляет поддержку асинхронных протоколов, асинхронного взаимодействия, **фоновых задач**, обновление интерфейса в режиме реального времени
+* добавляет поддержку асинхронного взаимодействия, **фоновых задач**, обновление интерфейса в режиме реального времени
 * слушает ws-запросы
   + непрерывное соединение, стрим
   + js инициирует соединение через **WebSocket API**: `new WebSocket`
@@ -934,6 +915,7 @@
 * pass reset будет ли?
 * change username, email будет ли?
 * myapp: логика пользовательских профилей, турниров, историй игр
+* страница comptetition, profile, настройки
 * alexey: Tournaments – working 
 
 
@@ -1002,7 +984,7 @@
 * ошибка с “MIME type ('text/html') is not a supported stylesheet” #see
   + в логах «Refused to apply style from '/static/css/chat.css' because its MIME type ('text/html') is not a supported stylesheet MIME type» => nginx отдает chat.css с заголовком Content-Type: text/html вместо text/css
   + убедитесь, что файл существует по пути /static/css/chat.css (или /app/static/css/chat.css) и настроены правильные заголовки MIME
-  + как минимум, в Nginx можно прописать:
+  + Nginx:
     ```
     location /static/ {
         alias /path/to/collected/static/;
@@ -1010,7 +992,7 @@
         # И MIME-тип автоматически определит, что *.css -> text/css
     }
     или включить include /etc/nginx/mime.types;
-```
+    ```
 
 
 ### ТОКЕНЫ БЕЗОПАСНОСТЬ
@@ -1392,7 +1374,7 @@
       - защищают транспортный уровень
       - не связаны с аутентификацией или авторизацией пользователя
 
-   
+
 ### DOCKER
 * **docker volume ls** лишний том
 * Чтобы файлы нового приложения, созданные внутри контейнера, появились на хосте
@@ -1541,7 +1523,7 @@
   - http://localhost:8000/api/, http://localhost:8000/ автоматичесая документация эндпоинтов **Browsable API** 
   - http://localhost:8000/swagger/, http://localhost:8000/redoc/, если настроена автоматическая документация
 
-### Organisation
+### ORGANISATION
 * https://github.com/bakyt92/14_ft_transendence
 * https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
 * https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
