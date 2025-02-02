@@ -921,66 +921,19 @@
 
 ### СТАТИЧЕСКИЕ ФАЙЛЫ html js CSS изображения шрифты
 * чтобы все файлы находились/отдавались там, где ожидает браузер
-* в разработке три варианта (всё ниже этого пункта, можно в production):
-  + **`python manage.py runserver` при DEBUG = True**
-  + manually serve user-uploaded media files from MEDIA_ROOT
-    - use django.views.static.serve() view
-    - don’t have django.contrib.staticfiles in INSTALLED_APPS
-    - if STATIC_URL = static/, addi urlpatterns = [ ] to your urls.py `static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)`
-      - works only if the prefix is local (static/) and not a URL (http://static.example.com/)
-    - only serves STATIC_ROOT folder
-    - doesn’t perform static files discovery like django.contrib.staticfiles
-    - serves static files via a wrapper at the WSGI application layer => static files requests do not pass through the middleware chain
-  + напрямую ссылаться на файлы через URL
-* 'django.contrib.staticfiles'
-  + обслуживает стат файлы для /admin
-  + позволяет добавлять версии, хеши в имена файлов на фронтенд, чтобы избежать кеширования старых версий
-* `collectstatic`
-  + админские CSS (`base.css`, `dashboard.css`, ...), стат. файлы DRF для browsable API или других админ-панелей - в `django.contrib.admin`  
-  + `python manage.py collectstatic` собирает статические файлы (включая админку, DRF) в STATIC_ROOT = app/staticfiles/
-    - **STATIC_ROOT не трекается гитом**
-  + **Frontend имеет только права на чтение статических файлов Backend**
-* Nginx обслуживает ваши собственные стат фалйы и те, что созданы Django, по одному и тому же пути `/static/`
-  + `location /staticfiles/ { alias /app/staticfiles/; }` # папка внутри контейнера Nginx
-  + Nginx обслуживает статические файлы по пути `STATIC_URL = '/staticfiles/'` (url для nginx, не название папки)
-  + location /static/ { alias /usr/share/nginx/html/static/;} }: мои стат файлы в `/static` контейнер Nginx
-    - файлы, запросы к которым начинаются с `/static/`
-    - `/static/style.css` обслуживается из `/usr/share/nginx/html/static/style.css`
-  + location /staticfiles/ { alias /app/staticfiles/; }
-    - Nginx обслуживает файлы, запросы к которым начинаются с `/staticfiles/`
-    - Например, запрос на `/staticfiles/admin/css/style.css` обслуживается из `/app/staticfiles/admin/css/style.css`
-    - Nginx проксирует запросы к Django
-    - стат файлы созданные Django собираются в `/app/staticfiles` в контейнере backend,
-  + создать общий том, чтобы Nginx и backend контейнеры обменивались статическими файлами 
-  + два разных пути для обслуживания разных типов статических файлов, Nginx направляет запросы к нужным папкам на основе их URL
-* в Django-шаблоне либо нет упоминания о стилях, стили приходят с фронтенда (собранный **бандл**)
-* `Daphne` не обслуживает статические файлы по умолчанию
-  + может делать это с библиотекой WhiteNoise
-* проверка 
-  + static backend: https://localhost:4443/admin/
-  + static backend: https://localhost:4443/staticfiles/admin/css/base.css доступны через Nginx, публичный, файлы доступны на сайте (`STATIC_URL = '/static/'`)
-  + static frontend: http://localhost:4444/static/frontend/css/popUpChat.css
-  + static frontend: https://localhost:4443/static/frontend/css/popUpChat.css
-  + если CSS-файл кэшировался, браузер может залипать на устаревшей версии
-    - добавить ?v=123 в конце ссылки или очистить кэш
-  + `python manage.py findstatic css/popUpChat.css`
-  + docker exec -it frontend ls -la /usr/share/nginx/html/static/frontend/css/ убедиться что Nginx имеет права на чтение
-  + файлы в `staticfiles` **только чтение** для Nginx
-  + DevTools → Network
-    - какой путь к CSS-файлу пытается загрузить браузер
-    - код ответа 200 = OK
-    - код ответа 404: Django не может найти файл, конечный URL, по которому файл запрашивается
-  + **built-in testing client LiveServerTestCase**
-    - only assumes the static content has been collected under STATIC_ROOT
-    - staticfiles ships its own django.contrib.staticfiles.testing.StaticLiveServerTestCase, a subclass of the built-in one that has the ability to transparently serve all the assets during execution of these tests in a way very similar to what we get at development time with DEBUG = True, i.e. without having to collect them using collectstatic first
-* put static files in my_app/static/my_app, not in my_app/static/ 
-* CSS-OM = дереао как DOM
-* bootstrap готовые стили, можно создавать кастомные на основе них
-* .map (Source Map) 
-  + При минификации или транспиляции CSS/JS (при сборке) код CSS превращается в сжатую скомпилированную версию
-  + Source Map хранит сопоставление (mapping) между сжатым и исходным кодом
-  + видеть исходный код для отладки кода в браузере
-  + в продакшен отключают генерацию .map-файлов, чтобы уменьшить вес приложения и не раскрывать детали исходного кода
+* **Frontend: права только на чтение статических файлов Backend**
+* python manage.py collectstatic собирает стат файлы DRF в STATIC_ROOT = app/staticfiles/
+  + админские CSS (`base.css`, ...), стат. файлы DRF для browsable API или других админ-панелей - в **`django.contrib.admin`**  
+* daphne не обслуживает статические файлы
+  + может с библиотекой WhiteNoise
+  + стили для jango приходят с фронтенда (собранный **бандл**)
+* общий том, чтобы Nginx и backend контейнеры обменивались статическими файлами 
+* nginx обслуживает ваши стат фалйы и те, что созданы Django: по пути STATIC_URL = '/static/
+  + '/static/' = url для nginx, не папка
+  + Django формирует ссылку <link rel="stylesheet" href="/static/admin/css/base.css">
+    + браузер стучится по https://<HOST>/static/admin/css/base.css
+    + nginx видит location /static/ { alias /usr/share/nginx/html/static/;} }
+    + nginx берёт в /usr/share/nginx/html/static/backend/admin/css/base.css
 * ошибка с “MIME type ('text/html') is not a supported stylesheet” #see
   + в логах «Refused to apply style from '/static/css/chat.css' because its MIME type ('text/html') is not a supported stylesheet MIME type» => nginx отдает chat.css с заголовком Content-Type: text/html вместо text/css
   + убедитесь, что файл существует по пути /static/css/chat.css (или /app/static/css/chat.css) и настроены правильные заголовки MIME
@@ -992,7 +945,28 @@
         # И MIME-тип автоматически определит, что *.css -> text/css
     }
     или включить include /etc/nginx/mime.types;
-* Daphne не занимается статическими файлами напрямую. В Django этим занимается встроенное приложение django.contrib.staticfiles при разработке.
+* django.contrib.staticfiles.testing.**StaticLiveServerTestCase**: to transparently serve all the assets during execution of these tests in a way very similar to what we get at development time with DEBUG = True, i.e. without having to collect them using collectstatic first
+* CSS-OM = дереао как DOM
+* bootstrap готовые стили, можно создавать кастомные на основе них
+* .map (Source Map) 
+  + при минификации или транспиляции CSS/JS (при сборке) код CSS превращается в сжатую скомпилированную версию
+  + Source Map хранит сопоставление (mapping) между сжатым и исходным кодом%, чтобоы видеть исходный код для отладки кода в браузере
+  + в продакшен отключают генерацию .map-файлов, чтобы уменьшить вес приложения и не раскрывать детали кода
+* в разработке три других варианта
+  + **`python manage.py runserver` при DEBUG = True**
+  + django.contrib.staticfiles
+    - обслуживает стат файлы для /admin
+    - позволяет добавлять версии, хеши в имена файлов на фронтенд, чтобы избежать кеширования старых версий
+    - если CSS-файл кэшировался, браузер может залипать на устаревшей версии => добавить ?v=123 в конце ссылки или очистить кэш
+  + manually serve user-uploaded media files from MEDIA_ROOT
+    - use django.views.static.serve() view
+    - don’t have django.contrib.staticfiles in INSTALLED_APPS
+    - if STATIC_URL = static/, addi urlpatterns = [ ] to your urls.py `static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)`
+      - works only if the prefix is local (static/) and not a URL (http://static.example.com/)
+    - only serves STATIC_ROOT folder
+    - doesn’t perform static files discovery like django.contrib.staticfiles
+    - serves static files via a wrapper at the WSGI application layer => static files requests do not pass through the middleware chain
+  + напрямую ссылаться на файлы через URL
 
 
 ### ТОКЕНЫ БЕЗОПАСНОСТЬ
