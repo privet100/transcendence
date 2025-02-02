@@ -3,10 +3,6 @@
   + `/var/log/nginx/error.log`
   + `/var/log/nginx/access.log`
   + в контейнере `nginx -t`
-  + https://localhost:4443/
-  + https://localhost:4443/static/css/chat.css
-  + https://localhost:4443/staticfiles/admin/css/base.css
-  + https://localhost:4443/chat: HTTP-запрос для загрузки страницы 
   + `curl -I http://localhost:4444` : статус 301 с Location: https://localhost:4443/... 
   + `curl -I --insecure https://localhost:4443` : `HTTP/1.1 200 OK`
   * `docker-compose logs frontend`
@@ -30,17 +26,8 @@
       - `-` **идентификация (RFC 1413)**, по умолчанию отсутствует
       - `-` **имя пользователя (Basic Auth)**, по умолчанию отсутствует
       - `GET /favicon.ico HTTP/1.1` request Line: метод запроса, путь, версия протокола, осн. заголовки (User-Agent, Referer), метод/URL
-      - 404 код ответа HTTP
       - https://localhost:4443/` откуда пользователь перешёл
   + `curl -I -k https://localhost:4443/staticfiles/admin/css/base.css` проверить contecnt-type 
-* daphne
-  + daphne запущен на `backend:8000`  
-  + http://localhost:8000/admin/
-  + http://localhost:8000/user/1/
-  + http://localhost:8000/chat/d/
-  + http://localhost:8000/chat/room/ в разных местах
-  + http://localhost:8000/staticfiles/admin/css/base.css
-  + `http://localhost:8000/swagger/`, `http://localhost:8000/redoc/`, если есть подключены библиотеки для документирования API
 * ws
   + как работает утсновка соединения:
     - js инициирует подключение к `wss://localhost:4443/ws/chat/room/`
@@ -255,6 +242,17 @@
 * alexey: Layout on the pages – working on it
   + расположение и структура элементов пользовательского интерфейса на веб-страницах
   + Работа с CSS-фреймворками (например, Tailwind CSS или Bootstrap)
+* invalid number of arguments in "root" directive in /etc/nginx/conf.d/default.conf:14
+frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /etc/nginx/conf.d/default.conf:14
+  + официальный образ Docker’а для Nginx (а также некоторые его обёртки) часто запускают внутренний скрипт, который делает `envsubst` (подстановку переменных окружения) по шаблону => все встречающиеся в конфиге Nginx переменные вида `$что_то` могут быть «вырезаны» или превращены во что-то не то, и Nginx начинает ругаться: invalid number of arguments in "root" directive ..., "proxy_pass" cannot have URI part in location given by regular expression ...
+    - > Dockerfile или entrypoint.sh: `envsubst < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf` или подобное
+  + nginx интерпретирует как свои переменные `$uri`, `$host`, `$remote_addr`, `$http_upgrade` и др.  
+  + через Docker + `envsubst` => `$uri` могут быть заменены пустой строкой (или иной строкой)
+  + способ 1: Экранировать доллары: `\$uri` вместо `$uri`
+  + способ 2: Отключить envsubst (если он вам не нужен), entrypoint/docker-compose, чтобы Nginx-конфиг не прогонялся через `envsubst`
+    - однако в ряде случаев в контейнере (особенно `nginx:alpine` с поддержкой переменных окружения) отключить envsubst не всегда тривиально
+  + способ 3: Использовать другие переменные окружения: если ваша цель действительно была пробросить переменные окружения Docker в Nginx-конфиг, то зачастую меняют названия переменных. Например, в самом конфиге пишут `$MY_ENV` (только где действительно нужно), а все «стандартные» переменные Nginx (`$uri`, `$host` и т. д.) не трогают.
+    - в вашем случае `$uri` / `$host` — это именно **стандартные** переменные Nginx, так что лучше их не трогать, а экранировать
 
 
 ### JAVASCRIPT
