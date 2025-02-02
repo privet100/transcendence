@@ -1,7 +1,5 @@
 ### TEST
 * nginx
-  + `/var/log/nginx/error.log`
-  + `/var/log/nginx/access.log`
   + в контейнере `nginx -t`
   + `curl -I http://localhost:4444` : статус 301 с Location: https://localhost:4443/... 
   + `curl -I --insecure https://localhost:4443` : `HTTP/1.1 200 OK`
@@ -21,12 +19,11 @@
       172.21.0.1 "GET /ws/chat/r/                     HTTP/1.1" 404 5667  "Chrome"
       172.21.0.1 "GET /ws/chat                        HTTP/1.1" 404 5658  "Chrome"
       ```
-    -
-      - 172.21.0.1 IP-адрес клиента (в контейнерной сети внутренний адрес Docker)
-      - `-` **идентификация (RFC 1413)**, по умолчанию отсутствует
-      - `-` **имя пользователя (Basic Auth)**, по умолчанию отсутствует
-      - `GET /favicon.ico HTTP/1.1` request Line: метод запроса, путь, версия протокола, осн. заголовки (User-Agent, Referer), метод/URL
-      - https://localhost:4443/` откуда пользователь перешёл
+    - 172.21.0.1 IP-адрес клиента (в контейнерной сети внутренний адрес Docker)
+    - `-` **идентификация (RFC 1413)**, по умолчанию отсутствует
+    - `-` **имя пользователя (Basic Auth)**, по умолчанию отсутствует
+    - `GET /favicon.ico HTTP/1.1` request Line: метод запроса, путь, версия протокола, осн. заголовки (User-Agent, Referer), метод/URL
+    - https://localhost:4443/` откуда пользователь перешёл
   + `curl -I -k https://localhost:4443/staticfiles/admin/css/base.css` проверить contecnt-type 
 * ws
   + как работает утсновка соединения:
@@ -69,18 +66,9 @@
     - метод (GET, POST, PUT, DELETE и т. д.)
     - если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`)
     - статус ответа (200 OK, 401 Unauthorized, ...) 
-* django: встроенные инструменты для тестирования HTTP
 * **Django Debug Toolbar** отслеживание работы проекта
+  + django: встроенные инструменты для тестирования HTTP
 * Django Channels + `pytest` : ws-тесты
-* redis
-  + доступен `redis` `6379`
-  + `docker-compose logs redis`
-
-
-### LOGS
-* F12 - Network - запрос - Response Headers
-  + "server: nginx" => Nginx 404
-  + "server: WSGIServer/…" или "Content-Type: text/html; charset=utf-8" и "Traceback HTML от Django" => Django 404
 * запрос `GET /ws/chat/rr/` обрабатывается как обычный, не как WebSocket‐handshake - проверить:
   + `frontend "GET /ws/chat/rr/ HTTP/1.1" 404 ...`: js‐код формирует `ws://` или `wss://`, но браузер блокирует/не делает Upgrade
   + консоль `wss://localhost:4443/ws/chat/rr/` OK
@@ -92,77 +80,11 @@
   + log Daphne `WebSocket CONNECT /ws/chat/rr/` (но 404 = значит ws‐route не сработал, Channels ничего не получил)
   + нет WebSocket‐Upgrade. Решайте с помощью исправления JS (`wss://` при HTTPS) и location `/ws/` с Upgrade-заголовками
     - Channels получит `WebSocket CONNECT`
-  + проверить, что Nginx видит заголовок Upgrade `curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Host: localhost:4443" -H "Origin: https://localhost:4443" --insecure  https://localhost:4443/ws/chat/test/`
-    - Если Nginx проксирует правильно, в ответ вы увидите что-то вроде:
-      ```
-      HTTP/1.1 101 Switching Protocols
-      Upgrade: websocket
-      Connection: Upgrade
-      ```
-    - Если сразу HTTP/1.1 404, значит Nginx не зашёл в нужный location
-    -
-      ```
-      HTTP/1.1 404 Not Found
-      Server: nginx/1.27.3
-      Date: Sat, 01 Feb 2025 23:09:13 GMT
-      Content-Type: text/html; charset=utf-8
-      Content-Length: 5676
-      Connection: keep-alive
-      X-Frame-Options: DENY
-      X-Content-Type-Options: nosniff
-      Referrer-Policy: same-origin
-      Cross-Origin-Opener-Policy: same-origin
-      ```
-* `docker-compose logs backend` : WebSocket CONNECT /ws/chat/<room_name>/
-  + Exception while resolving variable **'name'** in template 'unknown'.
-    - File "/usr/.../handlers/exception.py", line 55, in inner response = get_response(request)
-    - File "/usr/.../handlers/base.py", line 181, in _get_respons callback, callback_args, callback_kwargs = self.resolve_request(request)
-    - File "/usr/.../handlers/base.py", line 313, in resolve_request resolver_match = resolver.resolve(request.path_info)
-    - File "/usr/.../urls/resolvers.py", line 705, in resolve raise Resolver**404**({"tried": tried, "path": new_path})
-  + django.urls.exceptions.Resolver**404**: {'tried': [[<URLResolver <URLPattern list> (admin:admin) 'admin/'>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) 'auth/'>], [<URLResolver <module 'chat.urls' from '/app/chat/urls.py'> (None:None) 'chat/'>], [<URLResolver <module 'myapp.urls' from '/app/myapp/urls.py'> (None:None) ''>, <URLPattern '' [name='index']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'callback/' [name='callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'logout/' [name='logout_view']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'login/' [name='loginemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/email/' [name='authemail']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'signup/' [name='signup']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'auth/callback' [name='oauth_callback']>], [<URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) ''>, <URLPattern 'profile/' [name='profile']>], [<URLPattern 'user_42/<int:user_id>/' [name='get_user_42']>], [<URLPattern 'users_42/' [name='get_all_users_42']>], [<URLPattern 'users/' [name='get_all_userprofiles']>], [<URLPattern 'user/<int:id>/' [name='user-detail']>], [<URLPattern 'tour/<int:id>/' [name='tournament-detail']>], [<URLPattern 'game/<int:id>/' [name='game-detail']>]], 'path': 'ws/chat/rr/'}
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 883, in _resolve_lookup  current = current[bit]
-  + TypeError: **'URLResolver' object is not subscriptable**
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 893, in _resolve_lookup current = getattr(current, bit)
-  + AttributeError: 'URLResolver' object has no attribute **'name'**
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 899, in _resolve_lookup current = current[int(bit)]
-  + ValueError: invalid literal for int() with base 10: **'name'**
-  + During handling of the above exception, another exception occurred: File "/usr/local/lib/python3.10/site-packages/django/template/base.py", line 906, in _resolve_lookup raise VariableDoesNotExist(
-  + django.template.base.VariableDoesNotExist: Failed lookup for key [name] in <URLResolver <URLPattern list> (admin:admin) 'admin/'>
-  + Exception while **resolving variable 'name' in template 'unknown'**
-    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner response = get_response(request)
-    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 181, in _get_response callback, callback_args, callback_kwargs = self.resolve_request(request)
-    - File "/usr/local/lib/python3.10/site-packages/django/core/handlers/base.py", line 313, in resolve_request resolver_match = resolver.resolve(request.path_info)
-    - File "/usr/local/lib/python3.10/site-packages/django/urls/resolvers.py", line 705, in resolve raise Resolver**404**({"tried": tried, "path": new_path})
-  + django.urls.exceptions.Resolver**404**: ...
-  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 883, in _resolve_lookup current = current[bit]
-  + TypeError: 'URLResolver' object is not subscriptable
-  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 893, in _resolve_lookup current = getattr(current, bit)
-  + AttributeError: 'URLResolver' object has no attribute 'name'
-  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 899, in _resolve_lookup current = current[int(bit)]
-  + ValueError: invalid literal for int() with base 10: 'name'
-  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 906, in _resolve_lookup raise VariableDoesNotExist(
-  + django.template.base.VariableDoesNotExist: Failed lookup for key [name] in <URLResolver <module 'auth_app.urls' from '/app/auth_app/urls.py'> (None:None) 'auth/'>
-  + Exception while resolving variable **'name'** in template 'unknown'.
-  + Traceback (most recent call last):
-    - File "/usr/.../handlers/exception.py", line 55, in inner response = get_response(request)
-    - File "/usr/.../handlers/base.py", line 181, in _get_response callback, callback_args, callback_kwargs = self.resolve_request(request)
-   - File "/usr/.../handlers/base.py", line 313, in resolve_request resolver_match = resolver.resolve(request.path_info)
-    - File "/usr/.../urls/resolvers.py", line 705, in resolve raise Resolver**404**({"tried": tried, "path": new_path})
-  + django.urls.exceptions.Resolver**404**: ...
-  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 883, in _resolve_lookup current = current[bit]
-  + TypeError: 'URLResolver' object is not subscriptable
-  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 893, in _resolve_lookup current = getattr(current, bit)
-  + AttributeError: 'URLResolver' object has no attribute **'name'**
-  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 899, in _resolve_lookup current = current[int(bit)]
-  + ValueError: invalid literal for int() with base 10: **'name'**
-  + During handling of the above exception, another exception occurred: File "/usr/.../template/base.py", line 906, in _resolve_lookup raise VariableDoesNotExist(
-  + django.template.base.VariableDoesNotExist: Failed lookup for key [name] in <URLResolver <module 'chat.urls' from '/app/chat/urls.py'> (None:None) 'chat/'>
-  + **Not Found: /ws/chat/rr/**
-  + "GET /ws/chat/rr/ HTTP/1.1" **404** 5670
-  + File /usr/...storage/cookie.py first seen with mtime 1738426491.0360327
-  + File /usr/...storage/session.py first seen with mtime 1738426491.0400329
-  + File /usr/.../storage/fallback.py first seen with mtime 1738426491.0400329
-  + File /usr/.../sessions/serializers.py first seen with mtime 1738426491.1720328
+  + проверить, что Nginx видит заголовок Upgrade
+    - `curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Host: localhost:4443" -H "Origin: https://localhost:4443" --insecure  https://localhost:4443/ws/chat/test/`
+    - Если Nginx проксирует правильно, то `HTTP/1.1 101 Switching Protocols, Upgrade: websocket, Connection: Upgrade`
+    - Если сразу HTTP/1.1 404: nginx не зашёл в нужный location
+
 
 ### LIVE CHAT
 * **история в бд** (или в redis?)
