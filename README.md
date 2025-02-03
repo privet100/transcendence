@@ -1,3 +1,19 @@
+live pong game on website  
+rules of Pong  
+tournament !  
+registration !  
+matchmaking system for Tournament !  
+basic front-end  
+security  
+django 1 +  
+bootstrap 0.5 +  
+database 0.5 +  
+OAuth 1   
+user management 1  
+remote players 1  
+live chat 1  
+AI Opponent 1  
+
 ### TEST
 * nginx
   + в контейнере `nginx -t`
