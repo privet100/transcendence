@@ -1,18 +1,21 @@
-live pong game on website  
-rules of Pong  
-tournament !  
-registration !  
-matchmaking system for Tournament !  
-basic front-end  
-security  
-django 1 +  
-bootstrap 0.5 +  
-database 0.5 +  
-OAuth 1   
-user management 1  
-remote players 1  
-live chat 1  
-AI Opponent 1  
+module                        | front   | back 
+------------------------------|---------|------   
+basic front-end               | L       | ---
+live pong game on website     | L       | Amine
+rules of Pong                 | Amin e  | Amine     
+remote players 1              | ---     | Amine  
+AI Opponent 1                 | ---     | Amine  
+tournament                    | L       | L       
+registration                  | L       | L       
+matchmaking system Tournament | L       | L      
+OAuth 1                       | ---     | L
+user management 1             | L       | L  
+live chat 1                   | Ann     | B
+security                      |         | 
+django 1                      | ---     | +
+bootstrap 0.5                 | +       | ---
+database 0.5                  | ---     | +
+
 
 ### TEST
 * nginx
@@ -517,7 +520,6 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
     [Consumers]
         ├──► [Django Models] ↔ [База данных]
         ├──► [Channel Layers (Redis)]
-        │       ├──► [Другие Инстансы Приложения]
         │       └──► [Процессы]
         ├──► [Асинхронные задачи (Celery)]
         │       └──► [Фоновые Рабочие Процессы]
@@ -531,14 +533,14 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + Consumers ↔ Django Models и База данных: чтение/Запись данных
   + Consumers ↔ Django Models и База данных: Транзакции: Обеспечение согласованности данных при одновременных изменениях.
   + Consumers ↔ Асинхронные задачи (Celery): Запуск задач: При определённых событиях (окончание игровой сессии, ...) Consumers инициируют выполнение фоновых задач
-  + Consumers ↔ Асинхронные задачи (Celery): Обработка результатов: Фоновые задачи могут обновлять данные или отправлять уведомления после выполнения.
-  + Consumers ↔ Аутентификация: Проверка пользователя: При установлении соединения Consumers проверяют аутентификацию пользователя через scope["user"].
-  + Consumers ↔ Аутентификация: Управление доступом: Ограничение доступа к определённым действиям или комнатам на основе прав пользователя.
-  + Backend ↔ Внешние API и Сервисы: Интеграция: Django взаимодействует с внешними сервисами (обработка платежей, отправка уведомлений, получение данных)
-  + Backend ↔ Внешние API и Сервисы: Маршрутизация: Обработка запросов от внешних источников и передача данных обратно клиентам через Consumers.
-  + Клиент ↔ REST/GraphQL API: Дополнительные запросы: Помимо WebSocket-соединений, клиент может использовать традиционные HTTP-запросы для получения или отправки данных.
-  + Клиент ↔ REST/GraphQL API: Синхронизация данных: Обеспечение согласованности состояния между различными частями приложения.
-  + Consumers ↔ Другие Consumers: Взаимодействие: В некоторых случаях один Consumer может взаимодействовать с другим через Channel Layers для координации действий или обмена данными.
+  + Consumers ↔ Асинхронные задачи (Celery): Обработка результатов: Фоновые задачи могут обновлять данные или отправлять уведомления после выполнения
+  + Consumers ↔ Аутентификация: проверяют аутентификацию пользователя через scope["user"]
+  + Consumers ↔ Аутентификация: ограничение доступа к определённым действиям или комнатам на основе прав пользователя
+  + Backend ↔ Внешние API и Сервисы: django взаимодействует с внешними сервисами (обработка платежей, отправка уведомлений)
+  + Backend ↔ Внешние API и Сервисы: Маршрутизация: Обработка запросов от внешних источников и передача данных обратно клиентам через Consumers
+  + Клиент ↔ REST API: Дополнительные запросы: Помимо WebSocket-соединений, клиент может использовать традиционные HTTP-запросы для получения или отправки данных
+  + Клиент ↔ REST API: Синхронизация данных: Обеспечение согласованности состояния между различными частями приложения
+  + Consumers ↔ Другие Consumers: Взаимодействие: В некоторых случаях один Consumer может взаимодействовать с другим через Channel Layers для координации действий или обмена данными
 * очереди сообщений
   + операции в фоновом режиме (обработка запроса, отправка уведомлений)
   + избежать блокировки основного потока
@@ -1153,6 +1155,12 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + the secure exchange of authentication tokens and user information between the web application and the authentication provider
 * аутентификация реализуется через middleware, через стандартный механизм HTTP-запросов, например, с использованием **JWT или сессий**
 * сессии управляются с помощью cookie-сессионных данных или токенов для аутентификации API
+* из гугл док:
+  + Any password stored in your database, if applicable, must be hashed. (DONE)
+  + Your website must be protected against SQL injections/XSS. If you have a backend or any other features, it is mandatory to enable an HTTPS connection for all aspects (Utilize wss instead of ws...) - (DONE excl livechat)
+  + You must implement some form of validation for forms and any user input, either within the base page if no backend is used or on the server side if a backend is employed. (Validation by Front-end)
+  + Regardless of whether you choose to implement the JWT Security module with 2FA, it’s crucial to prioritize the security of your website. (OK)
+  + For instance, if you opt to create an API, ensure your routes are protected. Remember, even if you decide not to use JWT tokens, securing the site remains essential.
 
 
 ### COOKIE LOCALSTORAGE SESSIONSTORAGE
@@ -1406,6 +1414,11 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
 
 
 ### ORGANISATION
+* git grep -n "redis" $(git rev-list --all) поиск по всем веткам
+* искать по истории коммитов и разным веткам в VS Code, установите GitLens
+  + Открыть Extensions (Ctrl + Shift + X) → найти GitLens → установить.
+  + Открыть "GitLens: Search Commits" (Ctrl + P → GitLens: Search Commits).
+  + Искать нужное слово по всей истории репозитория (это включает разные ветки).
 * https://github.com/bakyt92/14_ft_transendence
 * https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
 * https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
