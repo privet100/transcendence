@@ -360,31 +360,30 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + **для доступа к объекту пользователя (request.user) и другим данным авторизации**
 * middlware на пути от клиента
   + SecurityMiddleware
-    - добавляет заголовки безопасности (`Strict-Transport-Security` для HTTPS)
-    - перенаправляет HTTP-запросы на HTTPS **куда именно? какой-то порт?**
+    - добавляет заголовки безопасности (`Strict-Transport-Security` **для HTTPS**) **зачем**
+    - перенаправляет HTTP-запросы **на HTTPS**
     - убирает опасные элементы из запросов (от уязвимости **XSS**, ...)
   + SessionMiddleware
     - загружает данные сессии из **хранилища**, управляет сессиями **через куки?**
-    - если пользователь **аутентифицирован**, сессия **сохраняет его идентификатор** в Redis или базе данных после выполнения запроса
+    - если пользователь аутентифицирован, сессия **сохраняет идентификатор** в Redis/бд после выполнения запроса
   + CommonMiddleware
     - перенаправление при добавлении/удалении `/` в конце URL
     - возвращает стандартные заголовки HTTP (`Content-Type`, ...)
   + CsrfViewMiddleware
-    - проверяет наличие и правильность CSRF-токена
-    - если токен неверный, возвращает ошибку `403 Forbidden`
+    - проверяет CSRF-токен
     - защита от **Cross-Site Request Forgery**
   + AuthenticationMiddleware
     - проверяет **сессию или заголовки авторизации**
     - добавляет **объект `request.user`**, чтобы представления могли определить, аутентифицирован ли пользователь
   + MessageMiddleware
     - обрабатывает flash messages
-    - может быть настроен для **обработки сообщений и добавления дополнительной информации или фильтрации на уровне WebSocket**
+    - **обработка сообщений** и добавление **дополнительной информации или фильтрации на уровне WebSocket**
     - без `django.contrib.messages` невозможно использовать
   + XFrameOptionsMiddleware
     - добавляет заголовок `X-Frame-Options` для защиты **clickjacking** (запрещает отображение сайта в **iframe** на других доменах, ...)
 * middleware на обратном пути
   + XFrameOptionsMiddleware обрабатывает ответ (добавляет заголовок X-Frame-Options)
-    - XFrameOptionsMiddleware добавление заголовков безопасности
+    - добавление заголовков безопасности
   + MessageMiddleware (сохраняет flash-сообщения)
   + AuthenticationMiddleware (завершает обработку данных авторизации)
     - добавление объекта `request.user` для авторизованных пользователей 
@@ -406,7 +405,6 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
 * **среда `AppRegistry`** управляет регистрацией приложений и моделей
 * DPR Data Processing and Rendering: данные (JSON, ...) обрабатываются на сервере с помощью Django, передаются в представление для рендеринга на клиентской стороне
 * используем **стандартные структуры юзера для авторизации и для моделей данных**
-* ORM генерирует SQL-запросы  
 * `models.py` структура данных, связи (пользователи, профили, чаты, сообщения, статистика игры, ...)
 * middleware работает **отдельно для каждого запроса** и создаётся заново для каждого клиента
   + **Django Middleware** — это обычный middleware Django, который обрабатывает **каждый HTTP-запрос**.
@@ -442,16 +440,15 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
     - отдельный слой, не связанный с middleware
     - преобразование (включая валидацию) Python-объектов (моделей, словарей) в JSON/др формат  
   + пароход для JSON
-    - `parsers` и `renderers` (`JSONParser`, `JSONRenderer`)
-    - Django без DRF не имеет middleware для парсинга JSON
-    - работают на уровне APIView/GenericViewSet/...
-    - встроена в вьюшки через классы сериализаторов, а не через middleware
-    - реализуется внутри вью/serializer классов DRF (не middleware)  
-  + приходящий request.body в JSON парсится `JSONParser`, а ответ сериализуется `JSONRenderer`, подключены внутри DRF
+    - `JSONParser`, `JSONRenderer`
+    - приходящий request.body в JSON парсится `JSONParser`, а ответ сериализуется `JSONRenderer`, подключены внутри DRF
+    - реализуется внутри вью/serializer классов DRF, встроена в вьюшки через классы сериализаторов (не middleware)  
+    - Django не имеет middleware для парсинга JSON
 * модуль аутентификации #see
   + проверка сеансовой куки, сессий, csrf, JWT (с библиотекой Simple JWT), Basic Authentication, авторизация по API-ключам
   + гибкие механизмы для работы с JWT
   + 1) во многом реализована через AuthenticationMiddleware
+    - Может частично использовать стандартное Django middleware (`AuthenticationMiddleware`), когда речь о сессиях
     - привязать пользователя (request.user) до попадания запроса во вью
     - если JWT или токены, то не чистое middleware, а authentication classes
   + 2) на уровне Views / Viewsets  
@@ -460,32 +457,18 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
     - технически не являются классическим Django middleware  
     - проверяют заголовки/токены/сессии
     - устанавливают `request.user`
-  + Аутентификация может частично опираться на Django middleware (`AuthenticationMiddleware` + сессии), но реальная логика в Authentication Classes
-  
-Может частично использовать стандартное Django middleware (`AuthenticationMiddleware`), когда речь о сессиях.  
-Если вы говорите о токенах, JWT, Basic/Auth, обычно это **DRF Authentication Classes** на уровне вью.  
-
+    - тут логика
+    - если вы говорите о токенах, JWT, Basic/Auth, обычно это **DRF Authentication Classes** на уровне вью.  
 * модуль прав доступа Permissions #see
   + контролировать доступ к API (`AllowAny`, `IsAuthenticated`, `IsAdminUser`, `IsAuthenticatedOrReadOnly`, кастомные)
-В Django REST Framework проверка прав (permissions) обычно делается **не** как middleware, а через:
-
-- **Permission classes**  
-  - Например, `permissions.IsAuthenticated`, `permissions.IsAdminUser`, `permissions.DjangoModelPermissions`, или ваши кастомные классы.  
-  - Они указываются либо глобально в `settings.py` (`REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES']`), либо на уровне вью, например:  
-    ```python
-    class MyView(APIView):
-        permission_classes = [permissions.IsAuthenticated]
-        ...
-    ```
-- **Перехват на уровне view**  
-  - DRF автоматически вызывает методы `has_permission()` и `has_object_permission()` для соответствующих permission classes.  
-  - Если проверка не пройдена, генерируется `403 Forbidden`.
-
-Хотя теоретически вы **могли** бы написать собственное Django middleware, проверяющее права, это **не** общепринятый подход в DRF. Обычно всё это делается через **permission classes** во вью.
-
-- В типичном Django/DRF-проекте это **permission classes** (не middleware).  
-- Редко кто пишет middleware для авторизации, поскольку DRF даёт гибкие механизмы `permissions.py`.  
-
+  + проверка permissions обычно не как middleware
+  + Permission classes
+    - не middleware
+    - `permissions.IsAuthenticated`, `permissions.IsAdminUser`, `permissions.DjangoModelPermissions`, кастомные классы
+    - указываются либо глобально в `settings.py` (`REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES']`), либо на уровне вью, 
+    - во вью
+  + Перехват на уровне view  
+    - DRF автоматически вызывает методы `has_permission()` и `has_object_permission()` для permission classes  
 * Throttlesвспомогательный компонент
   + , работает в тандеме с модулями сериализации, аутентификации, прав доступа
   + контролируют частоту запросов пользователей
