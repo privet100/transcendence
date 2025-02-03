@@ -89,17 +89,16 @@
 ### LIVE CHAT
 * **история в бд** (или в redis?)
 * **чат сделать компонентом**
+* **зачем общий чат**
 * the user sends direct messages to other users (subject)
 * the user blocks other users, they see no more messages from the account they blocked (subject)
 * the user **invites** other users to play through the chat interface (subject)
 * the tournament warns users expected for the next game (subject)
 * the user access other players profiles through the chat interface (subject)
-* **заччем общий чат**
 * с каждым пользователем у бэкенда 2 вебсовета: чат, положение ракетки
 * 1 эндпоинт слушает чат
   + в заголовке запроса - кому сообщение
 * если сообщение не дошло, пользователя нет
-* pathname = часть адреса после корня
 * сделать базовый функционал чата
   + Обновите шаблоны HTML
   + База данных: модель для хранения сообщений
@@ -235,11 +234,11 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
 
 ### BACKEND DAPHNE 
 * ASGI сервер 
-* хорошо интегрируется с Django Channels
-* поддерживает ws из коробки
+  + asgi, wsgi - интерфейсы, стандарты для взаимодействия между веб-сервером и веб-приложениями/фреймворками
+    - без них фреймворки, тулкиты, библиотеки питон не взаимодействуют между собой, у каждого свой метод установки, настройки
+* хорошо интегрируется с Django Channels, поддерживает ws из коробки
 * не настраивается под SSL
-* слушает внутри контейнера на порту 8000 API-запросы, HTTP-запросы фронтенда
-* принимает wss:// соединения
+* слушает внутри контейнера на порту 8000 wss:// соединенияь API-запросы, HTTP-запросы фронтенда
   + страница загружается по https:// => браузер открывает wss://
 * переменная `application` = точка входа для ASGI-сервера, ASGI-приложение, обрабатывает запросы
 * `ASGI_APPLICATION = "myproject.asgi.application"`
@@ -248,17 +247,14 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
 * AllowedHostsOriginValidator проверяет допустимые хосты для ws-соединений (**зачем дублировать с nginx**)
   + проверяет заголовок Origin против ALLOWED_HOSTS
 * ws-маршруты Channels работают через ASGI, а не через файлы 
+* альтернатива: WSGI, Web Server Gateway Interface
+  + поддерживает только синхронные запросы HTTP, не подходит для реального времени или протокола ws
+  + но бывает нужен: некоторые инструменты поддерживают только HTTP-запросы; Django-приложений без асинхронных функций стабильнее
+  + ASGI, Asynchronous Server Gateway Interface - продолжение WSGI, когда есть асинхронные задачи
 * альтернатива: `python manage.py runserver 0.0.0.0:8000`
   + запускает Django-приложение с использованием встроенного **разработческого сервера**
     - может работать как с WSGI, так и с ASGI, в зависимости от конфигурации проекта
     - не рекомендуется для продакшен, daphne: более высокая производительность и стабильность
-* альтернатива: wsgi
-  + asgi, wsgi - интерфейсы, стандарты для взаимодействия между веб-сервером и веб-приложениями/фреймворками
-    - иначе фреймворки, тулкиты и библиотеки питон не умеют взаимодействовать между собой, у каждого свой метод установки, настройки
-  + WSGI, Web Server Gateway Interface
-    - поддерживает только синхронные запросы HTTP, не подходит для реального времени или протокола ws
-    - но бывает нужен: некоторые инструменты поддерживают только HTTP-запросы; Django-приложений без асинхронных функций стабильнее
-  + ASGI, Asynchronous Server Gateway Interface - продолжение WSGI, когда есть асинхронные задачи
 
 
 ### ЯДРО DJANGO 
@@ -271,7 +267,7 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + `REST_FRAMEWORK` **рендеры**, по умолчанию JSON и **Browsable API**
   + `AUTH_PASSWORD_VALIDATORS` валидаторы сложности паролей (минимальная длина, ...)
   + logging.basicConfig настройки логирования в Python, может конфликтовать с настройками логгеров Django и Channels
-  + LOGGING можете настроить разные обработчики, уровни логирования и форматы для логгеров django, channels, django.db
+  + LOGGING настроить разные обработчики, уровни логирования и форматы для логгеров django, channels, django.db
 * myproject/ конфигурация Django, корневой маршрутизатор, запуск, управление проектом
 * manage.py django-утилита
   + интерфейс для настройки, разработки, управлением проектом
@@ -280,28 +276,28 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + python manage.py createsuperuser создание суперпользователя
   + `if __name__ == '__main__':` точка входа программы, если файл запущен напрямую (не импортирован как модуль), выполняется `main()`
   + [auth]: changepassword, [contenttypes] remove_stale_contenttypes, [django] check compilemessages createcachetable dbshell diffsettings dumpdata flush inspectdb loaddata makemessages makemigrations optimizemigration sendtestemail shell showmigrations sqlflush sqlmigrate sqlsequencereset squashmigrations startapp startproject test testserverт, [rest_framework] generateschema, [sessions] clearsessions, [staticfiles] collectstatic findstatic, можнго создавать собственные команды
-* /admin встроеный интерфейс для управления данными (пользователи, чаты, статистика, ...)
-* суперпользователь Django Admin: все права, полный доступ к системе управления данными (!= суперпользователь бд)
 * вcтроенные django app модульные приложения
   + 'django.contrib.messages'
   + 'django.contrib.admin',
+    - /admin встроеный интерфейс для управления данными (пользователи, чаты, статистика, ...)
+    - суперпользователь Django Admin: все права, полный доступ к системе управления данными (!= суперпользователь бд)
   + 'django.contrib.auth',
   + 'django.contrib.contenttypes',
   + 'django.contrib.sessions',
   + 'django.contrib.staticfiles'
   * **какие ещё**
 * 'django.contrib.messages'  API для работы с flash‐messages
-    - уведомления пользователю **между запросами** (об регистрации, ошибка при неверном вводе данных, ... в верхней части страницы
-    - исчезают через несколько секунд или после того, как пользователь обновит страницу или перейдет на другую
-    - **сообщение добавляется во время перенаправлений (после POST-запросов, ...) или в шаблоны**
-    - **передача статуса операций между страницами**: после сохранения формы пользователю показывается сообщение на новой странице
-    - не используются для функций реального времени, не асинхронны
-    - работают благодаря  `django.contrib.messages` + `MessageMiddleware`
-    - `MessageMiddleware` **сохраняет между запросами** и извлекает из хранилища (cookie, сессии, ...)
-    - сообщения остаются там только до следующего запроса, затем удаляются автоматически
-    - без `MessageMiddleware` только для сообщений **внутри одного запроса**, сообщения не сохраняются между запросами
-    - через ws соединения или HTTP-запросы
-    - не имеет отношения к чату (чат требуют постоянного обновления страницы или использования ws для обмена сообщениями)
+  - уведомления пользователю **между запросами** (об регистрации, ошибка при неверном вводе данных, ... в верхней части страницы
+  - исчезают через несколько секунд или после того, как пользователь обновит страницу или перейдет на другую
+  - **сообщение добавляется во время перенаправлений (после POST-запросов, ...) или в шаблоны**
+  - **передача статуса операций между страницами**: после сохранения формы пользователю показывается сообщение на новой странице
+  - не используются для функций реального времени, не асинхронны
+  - работают благодаря  `django.contrib.messages` + `MessageMiddleware`
+  - `MessageMiddleware` **сохраняет между запросами** и извлекает из хранилища (cookie, сессии, ...)
+  - сообщения остаются там только до следующего запроса, затем удаляются автоматически
+  - без `MessageMiddleware` только для сообщений **внутри одного запроса**, сообщения не сохраняются между запросами
+  - через ws соединения или HTTP-запросы
+  - не имеет отношения к чату (чат требуют постоянного обновления страницы или использования ws для обмена сообщениями)
 * middlware
   + набор классов
   + фильтры, обработчики, модифицируюют запросы/ответы
@@ -360,11 +356,9 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
 
 
 ### DJANGO REST FRAMEWORK DRF
-* расширяет Django, строит над Django более мощный стек для работы с RESTful API
-* модели, виджеты, фильтры, классы для работы с API
+* расширяет Django, строит над Django более мощный стек для работы с RESTful API (модели, виджеты, фильтры, классы)
 * модуль сериализации данных для работы с JSON или API #see
   + преобразование моделей Django и других объектов Python в форматы JSON/XML и обратно
-  + создавать сложные структуры
   + валидация данных
 * модуль аутентификации #see
   + Token Authentication
@@ -1419,6 +1413,8 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   - Python + библиотека `websockets`
   - http://localhost:8000/api/, http://localhost:8000/ автоматичесая документация эндпоинтов **Browsable API** 
   - http://localhost:8000/swagger/, http://localhost:8000/redoc/, если настроена автоматическая документация
+* pathname = часть адреса после корня
+
 
 ### ORGANISATION
 * https://github.com/bakyt92/14_ft_transendence
