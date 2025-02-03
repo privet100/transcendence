@@ -408,6 +408,34 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
 * используем **стандартные структуры юзера для авторизации и для моделей данных**
 * ORM генерирует SQL-запросы  
 * `models.py` структура данных, связи (пользователи, профили, чаты, сообщения, статистика игры, ...)
+* middleware работает **отдельно для каждого запроса** и создаётся заново для каждого клиента
+  + **Django Middleware** — это обычный middleware Django, который обрабатывает **каждый HTTP-запрос**.
+  + **DRF Middleware** (например, аутентификация) вызывается **отдельно для каждого запроса** от каждого клиента.
+  + Middleware **не существует в единственном экземпляре** — он создаётся и выполняется **каждый раз, когда клиент отправляет запрос**.
+  ° пример AuthenticationMiddleware
+    ```python
+    MIDDLEWARE = [
+        'django.middleware.security.SecurityMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    ]
+    ```
+    - Когда **первый клиент** делает запрос → middleware создаётся и выполняется для него.
+    - Когда **второй клиент** делает запрос → создаётся **новый экземпляр middleware**, который обрабатывает этот запрос.
+  + В DRF аутентификация реализована через **Authentication Classes**. Они вызываются **отдельно для каждого запроса**:
+    ```python
+    REST_FRAMEWORK = {
+        'DEFAULT_AUTHENTICATION_CLASSES': [
+            'rest_framework.authentication.SessionAuthentication',
+            'rest_framework.authentication.TokenAuthentication',
+        ],
+    }
+    ```
+    - Если клиент **отправляет запрос с токеном**, `TokenAuthentication` проверит его **только для этого запроса**.
+    - Другой клиент отправляет запрос — DRF снова **запускает новую проверку** через authentication classes.
 * Amine: game backend using websockets (with 42 auth)
 
 
@@ -525,8 +553,6 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
 * pip install django-extensions pygraphviz pydot
   + INSTALLED_APPS += ['django_extensions']
   + python manage.py graph_models -a -o models.png енерировать граф
-
-
 
 
 ### DJANGO CHANNELS
