@@ -146,29 +146,24 @@ database 0.5                  | ---     | +
   + Kafka (или RabbitMQ) Если нужно передавать сообщения между сервисами, но не для долговременного хранения.  
   + Оптимальный вариант для большинства проектов: PostgreSQL (основное хранилище) + Redis (для кеша и ускорения)
 
+
 ### MODULES
 * аватарки
-  + Локальное хранение (Media Storage)
-    - Для разработки лучший вариант  
-    - Подходит для Малых и средних проектов  
+  + в базе данных (Base64, BLOB) НЕ рекомендуется!  
+    - Долгая загрузка аватарок
+    - Сложно кэшировать
+  + локальное хранение (Media Storage)
+    - для Малых и средних проектов  
     - Простоты настройки и отладки  
     - `settings.py`: MEDIA_URL MEDIA_ROOT 
-    - Нагрузку на сервер придется учитывать (особенно если пользователей много).
-    - Нужно чистить старые файлы, если аватарка обновляется.
+    - Нужно чистить старые файлы, если аватарка обновляется
   + S3-совместимое хранилище (AWS S3, DigitalOcean Spaces, MinIO)
     - Для продакшена лучший вариант
     - Подходит для Масштабируемых проектов  
-    - надежности и доступности  
     - pip install django-storages[boto3]
-    - `settings.py`: DEFAULT_FILE_STORAGE, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME,    AWS_S3_REGION_NAME, AWS_S3_CUSTOM_DOMAIN, MEDIA_URL
-    - Хорошо подходит для продакшена.
-    - Не нагружает сервер.
-    - Простая интеграция с CDN.
-    - Нужно платить за облачное хранилище.
-  + в базе данных (Base64, BLOB) НЕ рекомендуется!  
-    - Увеличивает размер базы данных.
-    - Долгая загрузка аватарок.
-    - Сложно кэшировать.
+    - `settings.py`: DEFAULT_FILE_STORAGE, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, AWS_S3_REGION_NAME, AWS_S3_CUSTOM_DOMAIN, MEDIA_URL
+    - Не нагружает сервер
+    - Простая интеграция с CDN
   + внешних сервисов (Gravatar, Cloudinary)
     - Быстрого решения     
     - Минимального кода  
@@ -814,6 +809,19 @@ You’re seeing the help section of this page because you have DEBUG = True in y
   + RabbitMQ брокер сообщений системных сообщений (уведомление о начале турнира, уведомление о добавлении в друзья)
   + PostgreSQL
   + IPC  
+* bakyt: Redis is commonly used as a message broker and **in-memory store**. Here’s why you need Redis for this feature:
+  + publish/subscribe capabilities, allowing messages to be instantly distributed to multiple subscribers
+  + Channel Layer Backend
+    - Django Channels needs a channel layer to handle real-time communication between different consumers.
+    - Redis acts as the backend for Django’s ASGI channel layer, enabling inter-process communication.
+    - Without Redis, different Django processes wouldn’t be able to share real-time events.
+  + Scalability: Redis allows your chat system to work across multiple Django instances. Even if your application is running on multiple servers, Redis ensures all instances remain synchronized.
+  + Session and Message Storage
+    - While messages are usually stored in a database, Redis can be used for temporary message caching before writing to the database.
+    - It can also store user session data, improving chat performance.
+  + Low Latency
+    - Redis operates in-memory, making it extremely fast compared to traditional databases.
+    - This ensures minimal delay in message delivery, improving the real-time experience.
 
 
 ### REDIS ДЛЯ ХРАНЕНЯ СЕССИЙ
@@ -872,7 +880,7 @@ You’re seeing the help section of this page because you have DEBUG = True in y
     - Redis как общий слой
 * django REST Framework обращается к redis
   + кэшировать ответы API, особенно одинаковые для множества пользователей
-  + кэширование для представлений API: если данные уже есть в кэше, они будут возвращены из Redis, если нет, будут получены из базы данных и затем кэшированы
+  + кэширование для представлений API: если данные уже есть в кэше, они будут возвращенbaы из Redis, если нет, будут получены из базы данных и затем кэшированы
   + кэширование на уровне вьюх или сериализаторов
 * django channels обращается к redis
   + CHANNEL_LAYERS: позволяет Django Channels использовать Redis для обмена сообщениями через WebSocket или другие каналы
