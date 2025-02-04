@@ -610,6 +610,16 @@ You’re seeing the help section of this page because you have DEBUG = True in y
   + через **события**
   + через **статусы в ответах API**
   + не через механизм сообщений Django
+* View (или APIView, если это Django REST Framework)
+  + класс‐вью создаётся (инстанцируется) на каждый входящий запрос
+  + при каждом запросе к этому урлу Django создаёт новый объект класса, вызывает соответствующие методы (get, post, ...) и затем уничтожает объект
+  + хранить в себе контекст обработки (запрос, параметры, данные)
+  + в объекте View можно было безопасно хранить данные, относящиеся к конкретному запросу, не опасаясь утечек между разными запросами
+* один запрос — одна вьюшка
+  + Маршрутизатор URLconf сопоставляет URL‑адрес конкретной вьюшке
+  + исключения:  
+    - middleware или декораторы вокруг вью, которые дополнительно модифицируют запрос/ответ;
+    - ручной вызов «другой» вью внутри кода (не очень распространённый и специфичный сценарий)
 * bakyt: API for Database - UserProfile works
 
 
@@ -655,6 +665,9 @@ You’re seeing the help section of this page because you have DEBUG = True in y
   + consumer отправляет обратно пользователю `{ "type": "chat.message", "message": "Hi there!" }` 
   + сессии передаются через cookie
 * назначение пользователей к группам каналов
+* каждый WebSocket‑запрос (подключение) привязывается к одному consumer
+  + Маршрутизация (routing) определяет, какой именно consumer будет обрабатывать данную точку подключения (по URL, пути, протоколу и т. п.).  
+  + Если нужно обрабатывать разные аспекты в одном соединении, это внутри одного consumer’а (или используете механизмы «множественных рутов» и subprotocol при желании, но это всё равно не превращается в «два consumer’а на один запрос»)
 
 
 ### CHANNEL LAYERS
@@ -1041,25 +1054,33 @@ You’re seeing the help section of this page because you have DEBUG = True in y
 
 
 ### ТОКЕНЫ БЕЗОПАСНОСТЬ
-* REST_FRAMEWORK = { 'DEFAULT_AUTHENTICATION_CLASSES': [...] }
-* AUTHENTICATION_BACKENDS = [...]
-* `SessionAuthentication` / `BasicAuthentication` / `TokenAuthentication` / `JWTAuthentication` / `OAuth2Authentication`
-* `jwt`, `token`, `session`, `cookies`, `Bearer`, `Authorization`, `CSRF`, ...
-* `urls.py`, `views.py`: `SimpleJWT`
-* `urls.py`, `views.py`: `rest_framework.authtoken` +  `authtoken` в `INSTALLED_APPS` или `urlpatterns`
-* `package.json` / `requirements.txt`: `djangorestframework-simplejwt`, `PyJWT`, `channels`, `rest_framework.authtoken`, `django-allauth`, `django-axes`, `oauthlib`
-* F12 - network - headers, выполните login, посмотрите, что отправляется с клиентской стороны:
-  + Если есть заголовок `Authorization: Bearer <токен>` в последующих запросах, используется JWT (или др токен)
-  + Если сервер выставляет куку (например, `Set-Cookie: sessionid=...`), значит это сессионная аутентификация (Django Sessions, например)
-  - Может быть комбинированный вариант: JWT храним в куках, ...
-* `from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView; `urlpatterns = [path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair')]`
-* `from rest_framework.authtoken.views import obtain_auth_token; urlpatterns = [path('api-token-auth/', obtain_auth_token, name='api_token_auth')]`
-* `settings.py` включены `SessionAuthentication`/`django.contrib.sessions`
-* INSTALLED_APPS: 'allauth', 'allauth.account', 'allauth.socialaccount', 'allauth.socialaccount.providers.google'
-* settings.py, urls.py
-* middleware
-* authentication classes   
-
+* кто зашёл в систему (аутентификация/идентификация) и что ему разрешено делать (авторизация)
+* какой у нас тип - посмотреть
+  + auth, authentication, REST_FRAMEWORK, oauth, session, cookies, bearer, `authorization, 
+  + jwt, token, authtoken, rest_framework_simplejwt, csrf
+  + 'allauth', 'allauth.account', 'allauth.socialaccount', 'allauth.socialaccount.providers.google', `django-allauth`, `django-axes`
+  + middleware
+  + authentication classes   
+    - F12 - network - headers, выполните login, посмотрите, что отправляется с клиентской стороны:
+    - Если есть заголовок `Authorization: Bearer <токен>` в последующих запросах, используется JWT (или др токен)
+    - Если сервер выставляет куку (`Set-Cookie: sessionid=...`) => сессионная аутентификация (Django Sessions, например)
+    - комбинированный вариант: JWT храним в куках, ...
+* оновные способы аутентификации/авторизации 
+  + сессии
+   - сервер хранит данные о пользователе (сессионный идентификатор) в памяти или базе, а в браузере — кука с ID
+   - подход прост, удобен для классических веб-приложений, но требует, чтобы сервер отслеживал и хранил сессии
+  + токены (JWT, Bearer-токены, ...)  
+    - Клиент после входа получает токен и отправляет его в заголовке `Authorization`.  
+    - Подходит для SPA, мобильных приложений, микросервисов. Не требует состояния на сервере (кроме валидации и возможной чёрной/белой списков).
+  + OAuth/OpenID Connect (частный случай использования токенов)
+    - Позволяет авторизовать пользователя через сторонние сервисы (Google, GitHub)
+    - Удобно для SSO (Single Sign-On)
+  + базовая аутентификация (Basic Auth)  
+    - Логин/пароль передаются в заголовке при каждом запросе.  
+    - Простой, но редко используется в чистом виде (слабо защищён, неудобен).
+  + комбинированные методы  
+    - Например, session + CSRF токен, или JWT в куке
+    - Часто встречаются в современных фреймворках для повышения безопасности
 | токен/ключ    | Назначение                          | Где хранится                         | Особенности | пример |
 |---------------|-------------------------------------|--------------------------------------|-------------|--------|
 | CSRF          | от подделки запросов (CSRF-атак)    | cookie csrftoken                     | проверяется сервером при POST/PUT запросах, передаётся в скрытом поле формы или заголовке            | Защита формы входа; обеспечение легитимности запросов от пользователя; AJAX-запросы|
@@ -1078,7 +1099,7 @@ You’re seeing the help section of this page because you have DEBUG = True in y
     - cookie: csrftoken=KRaxdt052lYdhYUoahiFkhwGgB00H4jg
     - sec-websocket-key: BNMxSoHDbO66J+298LsweQ==
 * **csrf MW проверяет токен, а до этого не надо его проверять?**
-* можно вообще без сессий: если вся информация хранится в токенах или сессии вообще не нужны (например, чисто API-проект)
+* можно без сессий, если вся информация хранится в токенах
 **если используется исключительно токен-авторизация (JWT), можно отключить django.contrib.sessions.middleware.SessionMiddleware и  django.middleware.csrf.CsrfViewMiddleware**
 * CSRF (CROSS-SITE REQUEST FORGERY) ключ, токен
   + для защиты формы на странице входа
