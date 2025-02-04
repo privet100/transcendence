@@ -1044,16 +1044,11 @@ You’re seeing the help section of this page because you have DEBUG = True in y
 * REST_FRAMEWORK = { 'DEFAULT_AUTHENTICATION_CLASSES': [...] }
 * AUTHENTICATION_BACKENDS = [...]
 * `SessionAuthentication` / `BasicAuthentication` / `TokenAuthentication` / `JWTAuthentication` / `OAuth2Authentication`
-
-2. **Поиск ключевых слов**:
-   - `jwt`, `token`, `session`, `cookies`, `Bearer`, `Authorization`, `CSRF` и т. п. 
-
-3. **Проверьте `urls.py` или `views.py`**:  
-   - Если используется `SimpleJWT`, могут быть подключены вьюшки для получения `token/`, `token/refresh/`.  
-   - Если используется `rest_framework.authtoken`, вы найдёте упоминание `authtoken` в `INSTALLED_APPS` или `urlpatterns`.
+* `jwt`, `token`, `session`, `cookies`, `Bearer`, `Authorization`, `CSRF`, ...
+* `urls.py`, `views.py`: `SimpleJWT`
+* `urls.py`, `views.py`: `rest_framework.authtoken` +  `authtoken` в `INSTALLED_APPS` или `urlpatterns`
 
 4. **Docker / Docker-compose**:
-   - Иногда, если у вас микросервис с Node.js/Nest.js, там может быть `passport-jwt` или `@nestjs/jwt`.  
    - Ищите в `package.json` / `requirements.txt` строчки вроде `djangorestframework-simplejwt`, `PyJWT`, `channels`, `rest_framework.authtoken`, `django-allauth`, `django-axes`, `oauthlib` и т. п.  
 
 ---
