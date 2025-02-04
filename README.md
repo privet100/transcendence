@@ -16,6 +16,13 @@ django 1                      | ---     | +
 bootstrap 0.5                 | +       | ---
 database 0.5                  | ---     | +
 
+* Л
+  + авторизация
+  + profile
+  + game page
+  + auth issue
+* накидать в Figma шаблоны страничек (часть есть в Миро) страницы: страница с логином, с самой игрой (пока без игры), профиль пользователя, страница с турниром
+
 
 ### TEST
 * nginx
@@ -134,7 +141,8 @@ database 0.5                  | ---     | +
   | Email                 | No        | Yes                  | Important notifications, confirmations| Medium  |
   | Push Notifications    | Yes       | Yes (by service)     | Mobile device notifications        | Medium     |
 
-### MODULS
+
+### MODULES
 * аватарки
   + Локальное хранение (Media Storage)
     - Для разработки лучший вариант  
@@ -286,6 +294,16 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + после получения данных пользовательский интерфейс (UI) обновляется без перезагрузки страницы
   + `async/await` для упрощения чтения
 * pop-up windows : login, chat, profile
+* F12 concole
+  + лучше всего в chrome
+  + colsole.log отладка
+  + кнопка квадратик со стрелкой слево вверх - код элемента html
+* прямо в консоли можно писать js и пробовать
+  + гndetermined - что вернула функция
+  + можно создать переменные (let)
+    - они сохраняются в объекте window (window = браузер)
+    - x или window.x досутп к этой переменной
+  + api браузера - геолокация, звук
 
 
 ### BACKEND DAPHNE 
@@ -923,6 +941,12 @@ You’re seeing the help section of this page because you have DEBUG = True in y
 * myapp: логика пользовательских профилей, турниров, историй игр
 * страница comptetition, profile, настройки
 * alexey: Tournaments – working 
+* Амин 
+  + whether we want to follow basic ping pong rules?
+  + the ball should speed up when paddle hits the ball ?
+  + https://stackoverflow.com/questions/54796089/python-ping-pong-game-speeding-up-the-ball-after-paddle-hit 
+  + some sort of **anticheat** to be sure that the users mouvement are normal
+    - my code outputs two players position and the ball and then you can render it however you want
 
 
 ### СТАТИЧЕСКИЕ ФАЙЛЫ html js CSS изображения шрифты
@@ -1512,61 +1536,20 @@ You’re seeing the help section of this page because you have DEBUG = True in y
   - http://localhost:8000/api/, http://localhost:8000/ автоматичесая документация эндпоинтов **Browsable API** 
   - http://localhost:8000/swagger/, http://localhost:8000/redoc/, если настроена автоматическая документация
 * pathname = часть адреса после корня
+* `Uncaught SyntaxError: Unexpected token '<'`
+  + `theme.js` и `nav_sidebar.js` отдаются со статусом 200, но на деле возвращают HTML
+  + вместо js браузер получил от сервера HTML (страницу с ошибкой, редирект на логин, ...)
 
 
 ### ORGANISATION
-* git grep -n "redis" $(git rev-list --all) поиск по всем веткам
 * искать по истории коммитов и разным веткам в VS Code, установите GitLens
-  + Открыть Extensions (Ctrl + Shift + X) → найти GitLens → установить.
-  + Открыть "GitLens: Search Commits" (Ctrl + P → GitLens: Search Commits).
-  + Искать нужное слово по всей истории репозитория (это включает разные ветки).
 * https://github.com/bakyt92/14_ft_transendence
 * https://docs.google.com/document/d/14zC4f2D8vdh9cYKosDQxsjWYc9aax2hPGuh8Y7CoENI/edit?tab=t.0
 * https://docs.google.com/document/d/1O1r9jEdxISjMV29lZgLXWNh-bgPzSlnZ6Nr8QuyP_Jc/edit?pli=1
-* F12 concole
-  + лучше всего в chrome
-  + colsole.log отладка
-  + кнопка квадратик со стрелкой слево вверх - код элемента html
-* прямо в консоли можно писать js и пробовать
-  + гndetermined - что вернула функция
-  + можно создать переменные (let)
-    - они сохраняются в объекте window (window = браузер)
-    - x или window.x досутп к этой переменной
-  + api браузера - геолокация, звук
 * Application - хранилище:
   + куки
   + local storage
   + ... storage
-* the password for the django admin panel ...
-* Б
-  + структуры данных
-  + DRF
-  + модуль с сокетами и чатом (live chat, уведомления о турнирах, и проч)
-  + эндпоинты и методы для API
-  + chat
-  + **rabbitMQ модуль сообщение от сервера**
-  + ws
-* Л
-  + авторизация
-  + фронт-энд
-  + шаблон для фронт энда
-  + profile
-  + game page
-  + auth issue
-* Ан
-  + накидать в Figma шаблоны страничек (часть есть в Миро) страницы: страница с логином, с самой игрой (пока без игры), профиль пользователя, страница с турниром
-  + делать шаблончики  
-  + структуры страничек
-  + API с бэкэнда
-* Амин
-  + вебсокеты для модуля remote players: обмен информацией между игроками и сервером о локации ракетки и мяча
-  + game logic
-    - whether we want to follow basic ping pong rules?
-    - the ball should speed up when paddle hits the ball ?
-    - https://stackoverflow.com/questions/54796089/python-ping-pong-game-speeding-up-the-ball-after-paddle-hit 
-  + some sort of **anticheat** to be sure that the users mouvement are normal
-    - my code will be easy, it'd just gonne output two players position and the ball and then you can render it however you want
-  + I'll update you soon on the game websocket
 * basic requirements 20.01.2025 
   + All pong game part will be done by Amine? Do you need help with front-end (table, paddles, ball, some activity of JS or someone will do it?
   + Tournament, registration and matchmaking system by Alexey
