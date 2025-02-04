@@ -112,7 +112,7 @@ database 0.5                  | ---     | +
 * **зачем общий чат**
 * the user sends direct messages to other users (subject)
 * the user blocks other users, they see no more messages from the account they blocked (subject)
-* the user **invites** other users to play through the chat interface (subject)
+* the user **invites other users to play** through the chat interface (subject) #question
 * the tournament warns users expected for the next game (subject)
 * the user access other players profiles through the chat interface (subject)
 * с каждым пользователем у бэкенда 2 вебсовета: чат, положение ракетки
