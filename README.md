@@ -1041,6 +1041,82 @@ You’re seeing the help section of this page because you have DEBUG = True in y
 
 
 ### ТОКЕНЫ БЕЗОПАСНОСТЬ
+* REST_FRAMEWORK = { 'DEFAULT_AUTHENTICATION_CLASSES': [...] }
+* AUTHENTICATION_BACKENDS = [...]
+* `SessionAuthentication` / `BasicAuthentication` / `TokenAuthentication` / `JWTAuthentication` / `OAuth2Authentication`
+
+2. **Поиск ключевых слов**:
+   - `jwt`, `token`, `session`, `cookies`, `Bearer`, `Authorization`, `CSRF` и т. п. 
+
+3. **Проверьте `urls.py` или `views.py`**:  
+   - Если используется `SimpleJWT`, могут быть подключены вьюшки для получения `token/`, `token/refresh/`.  
+   - Если используется `rest_framework.authtoken`, вы найдёте упоминание `authtoken` в `INSTALLED_APPS` или `urlpatterns`.
+
+4. **Docker / Docker-compose**:
+   - Иногда, если у вас микросервис с Node.js/Nest.js, там может быть `passport-jwt` или `@nestjs/jwt`.  
+   - Ищите в `package.json` / `requirements.txt` строчки вроде `djangorestframework-simplejwt`, `PyJWT`, `channels`, `rest_framework.authtoken`, `django-allauth`, `django-axes`, `oauthlib` и т. п.  
+
+---
+
+## 2. Проверить поведение при логине
+
+Если у вас **запущено** приложение:
+1. Откройте **инструменты разработчика** в браузере (Network → вкладка `Headers`) и выполните процесс входа (login).  
+2. Посмотрите, **что отправляется** с клиентской стороны:
+   - Если есть заголовок `Authorization: Bearer <токен>` в последующих запросах, используется JWT (или похожий токен).  
+   - Если сервер выставляет куку (например, `Set-Cookie: sessionid=...`), значит это сессионная аутентификация (Django Sessions, например).  
+   - Может быть комбинированный вариант: JWT храним в куках, и т. п.
+
+---
+
+## 3. Взглянуть на код авторизации в бэкенде
+
+Часто пишут что-то вроде:
+```python
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+...
+urlpatterns = [
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    ...
+]
+```
+или
+```python
+from rest_framework.authtoken.views import obtain_auth_token
+urlpatterns = [
+    path('api-token-auth/', obtain_auth_token, name='api_token_auth')
+]
+```
+Это прямое указание на токен‐аутентификацию. Если же ничего подобного нет, а в `settings.py` включены `SessionAuthentication`/`django.contrib.sessions`, скорее всего, используется **сессионная аутентификация**.
+
+---
+
+## 4. Возможно, OAuth (Google, GitHub и т. п.)
+
+Если есть **социальная авторизация**, поищите в `INSTALLED_APPS`:
+```python
+INSTALLED_APPS = [
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    ...
+]
+```
+или в `package.json` (Node.js). Тогда часть входа может идти через OAuth, но в итоге сессия или JWT тоже может использоваться на бэкенде.
+
+---
+
+### Вывод
+
+Чтобы точно определить, **что** именно используется в Transcendence для аутентификации/авторизации:
+
+1. **Проверьте конфигурацию (settings.py, urls.py, packages).**
+2. **Посмотрите, какие middleware и authentication classes задействованы** (например, в Django REST Framework).  
+3. **Проанализируйте трафик** при логине — видны ли `Authorization: Bearer ...` или `Set-Cookie: sessionid=...`.  
+
+Так вы точно узнаете, используется ли **JWT** (или иные *token*-решения), **сессии**, **OAuth** или иной механизм.
+
 | Характеристика       | Токен авторизации            | CSRF-ключ                  | Сессионный ключ            |
 |----------------------|------------------------------|----------------------------|----------------------------|
 | Назначение           | Аутентификация               |                            | Идентификация сессии       |
