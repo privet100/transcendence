@@ -2,7 +2,7 @@ module                        | front   | back
 ------------------------------|---------|------   
 basic front-end               | L       | ---
 live pong game on website     | L       | Amine
-rules of Pong                 | Amin e  | Amine     
+rules of Pong                 | Amine   | Amine     
 remote players 1              | ---     | Amine  
 AI Opponent 1                 | ---     | Amine  
 tournament                    | L       | L       
@@ -1047,82 +1047,24 @@ You’re seeing the help section of this page because you have DEBUG = True in y
 * `jwt`, `token`, `session`, `cookies`, `Bearer`, `Authorization`, `CSRF`, ...
 * `urls.py`, `views.py`: `SimpleJWT`
 * `urls.py`, `views.py`: `rest_framework.authtoken` +  `authtoken` в `INSTALLED_APPS` или `urlpatterns`
-
-4. **Docker / Docker-compose**:
-   - Ищите в `package.json` / `requirements.txt` строчки вроде `djangorestframework-simplejwt`, `PyJWT`, `channels`, `rest_framework.authtoken`, `django-allauth`, `django-axes`, `oauthlib` и т. п.  
-
----
-
-## 2. Проверить поведение при логине
-
-Если у вас **запущено** приложение:
-1. Откройте **инструменты разработчика** в браузере (Network → вкладка `Headers`) и выполните процесс входа (login).  
-2. Посмотрите, **что отправляется** с клиентской стороны:
-   - Если есть заголовок `Authorization: Bearer <токен>` в последующих запросах, используется JWT (или похожий токен).  
-   - Если сервер выставляет куку (например, `Set-Cookie: sessionid=...`), значит это сессионная аутентификация (Django Sessions, например).  
-   - Может быть комбинированный вариант: JWT храним в куках, и т. п.
-
----
-
-## 3. Взглянуть на код авторизации в бэкенде
-
-Часто пишут что-то вроде:
-```python
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-...
-urlpatterns = [
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    ...
-]
-```
-или
-```python
-from rest_framework.authtoken.views import obtain_auth_token
-urlpatterns = [
-    path('api-token-auth/', obtain_auth_token, name='api_token_auth')
-]
-```
-Это прямое указание на токен‐аутентификацию. Если же ничего подобного нет, а в `settings.py` включены `SessionAuthentication`/`django.contrib.sessions`, скорее всего, используется **сессионная аутентификация**.
-
----
-
-## 4. Возможно, OAuth (Google, GitHub и т. п.)
-
-Если есть **социальная авторизация**, поищите в `INSTALLED_APPS`:
-```python
-INSTALLED_APPS = [
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
-    ...
-]
-```
-или в `package.json` (Node.js). Тогда часть входа может идти через OAuth, но в итоге сессия или JWT тоже может использоваться на бэкенде.
-
----
-
-### Вывод
-
-Чтобы точно определить, **что** именно используется в Transcendence для аутентификации/авторизации:
-
-1. **Проверьте конфигурацию (settings.py, urls.py, packages).**
-2. **Посмотрите, какие middleware и authentication classes задействованы** (например, в Django REST Framework).  
-3. **Проанализируйте трафик** при логине — видны ли `Authorization: Bearer ...` или `Set-Cookie: sessionid=...`.  
-
-Так вы точно узнаете, используется ли **JWT** (или иные *token*-решения), **сессии**, **OAuth** или иной механизм.
-
-| Характеристика       | Токен авторизации            | CSRF-ключ                  | Сессионный ключ            |
-|----------------------|------------------------------|----------------------------|----------------------------|
-| Назначение           | Аутентификация               |                            | Идентификация сессии       |
-| Где хранится?        | HTTP-заголовки, cookie, JS-хранилища | Cookie (обычно)    | Cookie (обычно)            |
-| Пример использования | REST API, GraphQL, WebSockets| Формы, AJAX-запросы        | Веб-приложения с авторизацией|
+* `package.json` / `requirements.txt`: `djangorestframework-simplejwt`, `PyJWT`, `channels`, `rest_framework.authtoken`, `django-allauth`, `django-axes`, `oauthlib`
+* F12 - network - headers, выполните login, посмотрите, что отправляется с клиентской стороны:
+  + Если есть заголовок `Authorization: Bearer <токен>` в последующих запросах, используется JWT (или др токен)
+  + Если сервер выставляет куку (например, `Set-Cookie: sessionid=...`), значит это сессионная аутентификация (Django Sessions, например)
+  - Может быть комбинированный вариант: JWT храним в куках, ...
+* `from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView; `urlpatterns = [path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair')]`
+* `from rest_framework.authtoken.views import obtain_auth_token; urlpatterns = [path('api-token-auth/', obtain_auth_token, name='api_token_auth')]`
+* `settings.py` включены `SessionAuthentication`/`django.contrib.sessions`
+* INSTALLED_APPS: 'allauth', 'allauth.account', 'allauth.socialaccount', 'allauth.socialaccount.providers.google'
+* settings.py, urls.py
+* middleware
+* authentication classes   
 
 | токен/ключ    | Назначение                          | Где хранится                         | Особенности | пример |
 |---------------|-------------------------------------|--------------------------------------|-------------|--------|
-| CSRF          | от подделки запросов (CSRF-атак)    | cookie csrftoken                     | проверяется сервером при POST/PUT запросах, передаётся в скрытом поле формы или заголовке            | Защита формы входа; обеспечение легитимности запросов от пользователя|
-|ток авторизации| авторизация                         |HTTP-заг cookie locStorage sessStorage| Используется для REST API и WebSocket; может быть JWT | авторизация REST API (`Authorization: Bearer <token>`) или ws-соединения |
-|сессионный ключ| управление пользов! сессией         | cookie sessionid                     | долговрем. связь пользователя с сервером; подходит для **веб-интерфейсов**; сохраняется на сервере | отслеживание состояния авторизации в веб-приложении; данные польз. (корзина)|
+| CSRF          | от подделки запросов (CSRF-атак)    | cookie csrftoken                     | проверяется сервером при POST/PUT запросах, передаётся в скрытом поле формы или заголовке            | Защита формы входа; обеспечение легитимности запросов от пользователя; AJAX-запросы|
+|ток авторизации| авторизация? аутентификация?        |HTTP-заг cookie locStorage sessStorage| Используется для REST API и WebSocket; может быть JWT | авторизация REST API (`Authorization: Bearer <token>`) или ws-соединения; REST API, GraphQL, WebSockets |
+|сессионный ключ| управление пользов сессией          | cookie sessionid                     | долговрем. связь пользователя с сервером; подходит для **веб-интерфейсов**; сохраняется на сервере | отслеживание состояния авторизации в веб-приложении; данные польз. (корзина); Веб-приложения с авторизацией|
 | ws-ток        | авторизация при установке ws-соедине| URL параметр / заголовок ws-запроса  | передаётся при установке соединения; проверка прав доступа | авторизация чата, потоковой системы `wss://example.com/ws/chat/?token=<...>`|
 | Email-токен   | подтвержд email-адреса, восст пароля| URL отправляемое пользователю        | одноразовый токен| подтверждение email ссылкой `https://example.com/verify-email/?token=<>`|
 | API-ключи     |идентификация, авторизация стор прилож| HTTP заголовок запроса              | передаётся с каждым запросом; ограниченный доступ к API | интеграция с внеш сервисом, предост. публ. API `Authorization: Api-Key <>`|
