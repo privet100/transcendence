@@ -1005,6 +1005,19 @@ You’re seeing the help section of this page because you have DEBUG = True in y
 * change username, email будет ли?
 * myapp: логика пользовательских профилей, турниров, историй игр
 * страница comptetition, profile, настройки
+* коллега написал логику игры на JavaScript для фронтенда, который взаимодействует с DRF через API
+  + файлы находятся в frontend, делают API-запросы к Django
+    - Django возвращает JSON
+  + если это Django Template (обычный HTML+JS), то в `myapp/templates/` или `myapp/static/js/`
+  + если вы используете Django шаблоны и пишете Vanilla JS, то JS-файлы можно поместить в `static/название_приложения/js/`, потом подключать в шаблонах через `{% static '...' %}`
+  + если вы используете SPA (React/Vue) — у вас своя структура фронтенда, сборка Webpack/Vite, и всё компилируется в папку `build`, которую Django отдаёт как статику  
+  + логика на js для фронтенда (или для отдельного сервиса на Node.js),
+    - это отдельная часть проекта, а не DRF view
+    - Можно писать отдельный бэкенд на Node.js, если проект так структурирован (но это уже другая серверная часть, не DRF) 
+    - серверный Node.js
+    - отдельный сервер
+    - второй бэкенд
+    - отдельный сервис, в другом каталоге, со своим `package.json` и запуском
 * alexey: Tournaments – working 
 * Амин 
   + whether we want to follow basic ping pong rules?
