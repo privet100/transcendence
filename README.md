@@ -1028,6 +1028,7 @@ You’re seeing the help section of this page because you have DEBUG = True in y
     - Django Cache сам выбирает бэкенд (можно легко переключиться с Redis на Memcached и т.д.)
     - код проще и унифицирован  
     - если нужен просто кеш (например, хранить сообщения), лучше использовать Django Cache Framework
+    - если CACHES настроен, значит Django Cache Framework включен
   + напрямую с Redis (без Django Cache)
     - consumer сам подключается к Redis, управляет кэшем напрямую
     - `await self.redis.rpush(self.room_name, message)`
