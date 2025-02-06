@@ -20,32 +20,13 @@ database 0.5                  | ---     | +
 
 
 ### TEST
-* nginx
-  + в контейнере `nginx -t`
-  + `curl -I http://localhost:4444` : статус 301 с Location: https://localhost:4443/... 
-  + `curl -I --insecure https://localhost:4443` : `HTTP/1.1 200 OK`
-  * `docker-compose logs frontend`
-    - ```
-      /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-      /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-      /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-      10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-      10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
-      /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-      /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-      /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-      /docker-entrypoint.sh: Configuration complete; ready for start up
-      172.21.0.1 "GET /static/chat.html               HTTP/1.1" 200 8204  "Chrome"
-      172.21.0.1 "GET /static/css/chat.css            HTTP/1.1" 200 3189  "https://localhost:4443/static/chat.html" "Chrome"
-      172.21.0.1 "GET /ws/chat/r/                     HTTP/1.1" 404 5667  "Chrome"
-      172.21.0.1 "GET /ws/chat                        HTTP/1.1" 404 5658  "Chrome"
-      ```
-    - 172.21.0.1 IP-адрес клиента (в контейнерной сети внутренний адрес Docker)
-    - `-` идентификация (RFC 1413), по умолчанию отсутствует
-    - `-` **имя пользователя (Basic Auth)**, по умолчанию отсутствует
-    - `GET /favicon.ico HTTP/1.1` request Line: метод запроса, путь, версия протокола, осн. заголовки (User-Agent, Referer), метод/URL
-    - https://localhost:4443/` откуда пользователь перешёл
-  + `curl -I -k https://localhost:4443/staticfiles/admin/css/base.css` проверить contecnt-type 
+* `docker-compose logs frontend`: `172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189  "https://localhost:4443/static/chat.html" "Chrome"`
+  + 172.21.0.1 IP-адрес клиента (в контейнерной сети внутренний адрес Docker)
+  + `-` идентификация (RFC 1413), по умолчанию отсутствует
+  + `-` **имя пользователя (Basic Auth)**, по умолчанию отсутствует
+  + `GET /favicon.ico HTTP/1.1` request Line: метод запроса, путь, версия протокола, осн. заголовки (User-Agent, Referer), метод/URL
+  + https://localhost:4443/` откуда пользователь перешёл
+* `curl -I -k https://localhost:4443/staticfiles/admin/css/base.css` проверить contecnt-type 
 * ws
   + как работает утсновка соединения:
     - js инициирует подключение к `wss://localhost:4443/ws/chat/room/`
@@ -62,11 +43,7 @@ database 0.5                  | ---     | +
   * wss://localhost:4443/ws/chat/
   * ws://localhost:4443/ws/chat/room/ ws-запрос на /ws/chat/
   * wss://localhost:4443/ws/chat/room/
-  + `F12` Network
-    - Finished в колонке Status ws-подключения = загрузка ресурса ок (первоначальный HTTP‐запрос на handshake) != ws-соединение разорвано 
-    - F12 - ws- messages: входящие/исходящие сообщения, в Timing (Headers) статус 101 Switching Protocols
-  + WebSocket-тестер https://websocketking.com/
-  + WebSocket-тестер wscat (CLI-инструмент)
+  + `F12` Network - F12 - ws- messages: входящие/исходящие сообщения, в Timing (Headers) статус 101 Switching Protocols
   + views.py обрабатвает HTTP Django URLs /chat/<room> 
     - WebSocket Channels обрабатывает /ws/chat/<room> (ASGI routing)
     - если в urls.py есть в path("ws/chat/<room>", views...), Django перехватывает его как HTTP и выдаваёт 404, или ищет шаблон
@@ -87,8 +64,6 @@ database 0.5                  | ---     | +
     - метод (GET, POST, PUT, DELETE и т. д.)
     - если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`)
     - статус ответа (200 OK, 401 Unauthorized, ...) 
-* Django Debug Toolbar отслеживание работы проекта
-  + django: встроенные инструменты для тестирования HTTP
 * Django Channels + `pytest` : ws-тесты
 * запрос `GET /ws/chat/rr/` обрабатывается как обычный, не как WebSocket‐handshake - проверить:
   + `frontend "GET /ws/chat/rr/ HTTP/1.1" 404 ...`: js‐код формирует `ws://` или `wss://`, но браузер блокирует/не делает Upgrade
@@ -109,7 +84,7 @@ database 0.5                  | ---     | +
 
 ### LIVE CHAT
 * **чат сделать компонентом**
-* **зачем общий чат**
+* **зачем общий чат** #question
 * the user sends direct messages to other users (subject)
 * the user blocks other users, they see no more messages from the account they blocked (subject)
 * the user **invites other users to play** through the chat interface (subject) #question
