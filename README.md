@@ -421,8 +421,7 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
     - Обработка CORS  
     - Сжатие запросов  
     - MIDDLEWARE = ['django.middleware.security.SecurityMiddleware',django.contrib.sessions.middleware.SessionMiddleware','django.middleware.common.CommonMiddleware',]
-    - 
-      | **Функция** | **Django Middleware** | **DRF (Django REST Framework)** |
+    - | **Функция** | **Django Middleware** | **DRF (Django REST Framework)** |
       |------------|--------------------|------------------|
       | Где работает? | ВО ВСЕМ Django | Только в API |
       | Уровень | Обработчик запросов (request/response) | DRF Views, Permissions, Authentication |
@@ -444,13 +443,13 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + обычный middleware Django обрабатывает каждый HTTP-запрос
   + **DRF Middleware** (например, аутентификация) вызывается **отдельно для каждого запроса** от каждого клиента.
   + Middleware **не существует в единственном экземпляре** — он создаётся и выполняется **каждый раз, когда клиент отправляет запрос**.
-    - Когда **первый клиент** делает запрос → middleware создаётся и выполняется для него.
-    - Когда **второй клиент** делает запрос → создаётся **новый экземпляр middleware**, который обрабатывает этот запрос.
+    - Когда первый клиент делает запрос → middleware создаётся и выполняется для него.
+    - Когда второй клиент делает запрос → создаётся новый экземпляр middleware, который обрабатывает этот запрос.
   + В DRF аутентификация реализована через **Authentication Classes**. Они вызываются **отдельно для каждого запроса**:
     - Если клиент **отправляет запрос с токеном**, `TokenAuthentication` проверит его **только для этого запроса**.
     - Другой клиент отправляет запрос — DRF снова **запускает новую проверку** через authentication classes.
 * среда `AppRegistry` управляет регистрацией приложений и моделей
-**ORM Object-Relational Mapping
+* ORM Object-Relational Mapping
   + вместо написания SQL-запросов, разработчик описывает модели* (Python-классы)
   + Django автоматически преобразует модели в SQL-таблицы
   + можно легко менять базу данных (например, с SQLite на PostgreSQL)
@@ -484,13 +483,20 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + применяется уже во вью для входных данных (`POST` JSON, ..) и выходных (формирование ответа).  
   + DRF вызывает `serializer.is_valid()` для проверки пришедших данных, затем, если всё верно, вычитанные поля доступны в `serializer.validated_data`.  
   + При возврате ответа вью опять же может использовать сериализатор, чтобы преобразовать Python-объекты (модель, словарь) в JSON.
-* аутентификация, пермиссии и сериализация — отдельные модули (слои)
+* аутентификация, пермиссии и сериализация — отдельные модули (слои), содержащие классы
+  + в каждом из этих модулей находятся классы, которые можно переопределять
   + не только для middleware
   + аутентификация и разрешения подключаются как классы (Authentication Classes, Permission Classes) на уровне вью
   + сериализация — отдельный слой
   + бизнес-логика аутентификации/разрешений/сериализации чаще всего вне middleware
   + Middleware может использоваться для сессий или базовых вещей
+  + `from rest_framework.authentication import TokenAuthentication` (`TokenAuthentication` класс)
+  + экземпляры создаются заново для каждого запроса, DRF делает это для изоляции данных между запросами и безопасности  
+  + DRF создает новый объект аутентификации на каждый запрос
+  + DRF создает новый экземпляр класса разрешений и вызывает его метод `has_permission()`
+  + Serializers создаются отдельно для каждого запроса, когда данные сериализуются или десериализуются, `serializer` будет уникальным объектом для текущего запроса
 * модуль сериализации данных для работы с JSON или API #see
+  + классы для преобразования данных (например, `ModelSerializer`)
   + преобразование моделей Django и других объектов Python в JSON/XML и обратно
   + валидация данных
   + DRF Serializers (`rest_framework.serializers.Serializer` или `ModelSerializer`)  
@@ -502,6 +508,7 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
     - реализуется внутри вью/serializer классов DRF, встроена в вьюшки через классы сериализаторов (не middleware)  
     - Django не имеет middleware для парсинга JSON
 * модуль аутентификации #see
+  + классы для проверки пользователя (например, `SessionAuthentication`, `TokenAuthentication`)
   + проверка сеансовой куки, сессий, csrf, JWT (с библиотекой Simple JWT), Basic Authentication, авторизация по API-ключам
   + гибкие механизмы для работы с JWT
   + 1) во многом реализована через AuthenticationMiddleware
@@ -517,6 +524,7 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
     - тут логика
     - если вы говорите о токенах, JWT, Basic/Auth, обычно это **DRF Authentication Classes** на уровне вью.  
 * модуль прав доступа Permissions #see
+  + классы для проверки прав доступа (например, `IsAuthenticated`, `IsAdminUser`)
   + контролировать доступ к API (`AllowAny`, `IsAuthenticated`, `IsAdminUser`, `IsAuthenticatedOrReadOnly`, кастомные)
   + проверка permissions обычно не как middleware
   + Permission classes
