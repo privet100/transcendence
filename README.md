@@ -345,11 +345,16 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
 * myproject/ конфигурация Django, корневой маршрутизатор, запуск, управление проектом
 * manage.py django-утилита
   + интерфейс для настройки, разработки, управлением проектом
-  + python manage.py runserver запуск сервера разработки, daphne обращается к проекту напрямую или через `mysite.asgi`
-  + python manage.py migrate применение **миграций** базы данных
-  + python manage.py createsuperuser создание суперпользователя
-  + `if __name__ == '__main__':` точка входа программы, если файл запущен напрямую (не импортирован как модуль), выполняется `main()`
-  + [auth]: changepassword, [contenttypes] remove_stale_contenttypes, [django] check compilemessages createcachetable dbshell diffsettings dumpdata flush inspectdb loaddata makemessages makemigrations optimizemigration sendtestemail shell showmigrations sqlflush sqlmigrate sqlsequencereset squashmigrations startapp startproject test testserverт, [rest_framework] generateschema, [sessions] clearsessions, [staticfiles] collectstatic findstatic, можнго создавать собственные команды
+  + точка запуска
+  + os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myproject.settings') обращается к `backend/myproject/settings.py`
+    - для этого необходимо, чтобы Python видел `myproject` как пакет верхнего уровня (у нас ок)
+    - проверить: выполнить любую команду, например `python manage.py check`
+  + `if __name__ == '__main__':` если файл запущен напрямую (не импортирован как модуль), выполняется `main()`
+  + команды:
+    - python manage.py runserver запуск сервера разработки, daphne обращается к проекту напрямую или через `mysite.asgi`
+    - python manage.py migrate применение **миграций** базы данных
+    - python manage.py createsuperuser создание суперпользователя
+    - [auth]: changepassword, [contenttypes] remove_stale_contenttypes, [django] check compilemessages createcachetable dbshell diffsettings dumpdata flush inspectdb loaddata makemessages makemigrations optimizemigration sendtestemail shell showmigrations sqlflush sqlmigrate sqlsequencereset squashmigrations startapp startproject test testserverт, [rest_framework] generateschema, [sessions] clearsessions, [staticfiles] collectstatic findstatic, можно создавать собственные команды
 * вcтроенные модульные приложения
   + 'django.contrib.messages'
   + 'django.contrib.admin',
