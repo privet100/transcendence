@@ -852,45 +852,23 @@ You’re seeing the help section of this page because you have DEBUG = True in y
     | Как работает? | Передаёт сообщения между потребителями WebSocket через pub/sub | Кэширует результаты запросов к БД |
     | Конфигурация | `CHANNEL_LAYERS` в `settings.py` | `CACHES` в `settings.py` |
     | Протокол | Redis pub/sub | Обычное key-value хранилище |
-  + можно использовать один и тот же Redis-сервер, но лучше разделить их по базам данных (db) или использовать разные серверы для надежности
-  + один Redis с разными базами (более простой вариант)  
+  + один Redis с разными базами
     - Redis поддерживает 16 баз данных (`db=0`, `db=1` ...)
-    - для небольших проектов
-    - Channels и кэш в разных базах:
-      ```python
-      CHANNEL_LAYERS = {
-          "default": {
-              "BACKEND": "channels_redis.core.RedisChannelLayer",
-              "CONFIG": {
-                  "hosts": [{"host": "127.0.0.1", "port": 6379, "db": 1}],  # Используем db=1
-              },
-          },
-      }
-      CACHES = {
-          "default": {
-              "BACKEND": "django.core.cache.backends.redis.RedisCache",
-              "LOCATION": "redis://127.0.0.1:6379/0",  # Используем db=0
-          }
-      }
-    ```
-  + полностью разные Redis-серверы (более надежный вариант), лучше разделить на **разные Redis-инстансы** или даже **разные сервера**
-    - Для нагруженных систем  
-    ```python
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {
-                "hosts": [{"host": "127.0.0.1", "port": 6380}],  # Отдельный Redis
-            },
-        },
-    }
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": "redis://127.0.0.1:6379",  # Отдельный Redis
-        }
-    }
-    ```
+    - для небольших проектов, если нет больших требований по нагрузке и безопасности
+    - Память, процессы ввода-вывода и другие ресурсы остаются общими для обеих баз. Если одна сильно нагрузит Redis, другая тоже пострадает
+    - Flush-операции. В Redis можно делать `FLUSHALL` (очищает весь инстанс) и `FLUSHDB` (очищает одну базу). Ошибившись с командой (или по недосмотру применив не ту команду), вы можете случайно стереть и кэш, и канальные данные.  
+    - базы внутри одного Redis-инстанса работают под одними общими параметрами (включая политику сброса ключей по LRU, максимальный объём памяти и т.д.).
+    - Ограниченные возможности мониторинга. Метрики всё равно будут по одному инстансу в целом (использование памяти, CPU, ...)
+    - Для проектов с ~100 пользователей и без высоких требований к масштабированию остаточно одного Redis-инстанса и одной базы
+    - Если хотите логического разделения кэша и канального слоя, можно настроить их на разные DB (DB index). Это чуть снижает риск путаницы в ключах.  
+  + разделить на разные Redis-инстансы или даже разные сервера
+    - Isolation: Flushing the cache won’t wipe out channel data.
+    - Scalability: Each instance can be tuned or scaled independently.
+    - Performance: Heavy traffic on one won’t harm the other.
+    - Security: Compartmentalizes sensitive channel data from the cache.
+    - Monitoring: Easier to track and troubleshoot each component’s load.
+    - BUT for a small-scale project with around 100 users, separating Redis instances can be overkill. The arguments (isolation, scalability, etc.) are still valid in theory, but one Redis instance is usually enough at this size. If you expect significant growth or want a clean separation for reliability and maintenance, you can still split them. 
+    - настоящая изоляция (особенно от flush-операций или проблем с производительностью) достигается только при использовании отдельных Redis-инстансов
 
 
 ### REDIS = BACKEND ДЛЯ CHANNEL LAYERS = реализация Channel Layer
