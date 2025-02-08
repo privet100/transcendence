@@ -158,7 +158,7 @@ database 0.5                  | ---     | +
 * внутри браузера нет отдельного сервера, который перехватывает и обрабатывает запросы от JavaScript
 * браузер сам инициирует запросы и обрабатывает их через HTTP(S) протокол, направляя их на сервер
 * использует встроенные механизмы и API:
-  + XMLHttpRequest или Fetch API: Эти технологии позволяют JavaScript-ом на странице браузера отправлять запросы к серверу
+  + XMLHttpRequest или Fetch API: Эти технологии позволяют js-ом на странице браузера отправлять запросы к серверу
   + WebSocket: если приложение использует WebSocket для постоянного соединения, то браузер также инициирует это соединение с сервером, используя встроенный **WebSocket API**, который поддерживается всеми современными браузерами
 * последовательность:
   + js на странице делает запрос (например, к Daphne через HTTP или WebSocket)
@@ -210,7 +210,7 @@ database 0.5                  | ---     | +
   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; 
   proxy_set_header X-Forwarded-Proto $scheme; 
   В блоках proxy_set_header X-... и Host нужно, чтобы Django видел правильные заголовки (и знал, что мы за SSL/TLS, реальный IP и т.д.).
-* Amine: game front using javascript
+* Amine: game front using js
 * alexey: Layout on the pages – working on it
   + расположение и структура элементов пользовательского интерфейса на веб-страницах
   + Работа с CSS-фреймворками (например, Tailwind CSS или Bootstrap)
@@ -282,12 +282,25 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + `response => response.json()` конвертирует ответ JSON от сервера в объект JavaScript
   + после получения данных пользовательский интерфейс (UI) обновляется без перезагрузки страницы
   + `async/await` для упрощения чтения
+* class Navigation extends Component
+  + создание и управление навигацией
+  + создаёт компонент навигации для SPA-приложения
+  + навигация создаётся внутри `<nav>` с двумя ссылками: Home и Profile
+  + `router` для смены страниц без перезагрузки с использованием SPA 
+  + перехватывает клики по ссылкам, для каждой ссылки (`.nav-link`) добавляется обработчик клика
+    this.element.querySelectorAll('.nav-link').forEach(link => {
+       link.addEventListener('click', (e) => {
+           e.preventDefault();                                  # предотвращает стандартный переход по ссылке 
+           this.router.navigate(e.target.getAttribute('href')); # вместо этого вызывается `navigate()` для изм-я страницы без перезагрузки  
+       });
+    });
+  + export { Navigation } позволяет использовать `Navigation` в других частях проекта через import
 * pop-up windows : login, chat, profile
 * F12 concole
   + лучше всего в chrome
   + colsole.log отладка
   + кнопка квадратик со стрелкой слево вверх - код элемента html
-* прямо в консоли можно писать js и пробовать
+* прямо в консоли писать js и пробовать
   + undetermined - что вернула функция
   + можно создать переменные (let)
     - они сохраняются в объекте window (window = браузер)
@@ -1541,7 +1554,7 @@ backend  | 	Is the server running on that host and accepting TCP/IP connections?
   + сохраняются даже после закрытия браузера или перезагрузки устройства
   + не передаётся серверу
   + доступны только для того домена, который их создал.
-  + доступны только через JavaScript
+  + доступны только через js
   + использование: 
     - хранение пользовательских предпочтений (тема сайта)
     - кеширование данных (JSON-ответы от API)
@@ -1551,7 +1564,7 @@ backend  | 	Is the server running on that host and accepting TCP/IP connections?
   + данные хранятся только на время текущей сессии браузера
   + изолированно для текущей вкладки или окна
   + данные удаляются, как только вкладка или окно браузера закрываются
-  + доступны только через JavaScript
+  + доступны только через js
   + доступны только для вкладки или окна, где они были созданы
   + использование
     - хранение временных данных для одной сессии пользователя
@@ -1739,7 +1752,7 @@ backend  | 	Is the server running on that host and accepting TCP/IP connections?
 
 
 ### РАЗНОЕ
-* CSR client-side rendering / SSR server-side rendering, данные загружаются на клиентскую сторону, HTML генерируется динамически с помощью JavaScript
+* CSR client-side rendering / SSR server-side rendering, данные загружаются на клиентскую сторону, HTML генерируется динамически с помощью js
   + SSR сервер генерирует и отправляет готовый HTML на клиентскую сторону, каждый запрос требует пересоздания всей страницы на сервере, может быть медленным, сервер должен выполнить обработку данных и сгенерировать страницу каждый раз, когда поступает запрос 
   + сервер отправляет данные (JSON, ...)
   + клиент с помощью js генерирует HTML на основе полученных данных
@@ -1747,7 +1760,7 @@ backend  | 	Is the server running on that host and accepting TCP/IP connections?
   + it is almost front-end
   + if we do module - power-ups for AI are obligatory (so it is back end part): для модуля AI требуется бэкенд (сложная обработка данных, вычисления, доступ к серверным ресурсам)
 * rendering
-  + фронтенд: рендеринг HTML-шаблонов или динамически обновляемых данных через JavaScript, процесс генерации и отображения контента на веб-странице
+  + фронтенд: рендеринг HTML-шаблонов или динамически обновляемых данных через js, процесс генерации и отображения контента на веб-странице
   + Views: обработка запросов и отправка ответов в разных форматах (JSON, ...) через API
   + DRF: процесс обработки запросов и создания ответов в виде JSON, XML или других форматов
   + Django Channels: передача данных пользователю в реальном времени через протокол WebSocket
@@ -1934,7 +1947,7 @@ backend  | 	Is the server running on that host and accepting TCP/IP connections?
   + Basic front-end will be done by Alexey? (profile page, other pages)
   + Security - probably we meet requirements by we need to validate input and follow some basic security rules on the front-end part.
 * Modules (only that needs some response / comment)
-  + User management - I did back-end (almost); but we need profile page with history of games, possibility to change profile data; see statistics of wins and loses - who will be responsible for this part? I can do it but I need template of javascript page (single page structure should be already applied) 
+  + User management - I did back-end (almost); but we need profile page with history of games, possibility to change profile data; see statistics of wins and loses - who will be responsible for this part? I can do it but I need template of js page (single page structure should be already applied) 
   + OAuth42 - almost finished by Alexey, please check that all requirements of this module are met/
   + Remote Players - will do Amine
   + LiveChat - is the proccess by me and Anna 
