@@ -1021,7 +1021,18 @@ You’re seeing the help section of this page because you have DEBUG = True in y
   backend  | Applying database migrations...
   backend  | Operations to perform:
   backend  |   Apply all migrations: **admin, auth, contenttypes, myapp, sessions**
+*
+```
+backend  | Starting entrypoint script...
+backend  | Applying database migrations...
+backend  | psycopg2.OperationalError: connection to server at "db" (172.22.0.3), port 5432 failed: Connection refused
+backend  | 	Is the server running on that host and accepting TCP/IP connections?
 
+backend  | The above exception was the direct cause of the following exception:
+backend  |   File "/app/manage.py", line 16, in <module>
+backend  | django.db.utils.OperationalError: connection to server at "db" (172.22.0.3), port 5432 failed: Connection refused
+backend  | 	Is the server running on that host and accepting TCP/IP connections?
+```
 
 ### GAME LOGIC
 * a player should also be possible to propose a tournament (subject)
@@ -1852,40 +1863,26 @@ You’re seeing the help section of this page because you have DEBUG = True in y
     - Нет необходимости использовать двойные или закодированные слэши (`%2F`)
     - это обычные значения переменных окружения, а не параметры внутри HTTP-запроса
     - единственный слэш (`/`) является корректным и достаточным для URI в данном контексте
+* в REDIRECT_URI_42=http://127.0.0.1:8000/auth/callback надо **убрать 127.0.0.1:8000**
 * backend  | Starting entrypoint script... **два раза в логах**  #question
-* oauth без - ./.env:/app/.env
-```
-backend  | Starting entrypoint script...
-backend  | Applying database migrations...
-backend  | psycopg2.OperationalError: connection to server at "db" (172.22.0.3), port 5432 failed: Connection refused
-backend  | 	Is the server running on that host and accepting TCP/IP connections?
-
-backend  | The above exception was the direct cause of the following exception:
-backend  |   File "/app/manage.py", line 16, in <module>
-backend  | django.db.utils.OperationalError: connection to server at "db" (172.22.0.3), port 5432 failed: Connection refused
-backend  | 	Is the server running on that host and accepting TCP/IP connections?
-
-backend  | Starting entrypoint script...
-backend  | Applying database migrations...
-backend  | psycopg2.OperationalError: connection to server at "db" (172.22.0.3), port 5432 failed: Connection refused
-backend  | 	Is the server running on that host and accepting TCP/IP connections?
-backend  | 
-backend  | The above exception was the direct cause of the following exception:
-backend  | django.db.utils.OperationalError: connection to server at "db" (172.22.0.3), port 5432 failed: Connection refused
-backend  | 	Is the server running on that host and accepting TCP/IP connections?
-
-backend  | Starting Daphne server...
-backend  | 2025-02-08 11:06:11,842 INFO     Listening on TCP address 0.0.0.0:8000
-backend  | 2025-02-08 11:07:13,433 ERROR    code: b2576fcadb28f3cfc4ca237f216c604723996d05bf6637d4ce1308105a56d2b5
-backend  | 2025-02-08 11:07:13,433 ERROR    CLIENT_ID_42: u-s4t2ud-0f34f9a5a8eab694436a048c258fc509b67c21763329d02ade82ff3a77005eb8
-backend  | 2025-02-08 11:07:13,433 ERROR    CLIENT_SECRET_42: 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
-backend  | 2025-02-08 11:07:13,433 ERROR    REDIRECT_URI_42: http://127.0.0.1:8000/auth/callback
-backend  | 2025-02-08 11:07:13,581 ERROR    response: {'access_token': '7354455b03c5a130ac8e00e40511bd9bd820377c251f5aee91f4577c009dd733', 'token_type': 'bearer', 'expires_in': 6923, 'refresh_token': '7b8569e4268c2a9d83eb719302632647cf97eed1492eecbfd1e165a0eae748f7', 'scope': 'public', 'created_at': 1739012556, 'secret_valid_until': 1740819629}
-
-backend  | New user created with username: akostrik
-backend  | 172.22.0.1:49912 - - [08/Feb/2025:11:07:14] "GET /auth/callback?code=b2576fcadb28f3cfc4ca237f216c604723996d05bf6637d4ce1308105a56d2b5" 302 -
-```
-
+* oauth
+  + без - ./.env:/app/.env
+    ```
+    backend  | 2025-02-08 11:13:06,348 INFO     Listening on TCP address 0.0.0.0:8000
+    backend  | 2025-02-08 11:07:13,433 ERROR    code: b2576fcadb28f3cfc4ca237f216c604723996d05bf6637d4ce1308105a56d2b5
+    backend  | 2025-02-08 11:07:13,433 ERROR    CLIENT_ID_42: u-s4t2ud-0f34f9a5a8eab694436a048c258fc509b67c21763329d02ade82ff3a77005eb8
+    backend  | 2025-02-08 11:07:13,433 ERROR    CLIENT_SECRET_42: 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
+    backend  | 2025-02-08 11:07:13,433 ERROR    REDIRECT_URI_42: http://127.0.0.1:8000/auth/callback
+    backend  | 2025-02-08 11:07:13,581 ERROR    response: {'access_token': '7354455b03c5a130ac8e00e40511bd9bd820377c251f5aee91f4577c009dd733', 'token_type': 'bearer', 'expires_in': 6923, 'refresh_token': '7b8569e4268c2a9d83eb719302632647cf97eed1492eecbfd1e165a0eae748f7', 'scope': 'public', 'created_at': 1739012556, 'secret_valid_until': 1740819629}
+    backend  | New user created with username: akostrik
+    backend  | 172.22.0.1:49912 - - [08/Feb/2025:11:07:14] "GET /auth/callback?code=b2576fcadb28f3cfc4ca237f216c604723996d05bf6637d4ce1308105a56d2b5" 302 -
+    ```
+  + с - ./.env:/app/.env
+    ```
+    backend  | 2025-02-08 11:13:06,348 INFO     Listening on TCP address 0.0.0.0:8000
+    backend  | 172.23.0.5:59248 - - [08/Feb/2025:11:23:03] "GET /api/auth/me" 200 54
+    backend  | 172.23.0.5:59262 - - [08/Feb/2025:11:23:03] "GET /api/csrf-token/" 200 81
+    ```
 
 ### ORGANISATION
 * искать по истории коммитов и разным веткам в VS Code, установите GitLens
