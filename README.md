@@ -287,14 +287,27 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + навигация создаётся внутри `<nav>` с двумя ссылками: Home и Profile
   + `router` для смены страниц без перезагрузки с использованием SPA 
   + перехватывает клики по ссылкам, для каждой ссылки (`.nav-link`) добавляется обработчик клика
-    this.element.querySelectorAll('.nav-link').forEach(link => {
-       link.addEventListener('click', (e) => {
-           e.preventDefault();                                  # предотвращает стандартный переход по ссылке 
-           this.router.navigate(e.target.getAttribute('href')); # вместо этого вызывается `navigate()` для изм-я страницы без перезагрузки  
-       });
-    });
-  + export { Navigation } позволяет использовать `Navigation` в других частях проекта через import
+    - this.element.querySelectorAll('.nav-link').forEach(link
+    - this.router.navigate(e.target.getAttribute('href')); для изм-я страницы без перезагрузки  
+  + export { Navigation } позволяет использовать `Navigation` в других частях проекта
   + у нас будет в шапке, пока не используется 
+* frontend/js/app.js
+  + центральный скрипт, точка входа в приложение, основной код, запускается при загрузке страницы
+  + управление авторизацией
+  + '.nav-link' кроме 'loginLink' 'logoutLink'
+    - обработка событий интерфейса, кликов на ссылки навигации
+    - инициализация маршрутизации router 
+    - `e.preventDefault()` запрещает браузеру перезагружать страницу 
+    - `router.navigate()` для смены страницы
+  + if (authService.isAuthenticated) router.navigate("/profile")
+    - аутентификация
+  + authService.logout()
+    - запрос на разлогинивание (`POST /logout/`)
+    - удаляет данные профиля из `sessionStorage`
+    - перенаправляет на главную страницу (`/`)
+  + getCSRFToken();
+    - вызывает функцию получения CSRF-токена, запрашивает CSRF-токен (защита от поддельных запросов)  
+    - сохраняет его в `document.cookie`
 * pop-up windows : login, chat, profile
 * F12 concole
   + лучше всего в chrome
