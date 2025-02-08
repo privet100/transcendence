@@ -283,7 +283,6 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + после получения данных пользовательский интерфейс (UI) обновляется без перезагрузки страницы
   + `async/await` для упрощения чтения
 * class Navigation extends Component
-  + создание и управление навигацией
   + создаёт компонент навигации для SPA-приложения
   + навигация создаётся внутри `<nav>` с двумя ссылками: Home и Profile
   + `router` для смены страниц без перезагрузки с использованием SPA 
@@ -295,6 +294,7 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
        });
     });
   + export { Navigation } позволяет использовать `Navigation` в других частях проекта через import
+  + у нас будет в шапке, пока не используется 
 * pop-up windows : login, chat, profile
 * F12 concole
   + лучше всего в chrome
