@@ -1098,17 +1098,10 @@ You’re seeing the help section of this page because you have DEBUG = True in y
    public | myapp_userprofile_user_permissions | table | myuser
   ```
 * Starting entrypoint script...
-  backend  | Applying database migrations...
-  backend  | Operations to perform:
-  backend  |   Apply all migrations: **admin, auth, contenttypes, myapp, sessions**
-*
-```
-backend  | Starting entrypoint script...
-backend  | Applying database migrations...
-backend  | psycopg2.OperationalError: connection to server at "db" (172.22.0.3), port 5432 failed: Connection refused
-backend  | django.db.utils.OperationalError: connection to server at "db" (172.22.0.3), port 5432 failed: Connection refused
-backend  | 	Is the server running on that host and accepting TCP/IP connections?
-```
+  Apply all migrations: **admin, auth, contenttypes, myapp, sessions**
+* LANG=C.UTF-8 python manage.py createsuperuser
+* **с повторным емейлом не создаём?** #question
+  
 
 ### GAME LOGIC
 * a player should also be possible to propose a tournament (subject)
@@ -1567,6 +1560,14 @@ backend  | 	Is the server running on that host and accepting TCP/IP connections?
   + You must implement some form of validation for forms and any user input, either within the base page if no backend is used or on the server side if a backend is employed. (Validation by Front-end)
   + Regardless of whether you choose to implement the JWT Security module with 2FA, it’s crucial to prioritize the security of your website. (OK)
   + For instance, if you opt to create an API, ensure your routes are protected. Remember, even if you decide not to use JWT tokens, securing the site remains essential.
+* **Forbidden (403). CSRF verification failed. Request aborted. когда создала суперпользлвателя и вхожу в длжанго.**
+  + Origin checking failed - https://localhost:4443 does not match any trusted origins.
+  + a **genuine Cross Site Request Forgery**, or when Django’s CSRF mechanism has not been used correctly
+  + for POST forms, ensure:
+    - your browser is accepting cookies
+    - the view function passes a request to the template’s render method
+    - in the template, there is a {% csrf_token %} template tag inside each POST form that targets an internal URL
+    - the form has a valid CSRF token. After logging in in another browser tab or hitting the back button after a login, you may need to reload the page with the form, because the token is rotated after a login
 
 
 ### COOKIE LOCALSTORAGE SESSIONSTORAGE
