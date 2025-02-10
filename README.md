@@ -16,8 +16,6 @@ django 1                      | ---     | +
 bootstrap 0.5                 | +       | ---
 database 0.5                  | ---     | +
 
-* накидать в Figma шаблоны страничек (часть есть в Миро) страницы: страница с логином, с самой игрой (пока без игры), профиль пользователя, страница с турниром
-
 
 ### TEST
 * `docker-compose logs frontend`: `172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189  "https://localhost:4443/static/chat.html" "Chrome"`
@@ -361,11 +359,9 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + LOGGING настроить разные обработчики, уровни логирования и форматы для логгеров django, channels, django.db
 * myproject/ конфигурация Django, корневой маршрутизатор, запуск, управление проектом
 * manage.py
-  + django-утилитаь, интерфейс для настройки, разработки, управлением проектом
+  + django-утилита, интерфейс для настройки, разработки, управлением проектом
   + точка запуска
   + os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myproject.settings') обращается к `backend/myproject/settings.py`
-    - для этого необходимо, чтобы Python видел `myproject` как пакет верхнего уровня (у нас ок)
-    - проверить: выполнить любую команду, например `python manage.py check`
   + `if __name__ == '__main__':` если файл запущен напрямую (не импортирован как модуль), выполняется `main()`
   + команды:
     - python manage.py runserver запуск сервера разработки, daphne обращается к проекту напрямую или через `mysite.asgi`
@@ -1560,8 +1556,8 @@ You’re seeing the help section of this page because you have DEBUG = True in y
   + You must implement some form of validation for forms and any user input, either within the base page if no backend is used or on the server side if a backend is employed. (Validation by Front-end)
   + Regardless of whether you choose to implement the JWT Security module with 2FA, it’s crucial to prioritize the security of your website. (OK)
   + For instance, if you opt to create an API, ensure your routes are protected. Remember, even if you decide not to use JWT tokens, securing the site remains essential.
-* **Forbidden (403). CSRF verification failed. Request aborted. когда создала суперпользлвателя и вхожу в длжанго.**
-  + Origin checking failed - https://localhost:4443 does not match any trusted origins.
+* **Forbidden (403). CSRF verification failed. Request aborted. когда создала суперпользлвателя и вхожу в джанго.**
+  + Origin checking failed - https://localhost:4443 does not match any trusted origins
   + a **genuine Cross Site Request Forgery**, or when Django’s CSRF mechanism has not been used correctly
   + for POST forms, ensure:
     - your browser is accepting cookies
