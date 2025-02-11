@@ -640,20 +640,15 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
     - встроенная логика обработки запросов (`get()`, `post()`, ...)
     - переопределять только нужные методы (`get`, `post`), а также использовать миксины
     - def get(self, request): return JsonResponse({"message": "Hello, world!"})
+* 'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.SessionAuthentication']
+  + без этой настройки              ['rest_framework.authentication.SessionAuthentication', 'rest_framework.authentication.BasicAuthentication']
+* 'DEFAULT_PERMISSION_CLASSES':     ['rest_framework.permissions.IsAuthenticated'] 
+  + без этой настройки              ['rest_framework.permissions.AllowAny']
+* с 'DEFAULT_RENDERER_CLASSES':     ['rest_framework.renderers.JSONRenderer', 'rest_framework.renderers.BrowsableAPIRenderer']
+  + без этой настройки то же самое
 * каждый запрос обрабатывается отдельно
 * клиент получает ответ сразу
 * рендеринг шаблонов (Server-Side Rendering) у нас нет
-* 'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.SessionAuthentication']
-  + print(api_settings.DEFAULT_AUTHENTICATION_CLASSES) -> [<class 'rest_framework.authentication.SessionAuthentication'>]
-  + без этой настройки:
-  + print(api_settings.DEFAULT_AUTHENTICATION_CLASSES) -> [<class 'rest_framework.authentication.SessionAuthentication'>, <class 'rest_framework.authentication.BasicAuthentication'>]
-* 'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'] 
-  + print(api_settings.DEFAULT_PERMISSION_CLASSES) -> [<class 'rest_framework.permissions.IsAuthenticated'>]
-  + без этой настройки: 
-  + print(api_settings.DEFAULT_PERMISSION_CLASSES) -> [<class 'rest_framework.permissions.AllowAny'>]
-* с 'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer', 'rest_framework.renderers.BrowsableAPIRenderer'], и без одно и то же:
-  + print(api_settings.DEFAULT_RENDERER_CLASSES)
-  + [<class 'rest_framework.renderers.JSONRenderer'>, <class 'rest_framework.renderers.BrowsableAPIRenderer'>]
 
 
 ### DJANGO RESTFUL HTTP API 
