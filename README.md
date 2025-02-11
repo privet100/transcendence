@@ -1071,9 +1071,15 @@ You’re seeing the help section of this page because you have DEBUG = True in y
 
 ### DATABASE PostgreSQL
 * СУБД для хранения пользователей, сообщений, данных о матчах в Pong, статистики, ...
-* to set up the database **для чего?**
-  + `python manage.py makemigrations`, `python manage.py migrate`
-  + create a superuser `python manage.py createsuperuser`
+* to set up the database 
+  + модели django описывают структуру данных (таблицы, поля, связи)  
+  + `python manage.py makemigrations`
+    - создаёт файлы миграций (инструкции по изменению базы)  
+    - django выполняет изменения, описанные в файлах миграций, и обновляет структуру базы данных
+  + `python manage.py migrate`
+    - Создаёт таблицы для новых моделей
+    - Добавляет, изменяет или удаляет поля
+    - Обновляет связи между таблицами
 * `psql -U myuser -d mydatabase`, потом `\dt`
   ```
   Schema |                Name                | Type  | Owner  
