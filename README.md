@@ -361,13 +361,11 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
 * manage.py
   + django-утилита, интерфейс для настройки, разработки, управлением проектом
   + точка запуска
-  + os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myproject.settings') обращается к `backend/myproject/settings.py`
+  + myproject.settings обращается к `backend/myproject/settings.py`
   + `if __name__ == '__main__':` если файл запущен напрямую (не импортирован как модуль), выполняется `main()`
-  + команды:
-    - python manage.py runserver запуск сервера разработки, daphne обращается к проекту напрямую или через `mysite.asgi`
-    - python manage.py migrate применение миграций базы данных
-    - python manage.py createsuperuser создание суперпользователя
-    - [auth]: changepassword, [contenttypes] remove_stale_contenttypes, [django] check compilemessages createcachetable dbshell diffsettings dumpdata flush inspectdb loaddata makemessages makemigrations optimizemigration sendtestemail shell showmigrations sqlflush sqlmigrate sqlsequencereset squashmigrations startapp startproject test testserverт, [rest_framework] generateschema, [sessions] clearsessions, [staticfiles] collectstatic findstatic, можно создавать собственные команды
+  + python manage.py runserver запуск сервера разработки, daphne обращается к проекту напрямую или через `mysite.asgi`
+  + python manage.py createsuperuser
+  + остальные команды: migrate, [auth]: changepassword, [contenttypes] remove_stale_contenttypes, [django] check compilemessages createcachetable dbshell diffsettings dumpdata flush inspectdb loaddata makemessages makemigrations optimizemigration sendtestemail shell showmigrations sqlflush sqlmigrate sqlsequencereset squashmigrations startapp startproject test testserverт, [rest_framework] generateschema, [sessions] clearsessions, [staticfiles] collectstatic findstatic, можно создавать собственные команды
 * вcтроенные модульные приложения
   + 'django.contrib.messages'
   + 'django.contrib.admin',
@@ -501,14 +499,7 @@ Let me know if you need more specific guidance on how to change your authenticat
     - Если клиент **отправляет запрос с токеном**, `TokenAuthentication` проверит его **только для этого запроса**.
     - Другой клиент отправляет запрос — DRF снова **запускает новую проверку** через authentication classes.
 * среда `AppRegistry` управляет регистрацией приложений и моделей
-* ORM Object-Relational Mapping
-  + вместо написания SQL-запросов, разработчик описывает модели (Python-классы)
-  + PUT = поменять поле в бд (без DRF запрос sql)
-  + Django автоматически преобразует модели в SQL-таблицы
-  + можно легко менять базу данных (с SQLite на PostgreSQL)
-  + **защита от SQL-инъекций**
-  + ForeignKey, ManyToMany, OneToOne создают связи между таблицами
-  + `models.py` структура данных, связи (пользователи, профили, чаты, сообщения, статистика игры, ...)
+* ORM
 * **типы вьюх**
   + `View` базовый класс для создания вьюх
     - можно переопределить методы `get()`, `post()`, `put()`, ...
@@ -742,18 +733,6 @@ You’re seeing the help section of this page because you have DEBUG = True in y
   + пользователь регистрируется/ли меняет пароль через Django Forms или DRF serializers => перед сохранением пароля Django проверяет его с помощью валидаторов
   + валидация происходит в момент вызова метода **set_password()**
 * bakyt: API for Database - UserProfile works
-
-
-### DJANO MODELS
-* python manage.py shell
-  + from django.apps import apps
-  + for model in apps.get_models(): print(model)
-* python manage.py showmigrations
-* python manage.py inspectdb
-* python manage.py sqlmigrate app_name 0001
-* pip install django-extensions pygraphviz pydot
-  + INSTALLED_APPS += ['django_extensions']
-  + python manage.py graph_models -a -o models.png енерировать граф
 
 
 ### DJANGO CHANNELS
@@ -1069,17 +1048,7 @@ You’re seeing the help section of this page because you have DEBUG = True in y
 * bakyt: только кэш сообщений, чат и **системные**
 
 
-### DATABASE PostgreSQL
-* СУБД для хранения пользователей, сообщений, данных о матчах в Pong, статистики, ...
-* to set up the database 
-  + модели django описывают структуру данных (таблицы, поля, связи)  
-  + `python manage.py makemigrations`
-    - создаёт файлы миграций (инструкции по изменению базы)  
-    - django выполняет изменения, описанные в файлах миграций, и обновляет структуру базы данных
-  + `python manage.py migrate`
-    - Создаёт таблицы для новых моделей
-    - Добавляет, изменяет или удаляет поля
-    - Обновляет связи между таблицами
+### DJANGO MODELS, DATABASE PostgreSQL
 * `psql -U myuser -d mydatabase`, потом `\dt`
   ```
   Schema |                Name                | Type  | Owner  
@@ -1099,10 +1068,33 @@ You’re seeing the help section of this page because you have DEBUG = True in y
    public | myapp_userprofile_groups           | table | myuser
    public | myapp_userprofile_user_permissions | table | myuser
   ```
-* Starting entrypoint script...
-  Apply all migrations: **admin, auth, contenttypes, myapp, sessions**
-* LANG=C.UTF-8 python manage.py createsuperuser
+* Starting entrypoint script... : Apply all migrations: **admin, auth, contenttypes, myapp, sessions**
+* `python manage.py makemigrations`
+  + создаёт файлы миграций (инструкции по изменению базы)  
+  + django выполняет изменения, описанные в файлах миграций, и обновляет структуру базы данных
+* python manage.py migrate применение миграций базы данных
+  + Создаёт таблицы для новых моделей
+  + Добавляет, изменяет или удаляет поля
+  + Обновляет связи между таблицами
 * **с повторным емейлом не создаём?** #question
+* ORM Object-Relational Mapping
+  + `models.py`
+  + описывают структуру данных (таблицы, поля, связи)  
+  + вместо написания SQL-запросов, разработчик описывает модели (Python-классы), PUT = поменять поле в бд (вместо запроса sql)
+  + Django преобразует модели в SQL-таблицы
+  + легко менять базу данных (с SQLite на PostgreSQL)
+  + ForeignKey, ManyToMany, OneToOne создают связи между таблицами
+  + **защита от SQL-инъекций**
+* python manage.py shell
+  + for model in apps.get_models(): print(model)
+* python manage.py showmigrations
+* python manage.py inspectdb
+* python manage.py sqlmigrate app_name 0001
+* генерировать граф
+  + pip install django-extensions pygraphviz pydot
+  + INSTALLED_APPS += ['django_extensions']
+  + python manage.py graph_models -a -o models.png 
+* LANG=C.UTF-8 python manage.py createsuperuser
   
 
 ### GAME LOGIC
