@@ -1074,9 +1074,9 @@ You’re seeing the help section of this page because you have DEBUG = True in y
 * to set up the database **для чего?**
   + `python manage.py makemigrations`, `python manage.py migrate`
   + create a superuser `python manage.py createsuperuser`
-* `psql -U myuser -d mydatabase` `\dt`
+* `psql -U myuser -d mydatabase`, потом `\dt`
   ```
-   Schema |                Name                | Type  | Owner  
+  Schema |                Name                | Type  | Owner  
   --------+------------------------------------+-------+--------
    public | auth_group                         | table | myuser
    public | auth_group_permissions             | table | myuser
@@ -1238,6 +1238,13 @@ You’re seeing the help section of this page because you have DEBUG = True in y
 
 ### ТОКЕНЫ БЕЗОПАСНОСТЬ
 * кто зашёл в систему (аутентификация/идентификация) и что ему разрешено делать (авторизация)
+* таблмцы:
+   public | auth_group                         | table | myuser  
+   public | auth_group_permissions             | table | myuser  
+   public | auth_permission                    | table | myuser  
+   public | django_content_type                | table | myuser  
+   public | django_migrations                  | table | myuser  
+   public | django_session                     | table | myuser  
 * какой у нас тип - посмотреть
   + auth, authentication, REST_FRAMEWORK, oauth, session, cookies, bearer, authorization, csrf
   + 'allauth', 'allauth.account', 'allauth.socialaccount', 'allauth.socialaccount.providers.google', `django-allauth`, `django-axes`
