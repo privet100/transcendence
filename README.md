@@ -406,7 +406,9 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + CsrfViewMiddleware
     - проверяет CSRF-токен
     - защита от **Cross-Site Request Forgery**
+    - use csrf_protect on any views that use the csrf_token template tag, as well as those that accept the POST data
   + AuthenticationMiddleware 'django.contrib.auth.middleware.AuthenticationMiddleware'
+    - to use Django’s default user authentication system
     - проверяет сессию **или заголовки авторизации**
     - checks if the user is authenticated in each request by looking at the session data, and it attaches that information to the request object
     - handles session-based user authentication
@@ -415,35 +417,12 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
     - attaches the user object to the request in your views and templates
     - adds the `user` object to the request: Every time a request comes in, the AuthenticationMiddleware populates the request.user attribute with the currently authenticated user based on the session data
     - a part of **Django’s authentication framework** #see
-    - 'django.contrib.auth' = config for the app rather than middleware
+    - 'django.contrib.auth' = the app config and not middleware that manages authentication logic
     - you Can’t Just Replace It with `'django.contrib.auth'
-
-1. No user context: Without 'django.contrib.auth.middleware.AuthenticationMiddleware', the request.user will not be automatically set, meaning your app won't know who the current user is, and you won’t be able to rely on request.user to check for authentication or permissions in views and templates.
-
-2. Session-based login: The AuthenticationMiddleware is directly involved in maintaining and validating the session-based user login. Removing it would disable this feature, and your users would essentially not be authenticated in Django’s session-based system.
-
-### Possible Alternative Approaches:
-
-1. Custom Middleware:
-   - If you want to change how user authentication is handled (for example, by using tokens or another method instead of sessions), you can write custom middleware to handle user authentication. But you’ll need to manage the request.user context manually.
-
-2. Token-Based Authentication:
-   - If you're building a REST API or want to switch to a token-based system (e.g., JWT), you can use `django-rest-framework` (DRF) and its middleware for token authentication instead of session-based authentication.
-   - In that case, you would replace 'django.contrib.auth.middleware.AuthenticationMiddleware' with middleware like rest_framework.authentication.JWTAuthentication or whatever is appropriate for your system.
-
-3. Session Authentication:
-   - If you just want to use the built-in Django authentication system but with a different mechanism (like for non-session-based login), you could use Django’s Custom Authentication Backends along with custom middleware to modify how the user is authenticated.
-
-### Conclusion:
-
-To use Django’s default user authentication system and make sure request.user is available, you must use 'django.contrib.auth.middleware.AuthenticationMiddleware'. Replacing it with 'django.contrib.auth' alone won’t work, as 'django.contrib.auth' is just the app configuration and not middleware that manages authentication logic. 
-
-If you want to switch to another method of authentication, such as token-based systems, you'd need to integrate a different middleware or adjust the authentication logic, but you'd still need to manage the user context (e.g., by adding the authenticated user to the request object). 
-
-
-If you're working on a real-time app like a chat with Django Channels, you'd also need to ensure that your custom middleware or authentication strategy works well in that context.
-
-Let me know if you need more specific guidance on how to change your authentication method!
+    - the request.user is automatically set => the app knows who the current user is, and is able to rely on request.user to check for authentication or permissions
+    - is involved in maintaining and validating the session-based user login (users are authenticated in Django’s session-based system)
+    - альтернатива: middleware for token authentication instead of session-based authentication, replace it with middleware like rest_framework.authentication.JWTAuthentication
+    - альтернатива: Session Authentication = the built-in Django authentication system but with a different mechanism (like for non-session-based login), you could use Django’s Custom Authentication Backends along with custom middleware to modify how the user is authenticated
   + MessageMiddleware
     - обрабатывает flash messages
     - **обработка сообщений** и добавление **дополнительной информации или фильтрации на уровне WebSocket**
@@ -664,15 +643,17 @@ Let me know if you need more specific guidance on how to change your authenticat
 * каждый запрос обрабатывается отдельно
 * клиент получает ответ сразу
 * рендеринг шаблонов (Server-Side Rendering) у нас нет
-* **CSRF verification failed. Request aborted.**
-  + Origin checking failed - https://localhost:4443 does not match any trusted origins.
-  + this can occur when there is a genuine Cross Site Request Forgery, or when Django’s CSRF mechanism has not been used correctly. For POST forms, you need to ensure:
-    - Your browser is accepting cookies.
-    - The view function passes a request to the template’s render method.
-    - In the template, there is a {% csrf_token %} template tag inside each POST form that targets an internal URL.
-    - If you are not using CsrfViewMiddleware, then you must use csrf_protect on any views that use the csrf_token template tag, as well as those that accept the POST data.
-The form has a valid CSRF token. After logging in in another browser tab or hitting the back button after a login, you may need to reload the page with the form, because the token is rotated after a login.
-You’re seeing the help section of this page because you have DEBUG = True in your Django settings file. Change that to False, and only the initial error message will be displayed.
+* 'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.SessionAuthentication']
+  + print(api_settings.DEFAULT_AUTHENTICATION_CLASSES) -> [<class 'rest_framework.authentication.SessionAuthentication'>]
+  + без этой настройки:
+  + print(api_settings.DEFAULT_AUTHENTICATION_CLASSES) -> [<class 'rest_framework.authentication.SessionAuthentication'>, <class 'rest_framework.authentication.BasicAuthentication'>]
+* 'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'] 
+  + print(api_settings.DEFAULT_PERMISSION_CLASSES) -> [<class 'rest_framework.permissions.IsAuthenticated'>]
+  + без этой настройки: 
+  + print(api_settings.DEFAULT_PERMISSION_CLASSES) -> [<class 'rest_framework.permissions.AllowAny'>]
+* с 'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer', 'rest_framework.renderers.BrowsableAPIRenderer'], и без одно и то же:
+  + print(api_settings.DEFAULT_RENDERER_CLASSES)
+  + [<class 'rest_framework.renderers.JSONRenderer'>, <class 'rest_framework.renderers.BrowsableAPIRenderer'>]
 
 
 ### DJANGO RESTFUL HTTP API 
@@ -1049,52 +1030,79 @@ You’re seeing the help section of this page because you have DEBUG = True in y
 
 
 ### DJANGO MODELS, DATABASE PostgreSQL
-* `psql -U myuser -d mydatabase`, потом `\dt`
-  ```
-  Schema |                Name                | Type  | Owner  
-  --------+------------------------------------+-------+--------
-   public | auth_group                         | table | myuser
-   public | auth_group_permissions             | table | myuser
-   public | auth_permission                    | table | myuser
-   public | django_admin_log                   | table | myuser
-   public | django_content_type                | table | myuser
-   public | django_migrations                  | table | myuser
-   public | django_session                     | table | myuser
-   public | myapp_game                         | table | myuser
-   public | myapp_tournament                   | table | myuser
-   public | myapp_tournament_players           | table | myuser
-   public | myapp_userprofile                  | table | myuser
-   public | myapp_userprofile_friends          | table | myuser
-   public | myapp_userprofile_groups           | table | myuser
-   public | myapp_userprofile_user_permissions | table | myuser
-  ```
 * Starting entrypoint script... : Apply all migrations: **admin, auth, contenttypes, myapp, sessions**
 * `python manage.py makemigrations`
   + создаёт файлы миграций (инструкции по изменению базы)  
-  + django выполняет изменения, описанные в файлах миграций, и обновляет структуру базы данных
+  + django выполняет изменения из файлов миграций, и обновляет структуру базы данных
 * python manage.py migrate применение миграций базы данных
-  + Создаёт таблицы для новых моделей
-  + Добавляет, изменяет или удаляет поля
-  + Обновляет связи между таблицами
-* **с повторным емейлом не создаём?** #question
+  + создаёт таблицы для новых моделей
+  + добавляет, изменяет, удаляет поля
+  + обновляет связи между таблицами
 * ORM Object-Relational Mapping
   + `models.py`
   + описывают структуру данных (таблицы, поля, связи)  
   + вместо написания SQL-запросов, разработчик описывает модели (Python-классы), PUT = поменять поле в бд (вместо запроса sql)
   + Django преобразует модели в SQL-таблицы
-  + легко менять базу данных (с SQLite на PostgreSQL)
+  + легко менять базу с SQLite на PostgreSQL
   + ForeignKey, ManyToMany, OneToOne создают связи между таблицами
   + **защита от SQL-инъекций**
-* python manage.py shell
-  + for model in apps.get_models(): print(model)
-* python manage.py showmigrations
-* python manage.py inspectdb
-* python manage.py sqlmigrate app_name 0001
-* генерировать граф
-  + pip install django-extensions pygraphviz pydot
-  + INSTALLED_APPS += ['django_extensions']
-  + python manage.py graph_models -a -o models.png 
 * LANG=C.UTF-8 python manage.py createsuperuser
+* docker exec -it backend python manage.py showmigrations
+  ```
+  admin
+   [X] 0001_initial
+   [X] 0002_logentry_remove_auto_add
+   [X] 0003_logentry_add_action_flag_choices
+  auth
+   [X] 0001_initial
+   [X] 0002_alter_permission_name_max_length
+   [X] 0003_alter_user_email_max_length
+   [X] 0004_alter_user_username_opts
+   [X] 0005_alter_user_last_login_null
+   [X] 0006_require_contenttypes_0002
+   [X] 0007_alter_validators_add_error_messages
+   [X] 0008_alter_user_username_max_length
+   [X] 0009_alter_user_last_name_max_length
+   [X] 0010_alter_group_name_max_length
+   [X] 0011_update_proxy_permissions
+   [X] 0012_alter_user_first_name_max_length
+  auth_app
+   (no migrations)
+  chat
+   (no migrations)
+  contenttypes
+   [X] 0001_initial
+   [X] 0002_remove_content_type_name
+  myapp
+   [X] 0001_initial
+  sessions
+   [X] 0001_initial
+  ```
+* docker exec -it backend python manage.py inspectdb
+* docker exec -it backend python manage.py sqlmigrate myapp 0001
+* `docker exec -it db psql -U myuser -d mydatabase`
+  + then `\db`, `\dt`
+    ```
+    Schema |                Name                | Type  | Owner  
+    --------+------------------------------------+-------+--------
+    public | auth_group                         | table | myuser
+    public | auth_group_permissions             | table | myuser
+    public | auth_permission                    | table | myuser
+    public | django_admin_log                   | table | myuser
+    public | django_content_type                | table | myuser
+    public | django_migrations                  | table | myuser
+    public | django_session                     | table | myuser
+    public | myapp_game                         | table | myuser
+    public | myapp_tournament                   | table | myuser
+    public | myapp_tournament_players           | table | myuser
+    public | myapp_userprofile                  | table | myuser
+    public | myapp_userprofile_friends          | table | myuser
+    public | myapp_userprofile_groups           | table | myuser
+    public | myapp_userprofile_user_permissions | table | myuser
+    ```
+* генерировать граф:
+  + pip install django-extensions pygraphviz pydot
+* **с повторным емейлом не создаём?** #question
   
 
 ### GAME LOGIC
