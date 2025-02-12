@@ -1102,7 +1102,15 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
 * генерировать граф:
   + pip install django-extensions pygraphviz pydot
 * **с повторным емейлом не создаём?** #question
-  
+* лучший вариант для Django – оставить `id`
+  + django автоматически добавляет поле `id = AutoField(primary_key=True)`, если явный первичный ключ не указа
+  + `AutoField` (по умолчанию) = 32-битный `int` (максимальное значение: ~2.1 млрд), чаще всего достаточно #see
+    - `BigAutoField` = 64-битный `int` (максимальное значение: ~9 квинтиллионов)
+  + Минусы `game_id`:
+    - Django уже создает `id`, так что `game_id` – это **избыточность**.  
+    - В коде придется писать `game.game_id`, вместо простого `game.id`.  
+    - Во всех внешних ключах (`ForeignKey`) тоже придется явно указывать `to_field='game_id'`, если хотят ссылаться на `game_id`.
+
 
 ### GAME LOGIC
 * a player should also be possible to propose a tournament (subject)
