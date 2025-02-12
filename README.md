@@ -1341,10 +1341,25 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + эти данные доступны в middleware или обработчиках запросов
   + Session storage: Если включён SessionMiddleware, пользовательские данные будут сохраняться в сессиях и доступны в обработчиках.
   + JWT токен передаётся в заголовке авторизации (Authorization: Bearer <token>) и обрабатывается специальным классом аутентификации
-* public | auth_group                         | table | myuser  
-* public | auth_group_permissions             | table | myuser  
-* public | auth_permission                    | table | myuser  
-* public | django_session                     | table | myuser  
+* AUTH_USER_MODEL = 'myapp.UserProfile'
+  + django использует кастомную модель `myapp.UserProfile` **вместо стандартного `User`** #question  
+    - её код в `myapp/models.py`:  class UserProfile(AbstractUser)
+    - `UserProfile` наследуется от `AbstractUser` => это полноценный пользователь Django
+  + механизмы аутентификации (`login()`, `authenticate()`, `request.user`) работают с `UserProfile`
+  + таблица для пользователей `myapp_userprofile` а не `auth_user`
+    public | auth_group                         | table | myuser
+    public | auth_group_permissions             | table | myuser
+    public | auth_permission                    | table | myuser
+    public | myapp_userprofile_user_permissions | table | myuser
+  + какую модель использует django?
+    - `docker exec -it backend python manage.py shell`
+    - затем в интерактивном режиме:  
+      ```python
+      from django.contrib.auth import get_user_model
+      print(get_user_model())  # Должно вывести <class 'myapp.models.UserProfile'>
+      ```
+  + после изменения `AUTH_USER_MODEL` нужно сразу делать миграции
+  + если другие модели ссылаются на `User`, они должны использовать `get_user_model()`
 
 
 ### AUTORISATION = что вам разрешено делать?
@@ -1480,9 +1495,6 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + **Геолокационные компоненты на Backend** используют сохранённые токены для взаимодействия с внешними API.
   + **Обеспечивается безопасность токенов** через шифрование, ограничение доступа и использование защищённых методов передачи данных.
 
-
-
-AUTH_USER_MODEL = 'myapp.UserProfile'
 
 
 * комбинированные методы  
