@@ -43,7 +43,7 @@ database 0.5                  | ---     | +
   * wss://localhost:4443/ws/chat/room/
   + `F12` Network - F12 - ws- messages: входящие/исходящие сообщения, в Timing (Headers) статус 101 Switching Protocols
   + views.py обрабатвает HTTP Django URLs /chat/<room> 
-    - WebSocket Channels обрабатывает /ws/chat/<room> (ASGI routing)
+    - channels обрабатывает /ws/chat/<room> (ASGI routing)
     - если в urls.py есть в path("ws/chat/<room>", views...), Django перехватывает его как HTTP и выдаваёт 404, или ищет шаблон
     - маршруты Channels: websocket_urlpatterns = [re_path(r'^ws/chat/(?P<room_name>\w+)/$', ChatConsumer.as_asgi()),]
     - если есть что-то вроде path('ws/chat/<room>/', some_view), то Django перехватывает HTTP‐запрос (а не Channels)
@@ -496,13 +496,6 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + работает через APIView, Permissions, Throttling, Authentication
   + Можно использовать Django Middleware для API, но DRF обычно этого не требует.
   + можно использовать Django Middleware для обработки API-запросов
-  + ```python
-    REST_FRAMEWORK = {
-        'DEFAULT_AUTHENTICATION_CLASSES': [
-            'rest_framework.authentication.TokenAuthentication',
-        ]
-    }
-    ```
 * аутентификация, пермиссии и сериализация — отдельные модули (слои), содержащие классы
   + в каждом из этих модулей находятся классы, которые можно переопределять
   + не только для middleware
@@ -516,7 +509,7 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + DRF создает новый экземпляр класса разрешений и вызывает его метод `has_permission()`
   + Serializers создаются отдельно для каждого запроса, когда данные сериализуются или десериализуются, `serializer` будет уникальным объектом для текущего запроса
 * модуль аутентификации #see
-  + классы для проверки пользователя (например, `SessionAuthentication`, `TokenAuthentication`)
+  + классы для проверки пользователя (`SessionAuthentication`, `TokenAuthentication`, ...)
   + проверка сеансовой куки, сессий, csrf, JWT (с библиотекой Simple JWT), Basic Authentication, авторизация по API-ключам
   + гибкие механизмы для работы с JWT
   + 1) во многом реализована через AuthenticationMiddleware
@@ -566,7 +559,6 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
     - DRF автоматически вызывает методы `has_permission()` и `has_object_permission()` для permission classes  
 * ниже вспомогательные компоненты, работают в тандеме с тремя модулями
 * APIView/ViewSet вспомогательные компонены
-  + вьюхи
   + View из обычного Django не применяется для создания API
   + View не используется в DRF напрямую для обработки API-запросов, поскольку DRF специально предоставляет улучшенную функциональность с APIView и ViewSet для работы с RESTful API
   + в связке с сериализаторами для обработки данных запросов и формирования ответов
@@ -598,8 +590,10 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + автоматизирует маршрутизацию и типичные CRUD-операции с помощью Routers
   + генерирует действия для стандартных операций CRUD, таких как `list`, `create`, `retrieve`, `update`, `destroy`
   + полезен для упрощения кода и автоматизации создания стандартных операций CRUD
-* Routers вспомогательный компонент #see #question
+* routers вспомогательный компонент 
+  + `urls.py` ?
   + связывают URL-маршруты с ViewSets
+    - создаёт URL-маршруты (эндпоинты) для действий представления (viewset)
   + упрощать маршрутизацию RESTful API
   + наследуются от базового класса **BaseRouter**
   + класс **`DefaultRouter`** (**`SimpleRouter`**) DRF: генерация путей (URL-паттернов) к методам ViewSet (`list`, `retrieve`, `create`, `update`, `destroy`)  
@@ -607,23 +601,29 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
     - реализациея Router
     - расширяет функциональность SimpleRouter
     - поддержка автоматической маршрутизации API root (/) и обработку схемы API
-    - создаёт URL-маршруты (эндпоинты) для стандартных действий представления (viewset)
+    - для стандартных действий представления (viewset)
   + упрощает объявление маршрутов для ваших ViewSet’ов (CRUD-операций), улучшает читаемость кода, делает его единообразным
-  + не нужно вручную добавлять каждый HTTP-метод в `urls.py`  
-  + не надо вручную писать `urlpatterns` для каждого метода (GET, POST, PATCH, DELETE, ...)
+  + не нужно вручную добавлять каждый HTTP-метод в `urls.py`, писать `urlpatterns` для каждого метода (GET, POST, PATCH, DELETE, ...)
   + регистрируете ViewSet в `router.register()`
-  + DRF автоматически формирует для него набор URL-маршрутов
-  + автоматически настроит URL-адреса для всех действий из ViewSet
-    - можешь использовать APIView для более кастомизированных вьюх, а ViewSet для быстрого создания стандартных API-методов
+  + DRF автоматически формирует для него набор URL-маршрутов, настроит URL-адреса для всех действий из ViewSet
+    - APIView для более кастомизированных вьюх
+    - ViewSet для быстрого создания стандартных API-методов
   + лучше без DRF Router, если:
     - очень специфичные URLs или вы используете в основном обычные Django CBV/FBV (Class-Based Views/Function-Based Views) без API на базе DRF
     - всего несколько отдельных эндпоинтов и нет смысла создавать полноценные ViewSet’ы
     - REST Framework подключён точечно и используется лишь в небольшом модуле
   + у нас без router:
     - path(), re_path() указывает на APIView или ViewSet
-    - django ищет, какая вьюха (обработчик) должна обработать запрос, основываясь на маршруте, указанном в urls.py
-    - `urls.py`: маршруты с помощью функции `path()`, `re_path()` связывают URL-адреса с определенными вьюхами
-    - когда приходит запрос, django ищет соответствие в маршрутах и направляет его в `ItemListView`. Если запрос на `/items/1/`, то он будет направлен в `ItemDetailView`
+    - django ищет, какая вьюха должна обработать запрос, основываясь на urls.py
+    - django направляет запрос в `ItemListView`, запрос на `/users/1/` направляется в `ItemDetailView`
+    - `path()`, `re_path()` связывают URL-адреса с определенными вьюхами
+  +  маршрут path('user/<int:id>/', UserProfileView.as_view(), name='user-detail') обрабатывает `https://localhost:4443/user/1/`
+  + альтернатива: DFR может **автоматически создавать маршруты** через `DefaultRouter`
+    - router = DefaultRouter() # автоматически создаёт маршруты CRUD (`GET /user/1/`, `POST /user/`, `PUT /user/1/`, ...)
+    - router.register(r'user', UserProfileView, basename="user")
+    - urlpatterns += router.urls  # Добавляет автоматически сгенерированные URL
+  + альтернатива: метод `get_absolute_url()` в модели `UserProfile` может **автоматически создавать URL для объекта**
+  + альтернатива: декоратор `@action` может создаать кастомные URL
 * Filters вспомогательный компонент
   + фильтрация данных, которые возвращает API, по параметрам запроса
 * Throttlesвспомогательный компонент
@@ -649,6 +649,8 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
 * каждый запрос обрабатывается отдельно
 * клиент получает ответ сразу
 * рендеринг шаблонов (Server-Side Rendering) у нас нет
+
+
 
 
 ### DJANGO RESTFUL HTTP API 
