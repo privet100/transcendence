@@ -122,6 +122,8 @@ database 0.5                  | ---     | +
 
 ### MODULES
 * аватарки
+  + picture_url = models.URLField(max_length=300, blank=True, null=True) #if avatar is not available - we can use picture URL
+  + avatar = models.ImageField(**upload_to='avatars/'**, blank=True, null=True) #if avatar is not available - we can use picture URL
   + в базе данных (Base64, BLOB) НЕ рекомендуется!  
     - Долгая загрузка аватарок
     - Сложно кэшировать
@@ -478,7 +480,6 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
     - Если клиент **отправляет запрос с токеном**, `TokenAuthentication` проверит его **только для этого запроса**.
     - Другой клиент отправляет запрос — DRF снова **запускает новую проверку** через authentication classes.
 * среда `AppRegistry` управляет регистрацией приложений и моделей
-* ORM
 * **типы вьюх**
   + `View` базовый класс для создания вьюх
     - можно переопределить методы `get()`, `post()`, `put()`, ...
@@ -487,8 +488,11 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + `ListView`, `DetailView` классы для работы с базой данных, предоставляющие автоматическое отображение списка объектов или одного объекта
   + `CreateView`, `UpdateView`, `DeleteView` классы для создания, обновления и удаления объектов в базе данных
   + `APIView`, `ViewSet` (для DRF)
+* Django Debug Toolbar `pip install django-debug-toolbar`, добавьте `'debug_toolbar'` в `INSTALLED_APPS` и настройте `MIDDLEWARE` и `INTERNAL_IPS`
+  + альтернатива: LOGGING инфо о всех запросах и их обработке в файл `debug.log`
+  + альтернатива: `django.db.connection.queries` SQL-запросы, выполненные Django
 
-
+  
 ### DJANGO REST FRAMEWORK DRF
 * расширяет Django, строит над Django стек для работы с RESTful API (модели, виджеты, фильтры, классы)
 * не имеет отдельного слоя middleware  
