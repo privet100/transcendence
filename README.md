@@ -82,10 +82,10 @@ database 0.5                  | ---     | +
 
 ### LIVE CHAT
 * **чат сделать компонентом**
-* **зачем общий чат** #question
+* зачем общий чат
 * the user sends direct messages to other users (subject)
 * the user blocks other users, they see no more messages from the account they blocked (subject)
-* the user **invites other users to play** through the chat interface (subject) #question
+* the user invites other users to play through the chat interface (subject)
 * the tournament warns users expected for the next game (subject)
 * the user access other players profiles through the chat interface (subject)
 * с каждым пользователем у бэкенда 2 вебсовета: чат, положение ракетки
@@ -107,18 +107,16 @@ database 0.5                  | ---     | +
   | REST API              | No        | Yes                  | Simple notifications, data requests| Low        |
   | Email                 | No        | Yes                  | Important notifications, confirmations| Medium  |
   | Push Notifications    | Yes       | Yes (by service)     | Mobile device notifications         | Medium     |
-* **варианты хранения сообщений чата** #question  
-  + База данных Надёжное долговременное хранение.  
-    - Если нужен полный контроль и история сообщений
-  + Redis Быстрое временное хранение в памяти, можно использовать как кэш.  
+* варианты хранения сообщений чата  
+  + Оптимальный вариант для большинства проектов: PostgreSQL (основное хранилище) + Redis (для кеша и ускорения)
+  + База данных: надёжное долговременное хранение, полный контроль и история сообщений
+  + Redis: быстрое временное хранение в памяти, можно использовать как кэш.  
     - Если чат временный (например, анонимный чат, данные стираются со временем).  
-  + Файл на диске (лог-файлы, JSON, CSV) Простое хранение, но сложно организовать быстрый поиск.  
-    - Если важна простота (но это редко удобно).  
-  + Elasticsearch** (если нужен поиск по сообщениям) Хорош для чатов с большим объёмом данных.  
+  + Файл на диске (лог-файлы, JSON, CSV): простое хранение, сложно организовать быстрый поиск, редко удобно  
+  + Elasticsearch (если нужен поиск по сообщениям) Хорош для чатов с большим объёмом данных.
     - Если требуется поиск по сообщениям → Elasticsearch + база данных  
   + Kafka (или RabbitMQ) Если нужно передавать сообщения между сервисами, но не для долговременного хранения.  
-  + Оптимальный вариант для большинства проектов: PostgreSQL (основное хранилище) + Redis (для кеша и ускорения)
-
+ 
 
 ### MODULES
 * аватарки
@@ -542,6 +540,8 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + если нет — возвращается `403 Forbidden`
   + работает не напрямую с JSON, а с объектом запроса (request), где смотрят заголовки, куки, сессии, токены, ...
 * модуль сериализации данных для работы с JSON или API #see
+  + django не имеет middleware для парсинга JSON
+  + приходящий request.body в JSON парсится `JSONParser`, а ответ сериализуется `JSONRenderer`, подключены внутри DRF
   + применяется уже во вью для входных данных (`POST` JSON, ..) и выходных (формирование ответа).  
   + DRF вызывает `serializer.is_valid()` для проверки пришедших данных, затем, если всё верно, вычитанные поля доступны в `serializer.validated_data`.  
   + при возврате ответа вью может использовать сериализатор, чтобы преобразовать Python-объекты (модель, словарь) в JSON
@@ -551,11 +551,8 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + DRF Serializers (`rest_framework.serializers.Serializer` или `ModelSerializer`)  
     - отдельный слой, не связанный с middleware
     - преобразование (включая валидацию) Python-объектов (моделей, словарей) в JSON/др формат  
-  + пароход для JSON
-    - `JSONParser`, `JSONRenderer`
-    - приходящий request.body в JSON парсится `JSONParser`, а ответ сериализуется `JSONRenderer`, подключены внутри DRF
-    - реализуется внутри вью/serializer классов DRF, встроена в вьюшки через классы сериализаторов (не middleware)  
-    - Django не имеет middleware для парсинга JSON
+  + `JSONParser`, `JSONRenderer`
+  + реализуется внутри вью/serializer классов DRF, встроена в вьюшки через классы сериализаторов (не middleware)  
 * модуль прав доступа Permissions #see
   + классы для проверки прав доступа (например, `IsAuthenticated`, `IsAdminUser`)
   + контролировать доступ к API (`AllowAny`, `IsAuthenticated`, `IsAdminUser`, `IsAuthenticatedOrReadOnly`, кастомные)
