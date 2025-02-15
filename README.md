@@ -42,27 +42,20 @@ database 0.5                  | ---     | +
   * wss://localhost:4443/ws/chat/
   * ws://localhost:4443/ws/chat/room/ ws-запрос на /ws/chat/
   * wss://localhost:4443/ws/chat/room/
-  + `F12` Network - F12 - ws- messages: входящие/исходящие сообщения, в Timing (Headers) статус 101 Switching Protocols
+  + `F12` Network - ws - messages: входящие/исходящие сообщения, в Timing (Headers) статус 101 Switching Protocols
   + views.py обрабатвает HTTP Django URLs /chat/<room> 
-    - channels обрабатывает /ws/chat/<room> (ASGI routing)
+    - channels обрабатывает /ws/chat/<room>
     - если в urls.py есть в path("ws/chat/<room>", views...), Django перехватывает его как HTTP и выдаваёт 404, или ищет шаблон
     - маршруты Channels: websocket_urlpatterns = [re_path(r'^ws/chat/(?P<room_name>\w+)/$', ChatConsumer.as_asgi()),]
     - если есть что-то вроде path('ws/chat/<room>/', some_view), то Django перехватывает HTTP‐запрос (а не Channels)
-  + убрать AllowedHostsOriginValidator ради теста
-    + нет GET /ws/chat/… => запрос не доходит ...
-    + GET /ws/chat/... HTTP/1.1" 404 или 400 => Nginx илм Channels отказывает
-    + GET /ws/chat/... HTTP/1.1" 404…, Channels молчит => nginx не сделал proxy_pass или сделал как HTTP без Upgrade, запрос не дошёл до channels
-    + WebSocket CONNECT /ws/chat/.... : channels выводит при успешном ws handshake  
-    * Nginx и Daphne добавляют заголовки Server: или X-Powered-By
 * endpoints
-  + `views.py` в каждом приложении: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
+  + `views.py`: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
   + postman
     - импортируйте коллекцию эндпоинтов, если она уже создана  
     - отправляйте запросы на `/api/`, `/swagger/`, ... исследуя доступные маршруты
     - `http://localhost:8000/api/endpoint/` endpoints HTTP (API или страницы)
     - метод (GET, POST, PUT, DELETE и т. д.)
     - если требуется авторизация, добавьте токен или данные пользователя (если используете `Token` или `JWT`)
-    - статус ответа (200 OK, 401 Unauthorized, ...) 
 * Django Channels + `pytest` : ws-тесты
 * запрос `GET /ws/chat/rr/` обрабатывается как обычный, не как WebSocket‐handshake - проверить:
   + `frontend "GET /ws/chat/rr/ HTTP/1.1" 404 ...`: js‐код формирует `ws://` или `wss://`, но браузер блокирует/не делает Upgrade
@@ -229,71 +222,11 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
 
 
 ### JAVASCRIPT
-* class = стиль
-* open chat
-  + на странице login, profile, регистрация нету
-  + во время игры - статистика, другой user
-  + отправлять сообщение через js
-* websocket объект js
-* prepMsg забирает инпут и делает ws запрос
-  + взять список пользователей из базы
-* @login_required
-* fetch() запрос обычный (не ws)
-* **AbsTimeUser** (непралвьно написано) наш класс наследует
-* johnResponse - временный
-* view.py не html
-  + jsonResponse или httpResponse
-* createuser встроенная, т.к. наследуем от ... 
-* сначала выполняется header, потом подгружаются стили
-* login = new ws connexion
-* если логин - присылает **session id token**
-* первый логин - header CSRF токен
-  + в js функция post - в header токен CSRF
-  + session id приязывает сессия + юзер в приложении
-* обработка ошибок в js для устойчивости чата (попытки переподключения при разрыве соединения, ...)
-* div позволяет добавлять аватары, имена пользователя, ...
 * a single-page application (subject)
   + один html, меняется с помощью js, js меняет параметры html
   + код внутри {} исполняется в django, он выполняет и заново отправляет html
   + не надо: в завимисости от какого-то условия, показываем или нет какие-то части страницы
-* на место .app подставляется div
-  + class Component базовый, абстрактный
-  + фиксированная часть страницы доступна в js
-  + div = homapage, profile, ... (наследуют от Component)
-  + state = переменные 
-  + % body % кберем, т.к. у нас SPA
-  + fetch (в js) = запрос к бэку
-  + функция render своя в каждом компоненте
-    - например нужен username - делаем запрос к бэку fetchuserprofile
-  + событие DomContactLoaded = html полностью загрузился (у нас только 1 раз)
-* класс router обрабатывает перемещения по сайту
-  + popstate кнопки назад вперёд в брузере
-* `frontend/static/app.js`
-  + `fetch('http://backend:8000/api/user-data/')`: HTTP-запрос к эндпоинту `/api/user-data/`, получить данные JSON 
-  + динамически обновляет DOM пользовательского интерфейса с использованием данных, полученных от бэка
-  + это не делает приложение SPA-фреймворком — это обычная логика на чистом js
-  + `response => response.json()` конвертирует ответ JSON от сервера в объект js
-  + после получения данных пользовательский интерфейс (UI) обновляется без перезагрузки страницы
-  + `async/await` для упрощения чтения
-* class Navigation extends Component
-  + компонент навигации для SPA-приложения
-  + создаёт компонент навигационного меню (navbar) и управляет переходами между страницами с помощью роутера  
-  + навигация внутри `<nav>` с двумя ссылками: Home и Profile
-  + получает экземпляр `router`, который управляет маршрутами
-  + `router` для смены страниц без перезагрузки с использованием SPA 
-  + Навигация остаётся связанной с `Router.js`, что упрощает изменение маршрутов  
-  + перехватывает клики по ссылкам, для каждой ссылки (`.nav-link`) добавляется обработчик клика
-    - this.element.querySelectorAll('.nav-link').forEach(link
-    - this.router.navigate(e.target.getAttribute('href')); для изм-я страницы без перезагрузки  
-    - `.querySelectorAll('.nav-link')` находит все ссылки.  
-    - `addEventListener('click', (e) => {...})` предотвращает стандартный переход (`e.preventDefault()`).  
-    - Вместо перезагрузки страницы вызывается `this.router.navigate(...)`, чтобы обновить контент через SPA (Single Page Application) без перезагрузки.
-  + `this.element.innerHTML` создаётся `<nav>` с ссылками на главную страницу (`/`) и профиль (`/profile`)
-  + у нас будет в шапке
-  + SPA работает без полной перезагрузки страниц. `router.navigate(...)` меняет содержимое без запроса к серверу
-  + Лёгкое добавление новых страниц: просто добавить новые ссылки `<a href="/stats" class="nav-link">Stats</a>`
-  + делает навигацию динамической и управляемой через js
-* frontend/js/app.js
+* js/app.js
   + центральный скрипт, точка входа в приложение, основной код, запускается при загрузке страницы
   + управление авторизацией
   + '.nav-link' кроме 'loginLink' 'logoutLink'
@@ -309,6 +242,73 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
     - перенаправляет на главную страницу (`/`)
   + getCSRFToken();
     - запрашивает и сохраняет его в `document.cookie`
+  + `fetch('http://backend:8000/api/user-data/')`: HTTP-запрос к эндпоинту `/api/user-data/`, получить данные JSON 
+  + динамически обновляет DOM пользовательского интерфейса с использованием данных, полученных от бэка
+  + это не делает приложение SPA-фреймворком — это обычная логика на чистом js
+  + `response => response.json()` конвертирует ответ JSON от сервера в объект js
+  + после получения данных пользовательский интерфейс (UI) обновляется без перезагрузки страницы
+  + `async/await` для упрощения чтения
+* на место app подставляется div
+  + class Component базовый, абстрактный
+  + фиксированная часть страницы доступна в js
+  + div = homapage, profile, ... (наследуют от Component)
+  + state = переменные 
+  + % body % уберем, т.к. у нас SPA
+  + fetch = запрос к бэку
+  + функция render своя в каждом компоненте
+    - например нужен username - делаем запрос к бэку fetchuserprofile
+  + событие DomContactLoaded = html полностью загрузился (у нас только 1 раз)
+  + div позволяет добавлять аватары, имена пользователя, ...
+* class Navigation extends Component
+  + пользователь кликает на ссылку в `Navigation.js` "Profile" -> "/profile"`  
+    - `Navigation.js` перехватывает клик и вызывает `this.router.navigate("/profile")`  
+    - это предотвращает перезагрузку страницы (`e.preventDefault()`)
+  + `navigate()` вызывает `Router.js`  
+  + `Router.js`
+    - берет `"/profile"`
+    - ищет, какая страница ему соответствует в `ROUTES`
+    - находит `"/profile": () => new ProfilePage().render()`
+    - загружает `ProfilePage` в `document.getElementById("app")`
+  + компонент навигации, навигационного меню (navbar), управляет переходами между страницами
+  + получает экземпляр `router`, который управляет маршрутами
+  + навигация внутри `<nav>`
+  + перехватывает клики по ссылкам
+    - `.querySelectorAll('.nav-link')` находит все ссылки
+    - this.element.querySelectorAll('.nav-link').forEach для каждой ссылки (`.nav-link`) добавляется обработчик клика
+    - this.router.navigate(e.target.getAttribute('href')); для изменения страницы без перезагрузки  
+    - вместо перезагрузки страницы `this.router.navigate(...)`, чтобы обновить контент, меняет содержимое без запроса к серверу
+    - `addEventListener('click', (e) => {...})` предотвращает стандартный переход (`e.preventDefault()`).  
+  + `this.element.innerHTML` создаётся `<nav>` с ссылками на главную страницу (`/`) и профиль (`/profile`)
+  + добавление новых страниц = добавить ссылки `<a href="/stats" class="nav-link">Stats</a>`
+  + не дублирует `Router.js`
+    - они работают вместе, чтобы управлять маршрутизацией
+    -
+      | Файл         | Что делает? | Как использует маршруты? |
+      |-------------|------------|----------------------|
+      | `Router.js` | какую страницу загрузить при переходе по URL | использует `ROUTES` |
+      | `Navigation.js` | отвечает за клики по меню и ссылки, чтобы обновить текущую страницу | вызывает `this.router.navigate()` |
+  + в шапке
+* class = стиль
+* open chat
+  + на странице login, profile, регистрация нету
+  + во время игры - статистика, другой user
+  + отправлять сообщение через js
+* ws объект js
+* prepMsg забирает инпут и делает ws запрос
+  + взять список пользователей из базы
+* @login_required
+* fetch() запрос обычный (не ws)
+* **AbsTimeUser** (непралвьно написано) наш класс наследует
+* johnResponse - временный
+* view.py jsonResponse или httpResponse
+* createuser встроенная, т.к. наследуем от ... 
+* сначала выполняется header, потом подгружаются стили
+* login = new ws connexion
+* если логин - присылает **session id token**
+* первый логин - header CSRF токен
+  + в js функция post - в header токен CSRF
+  + session id приязывает сессия + юзер в приложении
+* обработка ошибок в js для устойчивости чата (попытки переподключения при разрыве соединения, ...)
 * pop-up windows : login, chat, profile
 * F12 concole
   + лучше всего в chrome
@@ -323,7 +323,7 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
 * у нас 1 компонент = 1 станица (хотя обычно делают более гибко)
 * vscode расширение Go Live - сразу смотреть, что получается на странице
 * Router.js
-  + определены фиксированные пути (/ → HomePage, /login → LoginPage, /profile → ProfilePage, /stats → StatsPage, /404 → страница ошибки)
+  + определены фиксированные пути (/ → HomePage, /login → LoginPage, ...)
   + нет маршрутов /game/1 или /user/1 => они не обрабатываются Router.js => браузер отправляет запрос на сервер, запрос к localhost:4443/game/1, минуя Router.js
     - если django отдает HTML, то загружается шаблон с бэка
     - для /user/1 сервер отвечает 403 Forbidden, поэтому страница не рендерится
@@ -608,13 +608,11 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + полезен для упрощения кода и автоматизации создания стандартных операций CRUD
 * routers вспомогательный компонент 
   + `urls.py` ?
-  + связывают URL-маршруты с ViewSets
-    - создаёт URL-маршруты (эндпоинты) для действий представления (viewset)
-  + упрощать маршрутизацию RESTful API
+  + создаёт URL-маршруты (эндпоинты) для действий представления (viewset)
+  + маршрутизация RESTful API
   + наследуются от базового класса **BaseRouter**
   + класс **`DefaultRouter`** (**`SimpleRouter`**) DRF: генерация путей (URL-паттернов) к методам ViewSet (`list`, `retrieve`, `create`, `update`, `destroy`)  
   + DefaultRouter один из предопределённых роутеров
-    - реализациея Router
     - расширяет функциональность SimpleRouter
     - поддержка автоматической маршрутизации API root (/) и обработку схемы API
     - для стандартных действий представления (viewset)
@@ -623,7 +621,7 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + регистрируете ViewSet в `router.register()`
   + DRF автоматически формирует для него набор URL-маршрутов, настроит URL-адреса для всех действий из ViewSet
     - APIView для более кастомизированных вьюх
-    - ViewSet для быстрого создания стандартных API-методов
+    - ViewSet для стандартных API-методов
   + лучше без DRF Router, если:
     - очень специфичные URLs или вы используете в основном обычные Django CBV/FBV (Class-Based Views/Function-Based Views) без API на базе DRF
     - всего несколько отдельных эндпоинтов и нет смысла создавать полноценные ViewSet’ы
@@ -633,7 +631,61 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
     - django ищет, какая вьюха должна обработать запрос, основываясь на urls.py
     - django направляет запрос в `ItemListView`, запрос на `/users/1/` направляется в `ItemDetailView`
     - `path()`, `re_path()` связывают URL-адреса с определенными вьюхами
-  +  маршрут path('user/<int:id>/', UserProfileView.as_view(), name='user-detail') обрабатывает `https://localhost:4443/user/1/`
+  + у нас дублирование `auth_app.urls`
+  + у нас `re_path(r'^.*', TemplateView.as_view(template_name='index.html'))` перехватывает все URL, которые не были обработаны выше => несуществующие пути будут перенаправляться на `index.html`, что **неправильно для API**
+    - надо ограничить этот `re_path` только на фронтенд-маршруты (например, `^(?!api/).*`)
+    - либо вообще убрать его из `urls.py`, а вместо этого обрабатывать фронтенд-роутинг на стороне фронта.
+  + у нас дубль path('', include('myapp.urls')), и path('', include('auth_app.urls')),
+    - jango использует только первый, который он встретит
+    - обычно в `''` подключается основной `myapp.urls`, а внутри `myapp.urls` уже могут быть другие вложенные маршруты
+  + у нас API-роуты (`/users/`, `/user_42/`, `/game/<id>/` и т.д.) раскиданы по `urls.py` 
+    - Группировать все API в `/api/` и перенести в `api/urls.py`
+    - ```python
+      urlpatterns = [
+          path("api/users/", UserProfile_list, name="get_all_userprofiles"),
+          path("api/user/<int:id>/", UserProfileView.as_view(), name="user-detail"),
+          path("api/tournament/<int:id>/", TournamentView.as_view(), name="tournament-detail"),
+          path("api/game/<int:id>/", GameView.as_view(), name="game-detail"),
+      ]
+      ```
+    - `myproject/urls.py`: `path("api/", include("api.urls")),`
+  + gpt предлагает
+    ```
+    backend/
+    │── myproject/
+    │   ├── urls.py         # Основные роуты (только include)
+    │── auth_app/
+    │   ├── urls.py         # Авторизация
+    │── chat/
+    │   ├── urls.py         # Чат
+    │── myapp/
+    │   ├── urls.py         # Главная страница (index)
+    │── api/
+    │   ├── urls.py         # Все API-роуты
+    ```
+  + gpt предлагает `backend/myproject/urls.py`
+    ```python
+    urlpatterns = [
+        path("admin/", admin.site.urls),
+        path("api/", include("api.urls")),  
+        path("auth/", include("auth_app.urls")),  
+        path("chat/", include("chat.urls")),
+        path("", include("myapp.urls")),  # Главная страница (index)
+        re_path(r'^(?!api/).*$', TemplateView.as_view(template_name="index.html")),
+    ]
+    ```
+  + gpt предлагает `backend/api/urls.py`
+    ```python
+    urlpatterns = [
+        path("users_42/", get_all_users_view, name="get_all_users_42"),
+        path("user_42/<int:user_id>/", get_user_view, name="get_user_42"),
+        path("users/", UserProfile_list, name="get_all_userprofiles"),
+        path("user/<int:id>/", UserProfileView.as_view(), name="user-detail"),
+        path("tournament/<int:id>/", TournamentView.as_view(), name="tournament-detail"),
+        path("game/<int:id>/", GameView.as_view(), name="game-detail"),
+    ]
+    ```
+  + path('user/<int:id>/', UserProfileView.as_view(), name='user-detail') обрабатывает `https://localhost:4443/user/1/`
   + альтернатива: DFR может **автоматически создавать маршруты** через `DefaultRouter`
     - router = DefaultRouter() # автоматически создаёт маршруты CRUD (`GET /user/1/`, `POST /user/`, `PUT /user/1/`, ...)
     - router.register(r'user', UserProfileView, basename="user")
@@ -1241,11 +1293,10 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + Source Map хранит сопоставление (mapping) между сжатым и исходным кодом%, чтобоы видеть исходный код для отладки кода в браузере
   + в продакшен отключают генерацию .map-файлов, чтобы уменьшить вес приложения и не раскрывать детали кода
 * в разработке три других варианта
-  + **`python manage.py runserver` при DEBUG = True**
   + django.contrib.staticfiles
-    - обслуживает стат файлы для /admin
+    - обслуживает **стат файлы для /admin**
     - позволяет добавлять версии, хеши в имена файлов на фронтенд, чтобы избежать кеширования старых версий
-    - если CSS-файл кэшировался, браузер может залипать на устаревшей версии => добавить ?v=123 в конце ссылки или очистить кэш
+    - если CSS-файл кэшировался, браузер может залипать => добавить ?v=123 в конце ссылки или очистить кэш
   + manually serve user-uploaded media files from MEDIA_ROOT
     - use django.views.static.serve() view
     - don’t have django.contrib.staticfiles in INSTALLED_APPS
