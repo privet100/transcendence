@@ -113,40 +113,39 @@ database 0.5                  | ---     | +
   + Kafka (или RabbitMQ) Если нужно передавать сообщения между сервисами, но не для долговременного хранения.  
  
 
-### MODULES
-* аватарки
-  + picture_url = models.URLField(max_length=300, blank=True, null=True) #if avatar is not available - we can use picture URL
-  + avatar = models.ImageField(**upload_to='avatars/'**, blank=True, null=True) #if avatar is not available - we can use picture URL
-  + в отдельном томе `media_django_volume`
-    - статические файлы не изменяются после деплоя  
-    - загружаемые пользователями аватарки меняются и не должны попадать в систему контроля версий
-    - статика кешируется и может раздаваться напрямую через Nginx  
-    - аватарки требуют авторизации, что удобнее обрабатывать через Django
-    - `volumes: media_django_volume`
-    - backend: volumes: media_django_volume:/app/media, nginx: volumes: media_django_volume:/usr/share/nginx/media
-    - MEDIA_URL = '/media/', MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-    - location /media/ { alias /usr/share/nginx/media/; }
-  + локальное хранение (Media Storage)
-    - для Малых и средних проектов  
-    - простота настройки и отладки  
-    - `settings.py`: MEDIA_URL MEDIA_ROOT 
-    - **чистить старые файлы, если аватарка обновляется**
-  + в базе данных (Base64, BLOB) НЕ рекомендуется
-    - Долгая загрузка аватарок
-    - Сложно кэшировать
-  + S3-совместимое хранилище (AWS S3, DigitalOcean Spaces, MinIO)
-    - Для продакшена лучший вариант
-    - Подходит для Масштабируемых проектов  
-    - pip install django-storages[boto3]
-    - `settings.py`: DEFAULT_FILE_STORAGE, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, AWS_S3_REGION_NAME, AWS_S3_CUSTOM_DOMAIN, MEDIA_URL
-    - Не нагружает сервер
-    - Простая интеграция с CDN
-  + внешних сервисов (Gravatar, Cloudinary)
-    - Быстрого решения     
-    - Минимального кода  
-    - Не нагружает сервер
-    - Автоматическая оптимизация изображений
-    - Данные хранятся у сторонних сервисов
+### AVATARS
++ picture_url = models.URLField(max_length=300, blank=True, null=True) #if avatar is not available - we can use picture URL
++ avatar = models.ImageField(**upload_to='avatars/'**, blank=True, null=True) #if avatar is not available - we can use picture URL
++ в отдельном томе `media_django_volume`
+  - статические файлы не изменяются после деплоя  
+  - загружаемые пользователями аватарки меняются и не должны попадать в систему контроля версий
+  - статика кешируется и может раздаваться напрямую через Nginx  
+  - аватарки требуют авторизации, что удобнее обрабатывать через Django
+  - `volumes: media_django_volume`
+  - backend: volumes: media_django_volume:/app/media, nginx: volumes: media_django_volume:/usr/share/nginx/media
+  - MEDIA_URL = '/media/', MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+  - location /media/ { alias /usr/share/nginx/media/; }
++ локальное хранение (Media Storage)
+  - для Малых и средних проектов  
+  - простота настройки и отладки  
+  - `settings.py`: MEDIA_URL MEDIA_ROOT 
+  - **чистить старые файлы, если аватарка обновляется**
++ в базе данных (Base64, BLOB) НЕ рекомендуется
+  - Долгая загрузка аватарок
+  - Сложно кэшировать
++ S3-совместимое хранилище (AWS S3, DigitalOcean Spaces, MinIO)
+  - Для продакшена лучший вариант
+  - Подходит для Масштабируемых проектов  
+  - pip install django-storages[boto3]
+  - `settings.py`: DEFAULT_FILE_STORAGE, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, AWS_S3_REGION_NAME, AWS_S3_CUSTOM_DOMAIN, MEDIA_URL
+  - Не нагружает сервер
+  - Простая интеграция с CDN
++ внешних сервисов (Gravatar, Cloudinary)
+  - Быстрого решения     
+  - Минимального кода  
+  - Не нагружает сервер
+  - Автоматическая оптимизация изображений
+  - Данные хранятся у сторонних сервисов
 
 | Вариант | Простота | Скорость | Масштабируемость | Рекомендуется? |
 |---------|---------|----------|-----------------|---------------|
@@ -1298,7 +1297,7 @@ database 0.5                  | ---     | +
 
 ### IDENTIFCATION = кто вы
 + процесс определения личности пользователя (например, предоставление username или email)
-+ Пользователь вводит логин и пароль
++ логин и пароль
 + Сервер проверяет данные и создаёт **JWT**, содержащий информацию о пользователе, имя пользователя
 + Токен отправляется клиенту
 + служба аутентификации хранит закрытый ключ и может выдавать токены
@@ -1358,7 +1357,37 @@ database 0.5                  | ---     | +
   + используемые для идентификации и авторизации сторонних приложений или интеграций
   + Для интеграции с внешними сервисами или предоставления публичного API
     - `orization: Api-Key <your-key>` в заголовке запроса
-
+* только залогиненные могут просматривать `StatsPage`
+  + три инструмента работают на разных уровнях
+  + 1) проверять аутентификацию перед рендерингом в `StatsPage`  
+    - если не залогинен, на страницу входа
+    - `StatsPage.js`: добавь `checkAuthentication()` в конструкторе, запрашивать данные текущего пользователя
+      ```
+      async checkAuthentication() {
+          try {
+              const response = await fetch('/auth/me', { method: 'GET' }); // Предполагается, что есть API /auth/me
+              if (!response.ok) throw new Error('Not authenticated');
+              const user = await response.json();
+              this.setState({ currentUser: user });
+              this.fetchGames();
+          } catch (error) {
+              console.error('Authentication error:', error);
+              window.location.href = '/login'; // Перенаправление на страницу входа
+          }
+      }
+      ```
+  + 2) скрывать контент, если пользователь не залогинен
+    ```javascript
+    render() {
+        if (!this.state.currentUser) {
+            return '<p>Loading...</p>'; // Или ничего не рендерить
+        }
+        // код рендера
+    }
+    ```
+  + 3) защитить API на сервере
+    - если кто-то попытается вручную запросить данные (`/games/`, `/users/`), сервер не отдаст их незалогиненному пользователю  
+  
 
 ### AUTENTIFICATION = докажите, что это вы
 + проверка подлинности пользователя (через пароль, OAuth, сессии, ...)
