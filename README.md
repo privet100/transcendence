@@ -1076,55 +1076,14 @@ database 0.5                  | ---     | +
 
 ### DJANGO MODELS, DATABASE PostgreSQL
 * Starting entrypoint script... : Apply all migrations: **admin, auth, contenttypes, myapp, sessions**
-* `python manage.py makemigrations`
-  + создаёт файлы миграций (инструкции по изменению базы)  
-  + django выполняет изменения из файлов миграций, и обновляет структуру базы данных
-* python manage.py migrate применение миграций базы данных
-  + создаёт таблицы для новых моделей
-  + добавляет, изменяет, удаляет поля
-  + обновляет связи между таблицами
 * ORM Object-Relational Mapping
   + `models.py`
   + описывают структуру данных (таблицы, поля, связи)  
-  + вместо написания SQL-запросов, разработчик описывает модели (Python-классы), PUT = поменять поле в бд (вместо запроса sql)
+  + вместо SQL-запросов, разработчик описывает модели (Python-классы), PUT = поменять поле в бд (вместо запроса sql)
   + Django преобразует модели в SQL-таблицы
   + легко менять базу с SQLite на PostgreSQL
   + ForeignKey, ManyToMany, OneToOne создают связи между таблицами
   + **защита от SQL-инъекций**
-* LANG=C.UTF-8 python manage.py createsuperuser
-* docker exec -it backend python manage.py showmigrations
-  ```
-  admin
-   [X] 0001_initial
-   [X] 0002_logentry_remove_auto_add
-   [X] 0003_logentry_add_action_flag_choices
-  auth
-   [X] 0001_initial
-   [X] 0002_alter_permission_name_max_length
-   [X] 0003_alter_user_email_max_length
-   [X] 0004_alter_user_username_opts
-   [X] 0005_alter_user_last_login_null
-   [X] 0006_require_contenttypes_0002
-   [X] 0007_alter_validators_add_error_messages
-   [X] 0008_alter_user_username_max_length
-   [X] 0009_alter_user_last_name_max_length
-   [X] 0010_alter_group_name_max_length
-   [X] 0011_update_proxy_permissions
-   [X] 0012_alter_user_first_name_max_length
-  auth_app
-   (no migrations)
-  chat
-   (no migrations)
-  contenttypes
-   [X] 0001_initial
-   [X] 0002_remove_content_type_name
-  myapp
-   [X] 0001_initial
-  sessions
-   [X] 0001_initial
-  ```
-* docker exec -it backend python manage.py inspectdb
-* docker exec -it backend python manage.py sqlmigrate myapp 0001
 * `docker exec -it db psql -U myuser -d mydatabase`
   + then `\db`, `\dt`
     ```
@@ -1145,16 +1104,14 @@ database 0.5                  | ---     | +
     public | myapp_userprofile_groups           | table | myuser
     public | myapp_userprofile_user_permissions | table | myuser
     ```
-* генерировать граф:
-  + pip install django-extensions pygraphviz pydot
 * лучший вариант для Django – оставить `id`
-  + django автоматически добавляет поле `id = AutoField(primary_key=True)`, если явный первичный ключ не указа
-  + `AutoField` (по умолчанию) = 32-битный `int` (максимальное значение: ~2.1 млрд), чаще всего достаточно #see
-    - `BigAutoField` = 64-битный `int` (максимальное значение: ~9 квинтиллионов)
+  + django добавляет `id = AutoField(primary_key=True)`, если явный первичный ключ не указан
   + Минусы `game_id`:
     - Django уже создает `id`, так что `game_id` – это **избыточность**.  
     - В коде придется писать `game.game_id`, вместо простого `game.id`.  
     - Во всех внешних ключах (`ForeignKey`) тоже придется явно указывать `to_field='game_id'`, если хотят ссылаться на `game_id`.
+* `AutoField` (по умолчанию) = 32-битный `int` (максимальное значение: ~2.1 млрд), чаще всего достаточно #see
+  + `BigAutoField` = 64-битный `int` (максимальное значение: ~9 квинтиллионов)
 * AUTH_USER_MODEL = 'myapp.UserProfile`,  кастомная модель `myapp.UserProfile` вместо стандартного `User`
   + class UserProfile(AbstractUser)
   + наследуется от `AbstractUser` => это полноценный пользователь Django
@@ -1171,6 +1128,19 @@ database 0.5                  | ---     | +
   + когда дргуие модели ссылаются на `User`: **`get_user_model()`**
   + какую модель использует django: `docker exec -it backend python manage.py shell` -> `from django.contrib.auth import get_user_model` `print(get_user_model())`
 * **с повторным емейлом не создаём?**
+* генерировать граф: pip install django-extensions pygraphviz pydot
+* migrations
+  + `python manage.py makemigrations`
+    - создаёт файлы миграций (инструкции по изменению базы)  
+    - django выполняет изменения из файлов миграций
+    - django обновляет структуру базы данных
+  + python manage.py migrate применение миграций базы данных
+    - создаёт таблицы для новых моделей
+    - добавляет, изменяет, удаляет поля
+    - обновляет связи между таблицами
+  + docker exec -it backend python manage.py showmigrations
+  + docker exec -it backend python manage.py inspectdb
+  + docker exec -it backend python manage.py sqlmigrate myapp 0001
 
 
 ### GAME LOGIC
