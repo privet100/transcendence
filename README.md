@@ -1,5 +1,6 @@
 ### see
 * через админ запретить добавлять игру с отрицательными очками
+* может ли играть сам с собой?
 
 
 ### modules
@@ -27,9 +28,7 @@ database 0.5                  | ---     | +
   + 172.21.0.1 IP-адрес клиента (в контейнерной сети внутренний адрес Docker)
   + `-` идентификация (RFC 1413), по умолчанию отсутствует
   + `-` **имя пользователя (Basic Auth)**, по умолчанию отсутствует
-  + `GET /favicon.ico HTTP/1.1` request Line: метод запроса, путь, версия протокола, осн. заголовки (User-Agent, Referer), метод/URL
   + https://localhost:4443/` откуда пользователь перешёл
-* `curl -I -k https://localhost:4443/staticfiles/admin/css/base.css` проверить contecnt-type 
 * ws
   + как работает утсновка соединения:
     - js инициирует подключение к `wss://localhost:4443/ws/chat/room/`
@@ -118,14 +117,23 @@ database 0.5                  | ---     | +
 * аватарки
   + picture_url = models.URLField(max_length=300, blank=True, null=True) #if avatar is not available - we can use picture URL
   + avatar = models.ImageField(**upload_to='avatars/'**, blank=True, null=True) #if avatar is not available - we can use picture URL
-  + в базе данных (Base64, BLOB) НЕ рекомендуется!  
-    - Долгая загрузка аватарок
-    - Сложно кэшировать
+  + в отдельном томе `media_django_volume`
+    - статические файлы не изменяются после деплоя  
+    - загружаемые пользователями аватарки меняются и не должны попадать в систему контроля версий
+    - статика кешируется и может раздаваться напрямую через Nginx  
+    - аватарки требуют авторизации, что удобнее обрабатывать через Django
+    - `volumes: media_django_volume`
+    - backend: volumes: media_django_volume:/app/media, nginx: volumes: media_django_volume:/usr/share/nginx/media
+    - MEDIA_URL = '/media/', MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    - location /media/ { alias /usr/share/nginx/media/; }
   + локальное хранение (Media Storage)
     - для Малых и средних проектов  
-    - Простоты настройки и отладки  
+    - простота настройки и отладки  
     - `settings.py`: MEDIA_URL MEDIA_ROOT 
-    - Нужно чистить старые файлы, если аватарка обновляется
+    - **чистить старые файлы, если аватарка обновляется**
+  + в базе данных (Base64, BLOB) НЕ рекомендуется
+    - Долгая загрузка аватарок
+    - Сложно кэшировать
   + S3-совместимое хранилище (AWS S3, DigitalOcean Spaces, MinIO)
     - Для продакшена лучший вариант
     - Подходит для Масштабируемых проектов  
