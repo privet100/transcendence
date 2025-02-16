@@ -1,3 +1,6 @@
+### see
+* через админ запретить добавлять игру с отрицательными очками
+
 ###
 module                        | front   | back 
 ------------------------------|---------|------   
@@ -44,10 +47,8 @@ database 0.5                  | ---     | +
   * wss://localhost:4443/ws/chat/room/
   + `F12` Network - ws - messages: входящие/исходящие сообщения, в Timing (Headers) статус 101 Switching Protocols
   + views.py обрабатвает HTTP Django URLs /chat/<room> 
-    - channels обрабатывает /ws/chat/<room>
-    - если в urls.py есть в path("ws/chat/<room>", views...), Django перехватывает его как HTTP и выдаваёт 404, или ищет шаблон
-    - маршруты Channels: websocket_urlpatterns = [re_path(r'^ws/chat/(?P<room_name>\w+)/$', ChatConsumer.as_asgi()),]
-    - если есть что-то вроде path('ws/chat/<room>/', some_view), то Django перехватывает HTTP‐запрос (а не Channels)
+  + channels обрабатывает /ws/chat/<room>
+  + маршруты Channels: websocket_urlpatterns = [re_path(r'^ws/chat/(?P<room_name>\w+)/$', ChatConsumer.as_asgi()),]
 * endpoints
   + `views.py`: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
   + postman
@@ -162,7 +163,6 @@ database 0.5                  | ---     | +
 
 
 ### FRONTEND NGINX
-* **зачем копировать nginx.conf**
 * compatible with the latest stable up-to-date version of Google Chrome (subject)
 * The user should be able to use the Back and Forward buttons of the browser (subject)
 * try using **bolt.new** it's better at frontend #question
@@ -180,7 +180,7 @@ database 0.5                  | ---     | +
 * запросы к статическим файлам: отдает из /usr/share/nginx/html/static/
 * запросы на /api/ (JSON, HTML, WebSocket) идут на Django (аутентификаци, получения/отправки данных)
   + `proxy_set_header ...` передает заголовки (Host, IP-адрес клиента, протокол, ...), чтобы бэкенд понимал, откуда запрос
-  + **сохраняет заголовки WebSocket**
+  + **сохраняет заголовки ws**
 * фронт самописный или с использованием минимальных библиотек (jQuery, Bootstrap, ...), не на SPA-фреймворке
 * балансировщик нагрузки (если много сообщений, **что будет**?)
 * в модели пользователя аватарки: **у фронтэнда есть требования к аватаркам или они могут сами отрисовывать?** вдруг пользователь сохранит свою фотографию 1000 х 1000 пикселей, на фронте вы сможете отрисовать аватарку ?
@@ -206,45 +206,40 @@ database 0.5                  | ---     | +
 * alexey: Layout on the pages – working on it
   + расположение и структура элементов пользовательского интерфейса на веб-страницах
   + Работа с CSS-фреймворками (например, Tailwind CSS или Bootstrap)
-* invalid number of arguments in "root" directive in /etc/nginx/conf.d/default.conf:14
-frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /etc/nginx/conf.d/default.conf:14
-  + официальный образ Docker’а для Nginx (а также некоторые его обёртки) часто запускают внутренний скрипт, который делает `envsubst` (подстановку переменных окружения) по шаблону => все встречающиеся в конфиге Nginx переменные вида `$что_то` могут быть «вырезаны» или превращены во что-то не то, и Nginx начинает ругаться: invalid number of arguments in "root" directive ..., "proxy_pass" cannot have URI part in location given by regular expression ...
-    - > Dockerfile или entrypoint.sh: `envsubst < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf` или подобное
-  + nginx интерпретирует как свои переменные `$uri`, `$host`, `$remote_addr`, `$http_upgrade` и др.  
-  + через Docker + `envsubst` => `$uri` могут быть заменены пустой строкой (или иной строкой)
-  + способ 1: Экранировать доллары: `\$uri` вместо `$uri`
-  + способ 2: Отключить envsubst (если он вам не нужен), entrypoint/docker-compose, чтобы Nginx-конфиг не прогонялся через `envsubst`
-    - однако в ряде случаев в контейнере (особенно `nginx:alpine` с поддержкой переменных окружения) отключить envsubst не всегда тривиально
-  + способ 3: Использовать другие переменные окружения: если ваша цель действительно была пробросить переменные окружения Docker в Nginx-конфиг, то зачастую меняют названия переменных. Например, в самом конфиге пишут `$MY_ENV` (только где действительно нужно), а все «стандартные» переменные Nginx (`$uri`, `$host` и т. д.) не трогают.
-    - в вашем случае `$uri` / `$host` — это именно **стандартные** переменные Nginx, так что лучше их не трогать, а экранировать
 * SSL Labs проверить корректность настройки SSL
 * **Карточка Bootstrap**  
+* "Failed to load module script: Expected a JavaScript module script but the server responded with a MIME type of 'text/html'"
+  + 1. Файл js не найден на сервере, сервер возвращает HTML-страницу с ошибкой (404, 500, ...)
+  + 2. Network → Headers, Content-Type для скрипта должно быть `Content-Type: application/javascript`
+    - `nginx.conf`: `types { application/javascript js; }`
+  + 3. загружаешь `.js` как **ES-модуль (`type="module"`)**, но сервер не поддерживает это
+    - Проверь `type="module"` в `<script>`
+    - `<script src="/static/js/main.js"></script> <!-- вместо type="module" -->`
+    - убедись, что сервер поддерживает корректный MIME-тип
+* CORS (Cross-Origin Resource Sharing)
+  + механизм, который позволяет веб-браузерам делать запросы к ресурсам на другом домене
+  + по умолчанию браузеры запрещают такие запросы из соображений безопасности
 
 
 ### JAVASCRIPT
 * a single-page application (subject)
   + один html, меняется с помощью js, js меняет параметры html
   + код внутри {} исполняется в django, он выполняет и заново отправляет html
-  + не надо: в завимисости от какого-то условия, показываем или нет какие-то части страницы
+  + не надо: в завимисости от какого-то условия показываем или нет какие-то части страницы
 * js/app.js
   + центральный скрипт, точка входа в приложение, основной код, запускается при загрузке страницы
   + управление авторизацией
+  + динамически обновляет DOM пользовательского интерфейса с использованием данных, полученных от бэка
   + '.nav-link' кроме 'loginLink' 'logoutLink'
     - обработка событий интерфейса, кликов на ссылки навигации
     - инициализация маршрутизации router 
     - `e.preventDefault()` запрещает браузеру перезагружать страницу 
     - `router.navigate()` для смены страницы
-  + if (authService.isAuthenticated) router.navigate("/profile")
-    - аутентификация
   + authService.logout()
     - запрос на разлогинивание (`POST /logout/`)
     - удаляет данные профиля из `sessionStorage`
     - перенаправляет на главную страницу (`/`)
-  + getCSRFToken();
-    - запрашивает и сохраняет его в `document.cookie`
   + `fetch('http://backend:8000/api/user-data/')`: HTTP-запрос к эндпоинту `/api/user-data/`, получить данные JSON 
-  + динамически обновляет DOM пользовательского интерфейса с использованием данных, полученных от бэка
-  + это не делает приложение SPA-фреймворком — это обычная логика на чистом js
   + `response => response.json()` конвертирует ответ JSON от сервера в объект js
   + после получения данных пользовательский интерфейс (UI) обновляется без перезагрузки страницы
   + `async/await` для упрощения чтения
@@ -252,57 +247,36 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + class Component базовый, абстрактный
   + фиксированная часть страницы доступна в js
   + div = homapage, profile, ... (наследуют от Component)
+  + позволяет добавлять аватары, имена пользователя, ...
   + state = переменные 
-  + % body % уберем, т.к. у нас SPA
   + fetch = запрос к бэку
   + функция render своя в каждом компоненте
     - например нужен username - делаем запрос к бэку fetchuserprofile
   + событие DomContactLoaded = html полностью загрузился (у нас только 1 раз)
-  + div позволяет добавлять аватары, имена пользователя, ...
+  + % body % уберем, т.к. у нас SPA
 * class Navigation extends Component
-  + пользователь кликает на ссылку в `Navigation.js` "Profile" -> "/profile"`  
-    - `Navigation.js` перехватывает клик и вызывает `this.router.navigate("/profile")`  
-    - это предотвращает перезагрузку страницы (`e.preventDefault()`)
-  + `navigate()` вызывает `Router.js`  
-  + `Router.js`
-    - берет `"/profile"`
-    - ищет, какая страница ему соответствует в `ROUTES`
-    - находит `"/profile": () => new ProfilePage().render()`
-    - загружает `ProfilePage` в `document.getElementById("app")`
   + компонент навигации, навигационного меню (navbar), управляет переходами между страницами
-  + получает экземпляр `router`, который управляет маршрутами
   + навигация внутри `<nav>`
-  + перехватывает клики по ссылкам
-    - `.querySelectorAll('.nav-link')` находит все ссылки
-    - this.element.querySelectorAll('.nav-link').forEach для каждой ссылки (`.nav-link`) добавляется обработчик клика
-    - this.router.navigate(e.target.getAttribute('href')); для изменения страницы без перезагрузки  
-    - вместо перезагрузки страницы `this.router.navigate(...)`, чтобы обновить контент, меняет содержимое без запроса к серверу
-    - `addEventListener('click', (e) => {...})` предотвращает стандартный переход (`e.preventDefault()`).  
+  + `.querySelectorAll('.nav-link')` находит все ссылки
+  + `addEventListener('click', (e) => {...})` предотвращает стандартный переход (`e.preventDefault()`).  
+  + пользователь кликает на ссылку в `Navigation.js` "Profile" -> "/profile"`  
+    - `Navigation.js` перехватывает клик
+    -  `Navigation.js` вызывает `this.router.navigate("/profile")`  
+    - this.router.navigate(e.target.getAttribute('href')); для изменения страницы без перезагрузки, без запроса к серверу
+    - `Router.js` берет `"/profile"`
+    - `Router.js` находит в `ROUTES` `"/profile": () => new ProfilePage().render()`
+    - `Router.js` загружает `ProfilePage` в `document.getElementById("app")`
   + `this.element.innerHTML` создаётся `<nav>` с ссылками на главную страницу (`/`) и профиль (`/profile`)
   + добавление новых страниц = добавить ссылки `<a href="/stats" class="nav-link">Stats</a>`
-  + не дублирует `Router.js`
-    - они работают вместе, чтобы управлять маршрутизацией
-    -
-      | Файл         | Что делает? | Как использует маршруты? |
-      |-------------|------------|----------------------|
-      | `Router.js` | какую страницу загрузить при переходе по URL | использует `ROUTES` |
-      | `Navigation.js` | отвечает за клики по меню и ссылки, чтобы обновить текущую страницу | вызывает `this.router.navigate()` |
+  + `Router.js`: какую страницу загрузить при переходе по URL, использует `ROUTES` 
+  + `Navigation.js`: отвечает за клики по меню и ссылки, вызывает `this.router.navigate()`
   + в шапке
-* class = стиль
 * open chat
   + на странице login, profile, регистрация нету
   + во время игры - статистика, другой user
   + отправлять сообщение через js
-* ws объект js
 * prepMsg забирает инпут и делает ws запрос
-  + взять список пользователей из базы
-* @login_required
-* fetch() запрос обычный (не ws)
-* **AbsTimeUser** (непралвьно написано) наш класс наследует
-* johnResponse - временный
-* view.py jsonResponse или httpResponse
-* createuser встроенная, т.к. наследуем от ... 
-* сначала выполняется header, потом подгружаются стили
+  + список пользователей из базы
 * login = new ws connexion
 * если логин - присылает **session id token**
 * первый логин - header CSRF токен
@@ -328,6 +302,14 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
     - если django отдает HTML, то загружается шаблон с бэка
     - для /user/1 сервер отвечает 403 Forbidden, поэтому страница не рендерится
 * {% load static %} загрузка стат файлов Django (table.css), нам не надо
+* class = стиль
+* ws объект js
+* сначала выполняется header, потом подгружаются стили
+* fetch() запрос обычный (не ws)
+* **AbsTimeUser** (непралвьно написано) наш класс наследует
+* johnResponse - временный
+* view.py jsonResponse или httpResponse
+* createuser встроенная, т.к. наследуем от ... 
 
 
 ### BACKEND DAPHNE 
@@ -607,7 +589,6 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + генерирует действия для стандартных операций CRUD, таких как `list`, `create`, `retrieve`, `update`, `destroy`
   + полезен для упрощения кода и автоматизации создания стандартных операций CRUD
 * routers вспомогательный компонент 
-  + `urls.py` ?
   + создаёт URL-маршруты (эндпоинты) для действий представления (viewset)
   + маршрутизация RESTful API
   + наследуются от базового класса **BaseRouter**
@@ -632,9 +613,9 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
     - django направляет запрос в `ItemListView`, запрос на `/users/1/` направляется в `ItemDetailView`
     - `path()`, `re_path()` связывают URL-адреса с определенными вьюхами
   + у нас дублирование `auth_app.urls`
-  + у нас `re_path(r'^.*', TemplateView.as_view(template_name='index.html'))` перехватывает все URL, которые не были обработаны выше => несуществующие пути будут перенаправляться на `index.html`, что **неправильно для API**
+  + у нас `re_path(r'^.*', TemplateView.as_view(template_name='index.html'))` перехватывает URL,не обработанные выше => несуществующие пути перенаправляются на `index.html`, что **неправильно для API**
     - надо ограничить этот `re_path` только на фронтенд-маршруты (например, `^(?!api/).*`)
-    - либо вообще убрать его из `urls.py`, а вместо этого обрабатывать фронтенд-роутинг на стороне фронта.
+    - либо убрать его из `urls.py`, а вместо этого обрабатывать фронтенд-роутинг на стороне фронта
   + у нас дубль path('', include('myapp.urls')), и path('', include('auth_app.urls')),
     - jango использует только первый, который он встретит
     - обычно в `''` подключается основной `myapp.urls`, а внутри `myapp.urls` уже могут быть другие вложенные маршруты
@@ -685,7 +666,6 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
         path("game/<int:id>/", GameView.as_view(), name="game-detail"),
     ]
     ```
-  + path('user/<int:id>/', UserProfileView.as_view(), name='user-detail') обрабатывает `https://localhost:4443/user/1/`
   + альтернатива: DFR может **автоматически создавать маршруты** через `DefaultRouter`
     - router = DefaultRouter() # автоматически создаёт маршруты CRUD (`GET /user/1/`, `POST /user/`, `PUT /user/1/`, ...)
     - router.register(r'user', UserProfileView, basename="user")
@@ -694,7 +674,7 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + альтернатива: декоратор `@action` может создаать кастомные URL
 * Filters вспомогательный компонент
   + фильтрация данных, которые возвращает API, по параметрам запроса
-* Throttlesвспомогательный компонент
+* Throttles вспомогательный компонент
   + контролируют частоту запросов пользователей
   + защита от **DoS-атак** и чрезмерной нагрузки на сервер (**nginx недостаточно?**)
 + базовые подходы django
@@ -732,15 +712,14 @@ frontend  | nginx: [emerg] invalid number of arguments in "root" directive in /e
   + выполняет определённое действие
   + endpoints чата `GET /chat/rooms/`, `POST /chat/rooms/`, `GET /chat/rooms/<room_id>/messages/`, `POST /chat/rooms/<room_id>/messages/`
 * APIView ViewSet специализированные CBV из DRF
-  + обработчики HTTP-запросов  для работы с API
+  + обработчики HTTP-запросов для работы с API
   + определяются в View-классах или функциях
-  + классы, наследущие от `APIView`, `GenericViewSet`, `ViewSet`
-  + APIView`
+  + классы, наследующие от `APIView`, `GenericViewSet`, `ViewSet`
+  + APIView (у нас)
     - класс, наследуется от класса View
     - CBV предназначенный для создания REST API
     - добавляет сериализацию, аутентификацию, работу с JSON, вспом. методы для обработки HTTP `GET` `POST` `PUT` `DELETE`, др API-функций
     - для простых API с базовой логикой
-    - `APIView`: **`lookup_field = 'id'`**
     - `views.py`: метод `game_detail` обрабатывает запрос
   + ViewSet
     - расширенный вариант APIView
