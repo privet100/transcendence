@@ -1,6 +1,21 @@
 ### see
 * через админ запретить добавлять игру с отрицательными очками
 * может ли играть сам с собой?
+* `myapp_userprofile` table does not exist, but Django is trying to add a foreign key constraint referencing it
+  + Migrations are missing or not applied – The migration that creates `myapp_userprofile` may not have run.
+    - Check if the migration for `myapp_userprofile` exists `python manage.py showmigrations myapp`
+    - See if there’s an unapplied migration that creates `UserProfile`
+  + Migration history is out of sync – The migration files and actual database schema may be inconsistent.
+    - run migrations again `python manage.py makemigrations myapp`, `python manage.py migrate`
+  + Check the database `docker exec -it <db-container-name> psql -U <db-user> -d <db-name>`, `\dt`
+    - If `myapp_userprofile` is missing, the migration likely didn’t run.
+    - If the table exists but Django doesn’t recognize it, manually fake the migration `python manage.py migrate --fake myapp`
+  + If the issue persists, reset the database
+    ```sh
+    docker-compose down -v
+    docker-compose up --build
+    python manage.py migrate
+    ```
 
 
 ### modules
