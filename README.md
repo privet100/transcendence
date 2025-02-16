@@ -986,7 +986,7 @@ database 0.5                  | ---     | +
 * что кэширует
   + данные, которые часто запрашиваются, но редко изменяются
   + запросы, объекты, шаблоны, ...
-  + временне данные для ускорения работы приложений (**имя, аватар, временный статус пользователя: онлайн/офлайн**)
+  + временне данные для ускорения работы приложений (имя, аватар, **временный статус пользователя: онлайн/офлайн**)
   + результатов сложных SQL-запросов, сложных вычислений
   + результаты REST API-запросов, чтобы не нагружать базу данных повторными запросами
   + API-ответов (данных профиля пользователя, данных статистики)
@@ -1147,20 +1147,6 @@ database 0.5                  | ---     | +
 * a player should also be possible to propose a tournament (subject)
   + a tournament displaies who is playing against whom and the order of the players (subject)
 • a matchmaking system: the tournament system organize the matchmaking of the participants, and announce the next fight
-• a registration system
-  + at the start of a tournament, each player must input their alias name
-  + the aliases will be reset when a new tournament begins
-  + this requirement can be modified using the Standard User Management module.
-* user management, authentication, users across tournaments (subject)
-  + Users can subscribe to the website in a secure way
-  + Registered users can log in in a secure way
-  + Users can select a unique display name to play the tournaments
-  + Users can update their information
-  + Users can upload an avatar, with a default option if none is provided
-  + Users can add others as friends and view their online status
-  + User profiles display stats, such as wins and losses
-  + Each user has a Match History including 1v1 games, dates, and relevant details, accessible to logged-in users
-  + the management of duplicate usernames/emails is at your discretion, you must provide a solution that makes sense
 * Remote players (subject)
   + two distant players, each player is located on a separated computer, accessing the same website and playing the same Pong game
   + think about **network issues**, like unexpected disconnection or lag
@@ -1187,6 +1173,34 @@ database 0.5                  | ---     | +
   + to explain in detail how your AI is working 
   + it must have the capability to win occasionally
   + an AI opponent that adds excitement and competitiveness without relying on the A* algorithm
+* game logic, because we need it to do the multiplayer
+* трекинг **когда пользователь был онлайн**
+  + models.py: last online для индикатива
+  + три решения 
+    - через библиотеку channels - по вебсокетам следим пользователь онлайн или нет - НАМ ЭТОТ СПОСОБ
+    - через Django sessions - как только юзер делает какое либо действие, Джанго сохраняет в бд дату действия 
+    - через redis - не понял как работает
+  + **"is_active": true** в http://localhost:8000/users/
+* alexey: Tournaments – working 
+* Амин 
+  + whether we want to follow basic ping pong rules?
+  + the ball should speed up when paddle hits the ball ?
+  + https://stackoverflow.com/questions/54796089/python-ping-pong-game-speeding-up-the-ball-after-paddle-hit 
+  + some sort of **anticheat** to be sure that the users mouvement are normal
+    - my code outputs two players position and the ball and then you can render it however you want
+
+### USER MANAGEMENT
+* myapp: логика пользовательских профилей, турниров, историй игр
+* user management, authentication, users across tournaments (subject)
+  + Users can subscribe to the website in a secure way
+  + Registered users can log in in a secure way
+  + Users can select a unique display name to play the tournaments
+  + Users can update their information
+  + Users can upload an avatar, with a default option if none is provided
+  + Users can add others as friends and view their online status
+  + User profiles display stats, such as wins and losses
+  + Each user has a Match History including 1v1 games, dates, and relevant details, accessible to logged-in users
+  + the management of duplicate usernames/emails is at your discretion, you must provide a solution that makes sense
 * user and Game Stats Dashboards (subject) может быть будем делать
   + dashboards that display statistics for individual users and game sessions
   + user-friendly dashboards that provide users with insights into their own gaming statistics
@@ -1197,37 +1211,12 @@ database 0.5                  | ---     | +
   + add any metrics you deem useful
   + users monitor their gaming statistics and game session details through user-friendly dashboards
   + a comprehensive view of their gaming experience
-* game logic, because we need it to do the multiplayer
-* трекинг **когда пользователь был онлайн**
-  + models.py: last online для индикатива
-  + три решения 
-    - через библиотеку channels - по вебсокетам следим пользователь онлайн или нет - НАМ ЭТОТ СПОСОБ
-    - через Django sessions - как только юзер делает какое либо действие, Джанго сохраняет в базу данных дату этого действия 
-    - через redis - но не понял как это работает
+• a registration system
+  + at the start of a tournament, each player must input their alias name
+  + the aliases will be reset when a new tournament begins
+  + this requirement can be modified using the Standard User Management module
 * pass reset будет ли?
 * change username, email будет ли?
-* myapp: логика пользовательских профилей, турниров, историй игр
-* страница comptetition, profile, настройки
-* коллега написал логику игры на JavaScript для фронтенда, который взаимодействует с DRF через API
-  + файлы находятся в frontend, делают API-запросы к Django
-    - Django возвращает JSON
-  + если это Django Template (обычный HTML+JS), то в `myapp/templates/` или `myapp/static/js/`
-  + если вы используете Django шаблоны и пишете Vanilla JS, то JS-файлы можно поместить в `static/название_приложения/js/`, потом подключать в шаблонах через `{% static '...' %}`
-  + если вы используете SPA (React/Vue) — у вас своя структура фронтенда, сборка Webpack/Vite, и всё компилируется в папку `build`, которую Django отдаёт как статику  
-  + логика на js для фронтенда (или для отдельного сервиса на Node.js),
-    - это отдельная часть проекта, а не DRF view
-    - Можно писать отдельный бэкенд на Node.js, если проект так структурирован (но это уже другая серверная часть, не DRF) 
-    - серверный Node.js
-    - отдельный сервер
-    - второй бэкенд
-    - отдельный сервис, в другом каталоге, со своим `package.json` и запуском
-* alexey: Tournaments – working 
-* Амин 
-  + whether we want to follow basic ping pong rules?
-  + the ball should speed up when paddle hits the ball ?
-  + https://stackoverflow.com/questions/54796089/python-ping-pong-game-speeding-up-the-ball-after-paddle-hit 
-  + some sort of **anticheat** to be sure that the users mouvement are normal
-    - my code outputs two players position and the ball and then you can render it however you want
 
 
 ### СТАТИЧЕСКИЕ ФАЙЛЫ html js CSS изображения шрифты
@@ -1386,21 +1375,20 @@ database 0.5                  | ---     | +
   + **Токены хранятся в защищённой базе данных** и кэшируются в Redis для быстрого доступа
   + настройте заголовки для безопасности (**`Strict-Transport-Security`**, ...)
   + **Обеспечивается безопасность токенов** через шифрование, ограничение доступа и использование защищённых методов передачи данных
-* СЕССИИОННЫЙ КЛЮЧ = ФАЙЛ СЕССИИ
+* СЕССИИОННЫЙ КЛЮЧ = СЕССИОННЫЙ ИДЕНТИФИКАТОР = ФАЙЛ СЕССИИ
   + после входа сервер создает сессию, которая привязывается к пользователю
+  + сервер хранит сессию **в памяти или базе**
   + в браузере появляется куки sessionId
     - `HttpOnly`, чтобы предотвратить доступ из js
     - `Secure`
     - настройте `SESSION_COOKIE_AGE`
-  + сервер хранит сессионный идентификатор **в памяти или базе**
-  + при каждом запросе браузер отправляет `sessionid` серверу
+  + при каждом запросе браузер отправляет `sessionid`
     - Django использует его для извлечения данных из хранилища сессий (база данных, кэш, файл)
   + подходит для stateful-приложений (например, с веб-интерфейсом)
-  + **сессия по IP ?**
 * API-КЛЮЧИ
-  + для идентификации и авторизации сторонних приложений или интеграций
-  + Для интеграции с внешними сервисами или предоставления публичного API
-    - `orization: Api-Key <your-key>` в заголовке запроса
+  + авторизация сторонних приложений
+  + интеграция с внешними сервисами
+  + предоставление публичного API
 * DFR использует сессии или JWT для аутентификации пользователей
   + эти данные доступны в middleware или обработчиках запросов
   + Session storage: Если включён SessionMiddleware, то пользовательские данные сохраняюися в сессиях и доступны в обработчиках
@@ -1624,7 +1612,7 @@ database 0.5                  | ---     | +
   + доступны только для вкладки или окна, где они были созданы
   + использование
     - хранение временных данных для одной сессии пользователя
-    - статус пользователя на текущей странице (выбранные фильтры)
+    - **статус пользователя** на текущей странице (выбранные фильтры)
     - для временных данных, которые нужны только на время одной сессии пользователя
 * валидация данных
   + **js на фронте читает инпут, проверяет с помощью regex**
