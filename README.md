@@ -1255,7 +1255,12 @@ database 0.5                  | ---     | +
     - doesn’t perform static files discovery like django.contrib.staticfiles
     - serves static files via a wrapper at the WSGI application layer => static files requests do not pass through the middleware chain
   + напрямую ссылаться на файлы через URL
-
+* `MEDIA_ROOT` = корневая директория для хранения медиафайлов проекта
+  + `upload_to` = папку внутри `MEDIA_ROOT`, куда будут загружаться файлы
+  + в большинстве случаев достаточно настроить `upload_to` и `MEDIA_ROOT`
+  + `AVATAR_UPLOAD_PATH` можно не использовать, если не используешь этот путь в других частях кода 
+  + `AVATAR_UPLOAD_PATH` может быть использован для построения URL, если нужно динамически формировать ссылки на аватары в коде
+  + `AVATAR_UPLOAD_PATH` может быть использован если требуется какая-то специфическая обработка (например, для загрузки в облако или на внешний сервер)
 
 ### IDENTIFCATION = кто вы
 + определение личности пользователя (предоставление username, email)  
