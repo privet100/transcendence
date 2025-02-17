@@ -1,41 +1,126 @@
-*	loading: false, // improves UX, prevents errors, ensures a smooth UI, to use render() IN OTHER PAGES TOO ?
+### ЗАЩИТА 
+* аутентификация без сохранения состояния (stateless authentication)
+  + сервер не хранит сессию, а проверяет подпись токена от OAuth-провайдера
+  + например: JWT, OAuth 42 API
+* Stateful authentication
+  + сервер хранит информацию о каждом пользователе в памяти или базе данных
+  + не подходит для масштабируемых приложений, где лучше использовать JWT
+  + например: сессии Django
+* `docker-compose logs frontend`: `172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189  "https://localhost:4443/static/chat.html" "Chrome"`
+  + 172.21.0.1 IP-адрес клиента в контейнерной сети, внутренний адрес Docker
+  + `-` идентификация (RFC 1413), по умолчанию отсутствует
+  + `-` **имя пользователя (Basic Auth)**, по умолчанию отсутствует
+* **http2**
+* identification = кто вы
+  + определение личности пользователя (предоставление username, email)  
+  + без проверки пароля
+  + не вход в систему  
+* DFR использует сессии или JWT для аутентификации пользователей
+  + эти данные доступны в middleware или обработчиках запросов
+  + Session storage: Если включён SessionMiddleware, то пользовательские данные сохраняюися в сессиях и доступны в обработчиках
+  + JWT токен передаётся в заголовке авторизации (Authorization: Bearer <token>) и обрабатывается специальным классом аутентификации
+* асимметричный алгоритм (например **RSA**)
+* какой у нас тип - посмотреть auth, authentication, REST_FRAMEWORK, oauth, session, cookies, bearer, authorization, csrf, middleware, authentication classes   
+    - F12 - network - headers, выполните login, посмотрите, что отправляется с клиентской стороны
+    - Если есть заголовок `Authorization: Bearer <токен>` в последующих запросах, используется JWT (или др токен)
+    - Если сервер выставляет куку (`Set-Cookie: sessionid=...`) => сессионная аутентификация (Django Sessions, например)
+    - комбинированный вариант: JWT храним в куках, ...
+
+| Метод           | Как работает                                       | Где хранится аутентификационная информация?   | Плюсы минусы
+|-----------------|----------------------------------------------------|-----------------------------------------------|-------------------------------|
+| логин + пароль  | user вводит логин/пароль, сервер создаёт сессию    | сервер проверяет данные в базе                | каждый запрос требует отправки пароля |
+| JWT             | сервер выдаёт токен, клиент передаёт в заголовках  | `localStorage`/`sessionStorage`, куки         | проверка без БД, можно украсть токен |
+| OAuth           | пользователь логинится через 42, получает токен    | Сторонний OAuth-сервер выдаёт токен           | не нужно хранить пароли |
+| Сессионный ключ | сервер создаёт файл, выдаёт клиенту  `session_id`  | хранится в куках, проверяется на сервере      | авто управление сессиями, неудобно для API|
+| API-ключ        | выдаётся уник. ключ (как токен), передаётся в загол| клиент хранит ключ, сервер проверяет его в бд | удобно для сервисов, API, можно украсть ключ|
+
+* `SECRET_KEY = 'django-insecure-5equ&8dpiahftu52n^a5aq=52s8a_d8ty6(smkzjpsmvyk8q(#'`
+  + для шифрования сессионных данных (cookies) и других временных данных, создаваемых Django
+  + для генерации подписи токенов CSRF и других значений, требующих криптографической защиты
+  + для генерации случайных токенов, например, в механизмах сброса пароля
+  + Если злоумышленники узнают ваш `SECRET_KEY`, они могут:
+    - Создавать фальшивые cookies, сессии или токены.
+    - Подделывать запросы или манипулировать приложением.
+* можно без Session MiddleWareStack, если JWT токены или др безсессионные методы аутентификации (например, в DRF сессии не нужны, авторизация через токены)
+* можно без Session MiddleWareStack, если данные о сессии хранятся полностью в зашифрованных cookie (без серверного хранилища)
+* DRF: проверка пользователя выполняется при каждом запросе через аутентификационные классы (TokenAuthentication, SessionAuthentication, JWTAuthentication)
+  + каждый запрос должен содержать соответствующий токен или cookie для подтверждения личности пользователя
+  + Контроль доступа Обрабатывается через permissions (например, `IsAuthenticated`)
+* Django Channels: Аутентификация один раз при установлении соединения
+  + Использует middleware (`AuthMiddlewareStack`) для сопоставления пользователя.
+  + Поддерживает передачу аутентификационных данных через Cookie (например, `sessionid`) или токены
+* если хотите объединить аутентификацию для DRF и Django Channels, рекомендуется использовать JWT или SessionAuthentication и настроить  middleware
+* any password stored in your database, if applicable, must be hashed; a strong password hashing algorithm (subject)
+* your website must be protected against **SQL injections/XSS** (subject)
+* if you have a backend or any other features, it is mandatory to enable an HTTPS connection for all aspects (Utilize wss instead of ws...)
+* some form of validation for forms and any user input, either within the base page if no backend is used or on the server side if a backend is employed (subject)
+* the security of your website (subject)
+  + regardless of whether you choose to implement the JWT Security module with 2FA
+  + even if you decide not to use JWT tokensp
+  + for instance, if you opt to create an API, ensure your routes are protected
+* views.py проверяет токен/подпись
+* alexey: Authorization and authorization logic on frontend — almost works
+* Implementing a remote authentication OAuth 2.0 authentication with 42 (subject)
+  + obtain the credentials and permissions from the authority to enable a secure login
+  + user-friendly login and authorization flows that adhere to best practices and security standards
+  + the secure exchange of authentication tokens and user information between the web application and the authentication provider
+* аутентификация реализуется через middleware, через стандартный механизм HTTP-запросов, например, с использованием **JWT или сессий**
+* сессии управляются с помощью cookie-сессионных данных или токенов для аутентификации API
+* из гугл док:
+  + Any password stored in your database, if applicable, must be hashed. (DONE)
+  + Your website must be protected against SQL injections/XSS. If you have a backend or any other features, it is mandatory to enable an HTTPS connection for all aspects (Utilize wss instead of ws...) - (DONE excl livechat)
+  + You must implement some form of validation for forms and any user input, either within the base page if no backend is used or on the server side if a backend is employed. (Validation by Front-end)
+  + Regardless of whether you choose to implement the JWT Security module with 2FA, it’s crucial to prioritize the security of your website. (OK)
+  + For instance, if you opt to create an API, ensure your routes are protected. Remember, even if you decide not to use JWT tokens, securing the site remains essential.
+* **Forbidden (403). CSRF verification failed. Request aborted. когда создала суперпользлвателя и вхожу в джанго.**
+  + Origin checking failed - https://localhost:4443 does not match any trusted origins
+  + a **genuine Cross Site Request Forgery**, or when Django’s CSRF mechanism has not been used correctly
+  + for POST forms, ensure:
+    - your browser is accepting cookies
+    - the view function passes a request to the template’s render method
+    - in the template, there is a {% csrf_token %} template tag inside each POST form that targets an internal URL
+    - the form has a valid CSRF token. After logging in in another browser tab or hitting the back button after a login, you may need to reload the page with the form, because the token is rotated after a login
 
 
-### modules
-module                        | front   | back 
-------------------------------|---------|------   
-user management 1             | L       | L  
-live chat 1                   | Ann     | B
-registration                  | L       | L       
-tournament                    | L       | L       
-matchmaking system Tournament | L       | L      
-live pong game on website     | L       | Amine
-rules of Pong                 | Amine   | Amine     
-remote players 1              | ---     | Amine  
-AI Opponent 1                 | ---     | Amine  
-security                      |         | 
-basic front-end               | +       | ---
-OAuth 1                       | ---     | +
-django 1                      | ---     | +
-bootstrap 0.5                 | L       | ---
-database 0.5                  | ---     | +
 
-
-### IDENTIFCATION = кто вы
-+ определение личности пользователя (предоставление username, email)  
-+ без проверки пароля
-+ не вход в систему  
-
-
-### AUTENTIFICATION = докажите, что это вы
+#### authentification = докажите, что это вы
+* **checkAuthState()**
 * проверка личности, логин, система требует пароль, одноразовый код OTP из SMS, отпечаток пальца, лицо, вход через соцсети, ...
 * базовая аутентификация (Basic Auth)  
   + логин/пароль передаются в заголовке при каждом запросе
   + простой
   + слабо защищён
-* ТОКЕН АВТОРИЗАЦИИ JWT (основной вариант это JWT)  
+
+
+#### СЕССИИОННЫЙ КЛЮЧ = СЕССИОННЫЙ ИДЕНТИФИКАТОР = ФАЙЛ СЕССИИ
+  + после входа сервер создает сессию, которая привязывается к пользователю
+  + сервер хранит сессию **(база данных, кэш, файл)**
+  + в браузере появляется куки sessionId
+    - `HttpOnly`, чтобы предотвратить доступ из js
+    - `Secure`
+    - настройте `SESSION_COOKIE_AGE`
+  + при каждом запросе браузер отправляет `sessionid`
+  + django использует `sessionid` для извлечения данных из хранилища сессий 
+  + подходит для **stateful-приложений** (например, с веб-интерфейсом)
+* cookies sessionId 
+  + идентификатор сессии
+  + отслеживание состояния пользователя на сервере
+    - например, для аутентификации или сохранения данных между запросами
+* где backend хранит сессии? SESSION_ENGINE
+  + База данных в таблице django_session (по умолчанию)
+    - `session_key`: Уникальный идентификатор сессии.
+    - `session_data`: Зашифрованные данные сессии.
+    - `expire_date`: Дата истечения срока действия сессии.
+  + Файловая система (в виде файлов)
+  + в кеше, настроенном в `CACHES`
+  + кеш с fallback на базу данных: сначала пишутся в кеш, а при его недоступности — в базу данных
+  + на стороне клиента в зашифрованных cookie
+
+
+#### ТОКЕН АВТОРИЗАЦИИ (чаще всего JWT)  
+  + у нас его нет
   + jwt = формат токена
-  + для Веб-приложения, API, ws, систем с аутентификацией без сохранения состояния (stateless authentication), SPA, мобильных приложений, микросервисов
+  + для Веб-приложений, API, ws, систем с , SPA, мобильных приложений, микросервисов
   + сервер проверяет данные и создаёт JWT, содержащий информацию о пользователе (id, имя, ...)
   + клиент получает токен и отправляет его в заголовке `Authorization`, в заголовках ws-сообщений, в параметрах URL
   + **служба аутентификации** хранит закрытый ключ и может выдавать токены
@@ -57,7 +142,10 @@ database 0.5                  | ---     | +
   + https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html
   + https://dzone.com/articles/using-jwt-in-a-microservice-architecture
   + https://openclassrooms.com/fr/courses/7192416-mise-en-place-une-api-avec-django-rest-framework/7424720-give-access-with-the-tokens
-* 42 oauth = разновидность токен-ориентированной аутентификации
+
+
+#### 42 oauth
+* разновидность токен-ориентированной аутентификации
   + 1) аутентификация через OAuth2
   + 2) данные пользователя (логин, email, имя, аватар) извлекаются и сохраняются в базе данных
   + 3) клиент получает токен доступа Bearer Token Authentication
@@ -128,43 +216,68 @@ database 0.5                  | ---     | +
   + **токены хранятся в защищённой бд** и кэшируются в Redis для быстрого доступа
   + настройте заголовки для безопасности (**`Strict-Transport-Security`**, ...)
   + безопасность токенов через **шифрование, ограничение доступа, использование защищённых методов передачи данных**
-* СЕССИИОННЫЙ КЛЮЧ = СЕССИОННЫЙ ИДЕНТИФИКАТОР = ФАЙЛ СЕССИИ
-  + после входа сервер создает сессию, которая привязывается к пользователю
-  + сервер хранит сессию **(база данных, кэш, файл)**
-  + в браузере появляется куки sessionId
-    - `HttpOnly`, чтобы предотвратить доступ из js
-    - `Secure`
-    - настройте `SESSION_COOKIE_AGE`
-  + при каждом запросе браузер отправляет `sessionid`
-  + django использует `sessionid` для извлечения данных из хранилища сессий 
-  + подходит для **stateful-приложений** (например, с веб-интерфейсом)
-* API-КЛЮЧИ
-  + OAuth: пользователи логинятся в твой проект, используя свои учетные данные 42
-    - зарегистрировать приложение в системе 42 и получить соответствующие данные для подключения: (API-ключ) или (клиентский ID и секрет)
-  + OAuth, который ты создаешь сама:
-    - нужен API-ключ
-  + авторизация сторонних приложений
-    - разрешить другим приложениям (например, мобильному клиенту или боту) взаимодействовать с твоим сервером без ввода пароля
-  + предоставление публичного API
-   - если хочешь, чтобы другие разработчики могли получать данные о пользователях, играх и статистике, можно сделать публичное API и выдавать API-ключи
-* DFR использует сессии или JWT для аутентификации пользователей
-  + эти данные доступны в middleware или обработчиках запросов
-  + Session storage: Если включён SessionMiddleware, то пользовательские данные сохраняюися в сессиях и доступны в обработчиках
-  + JWT токен передаётся в заголовке авторизации (Authorization: Bearer <token>) и обрабатывается специальным классом аутентификации
-* асимметричный алгоритм (например **RSA**)
-* какой у нас тип - посмотреть auth, authentication, REST_FRAMEWORK, oauth, session, cookies, bearer, authorization, csrf, middleware, authentication classes   
-    - F12 - network - headers, выполните login, посмотрите, что отправляется с клиентской стороны
-    - Если есть заголовок `Authorization: Bearer <токен>` в последующих запросах, используется JWT (или др токен)
-    - Если сервер выставляет куку (`Set-Cookie: sessionid=...`) => сессионная аутентификация (Django Sessions, например)
-    - комбинированный вариант: JWT храним в куках, ...
 
-| Метод           | Как работает                                       | Где хранится аутентификационная информация?   | Плюсы минусы
-|-----------------|----------------------------------------------------|-----------------------------------------------|-------------------------------|
-| логин + пароль  | user вводит логин/пароль, сервер создаёт сессию    | сервер проверяет данные в базе                | каждый запрос требует отправки пароля |
-| JWT             | сервер выдаёт токен, клиент передаёт в заголовках  | `localStorage`/`sessionStorage`, куки         | проверка без БД, можно украсть токен |
-| OAuth           | пользователь логинится через 42, получает токен    | Сторонний OAuth-сервер выдаёт токен           | не нужно хранить пароли |
-| Сессионный ключ | сервер создаёт файл, выдаёт клиенту  `session_id`  | хранится в куках, проверяется на сервере      | авто управление сессиями, неудобно для API|
-| API-ключ        | выдаётся уник. ключ (как токен), передаётся в загол| клиент хранит ключ, сервер проверяет его в бд | удобно для сервисов, API, можно украсть ключ|
+
+#### API-КЛЮЧИ
+  + OAuth: пользователи логинятся в твой проект, используя учетные данные 42
+    - зарегистрировать приложение в 42 и получить данные для подключения: (API-ключ) или (клиентский ID и секрет)
+
+
+#### CSRF (CROSS-SITE REQUEST FORGERY) ключ, токен
+* случайная строка
+* убедиться, что запрос исходит от легитимного пользователя
+* защита формы на странице входа
+* защищает формы и AJAX-запросы от подделки запросов
+* защита от CSRF-атак
+* для защиты UI-приложений
+* в stateful-приложениях, где используется sessionid или cookie для отслеживания пользователя
+  + в stateless-приложениях с JWT-авторизацией не используется
+* django сохраняет в cookie `csrftoken`
+  + доступно только для чтения с клиентской стороны (не `HttpOnly`)
+  + js может получить доступ к токену (например, для AJAX-запросов)
+  + cookie устанавливается с параметром `Secure`, если используется HTTPS
+  + не должен быть доступен для сторонних доменов (используйте `SameSite=Lax` или `SameSite=Strict`)
+* при отправке POST-запроса передаётся серверу в заголовке или скрытом поле формы
+* django сравнивает токен из запроса с токеном из cookie, если совпадают, запрос легитимен
+* токен **в settings.py**
+* отдать клиенту при первом запросе
+* клиент вставляет токен в заголовок запроса к **api** и при post/get запросах
+  + **а при вебсокетах?**
+* https://docs.djangoproject.com/en/5.1/howto/csrf/
+* csrf MW проверяет токен **до этого не надо его проверять?**
+* views.py **набор проверок** добавить при запросе к api
+* CSRF_TRUSTED_ORIGINS
+  + trusted origins for unsafe requests (e.g. POST)
+  + Default: []
+  + a request includes the Origin header => CSRF protection requires that header match the origin present in the **Host header**
+  + a secure unsafe request that doesn’t include the Origin header => the request must have a **Referer header** that matches the origin present in the Host header
+  + prevents a POST request from subdomain.example.com from succeeding against api.example.com
+* js запрашивает CSRF-токен с эндпоинта `api/csrf-token/`
+  + сервер генерирует и отправляет CSRF-токен клиенту (браузеру)
+  + `api/csrf-token/` отдает токен в формате JSON
+  + js сохраняет CSRF-токен в cookie `document.cookie = csrftoken=...`
+  + защитить веб-приложение от атак подделки межсайтовых запросов CSRF
+    - CSRF-атаки: злоумышленник заставляет пользователя выполнить нежелательный запрос на сервер, используя его активную сессию: например,  пользователь вошел в аккаунт на сайте, а затем перешел на вредоносный сайт, тот может попытаться отправить запрос от имени пользователя
+  + клиент включает  токен в каждую изменяющую (`POST`, `PUT`, `DELETE`) HTTP-запрос
+    - при отправке `POST`, `PUT`, `DELETE`-запросов нужно передавать CSRF-токен в заголовке
+  + сервер проверяет, что запрос исходит от аутентифицированного пользователя
+* js обращается к rest api (post) endpoints /history, /users/, /send
+  + login pages.js - запрос post к бэку
+  + в заголовке запроса каждый раз CSRF токен, чтобы знать, что это не юзер с третьего сайта
+  + F12 network выбрать сокет: accept-encoding:
+    - cookie: csrftoken=KRaxdt052lYdhYUoahiFkhwGgB00H4jg
+    - sec-websocket-key: BNMxSoHDbO66J+298LsweQ==
+
+
+#### WS TOKEN
+  + авторизация пользователя при установке ws-соединения
+  + проверка прав доступа и идентификация пользователя
+  + клиент передаёт токен в URL или заголовках `wss://example.com/ws/chat/?token=<your-token>`
+  + могут быть основаны на JWT или другом формате
+  + передача должна быть защищена (через HTTPS/WSS, ...)
+
+
+#### autorisation = что разрешено делать, к каким ресурсам имеете доступ 
 * ограничить доступ к страницам в Transcendence  
   + `LoginRequiredMixin` для CBV
   + @login_required(login_url="/login/") для FBV  
@@ -180,12 +293,7 @@ database 0.5                  | ---     | +
     - избавит от необходимости передавать `login_url` в каждом `@login_required` и `LoginRequiredMixin`
 * db        | initdb: warning: enabling "trust" authentication for local connections
   db        | initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
-
-
-### AUTORISATION = что вам разрешено делать?
-+ что можете делать, к каким ресурсам имеете доступ 
-* только залогиненные могут просматривать `StatsPage`
-  + три инструмента работают на разных уровнях
+* только залогиненные могут просматривать `StatsPage` - три инструмента на разных уровнях
   + 1) проверять аутентификацию перед рендерингом в `StatsPage`  
     - добавь `checkAuthentication()` в конструкторе, запрашивать данные текущего пользователя
       ```
@@ -226,46 +334,9 @@ database 0.5                  | ---     | +
   + при проверке ролей и прав через сессию система также участвует в авторизации (например, проверяет, имеет ли пользователь доступ к определенным ресурсам).
 
 
-### CSRF (CROSS-SITE REQUEST FORGERY) ключ, токен
-* убедиться, что запрос исходит от легитимного пользователя
-* защита формы на странице входа
-* защищает формы и AJAX-запросы от подделки запросов
-* защита от CSRF-атак
-* для защиты UI-приложений
-* в stateful-приложениях, где используется sessionid или cookie для отслеживания пользователя
-  + в stateless-приложениях с JWT-авторизацией не используется
-* django сохраняет в cookie `csrftoken`
-  + доступно только для чтения с клиентской стороны (не `HttpOnly`)
-  + js может получить доступ к токену (например, для AJAX-запросов)
-  + cookie устанавливается с параметром `Secure`, если используется HTTPS
-  + не должен быть доступен для сторонних доменов (используйте `SameSite=Lax` или `SameSite=Strict`)
-* при отправке POST-запроса передаётся серверу в заголовке или скрытом поле формы
-* django сравнивает токен из запроса с токеном из cookie, если совпадают, запрос легитимен
-* токен **в settings.py**
-* отдать клиенту при первом запросе
-* клиент вставляет токен в заголовок запроса к **api** и при post/get запросах
-  + **а при вебсокетах?**
-* https://docs.djangoproject.com/en/5.1/howto/csrf/
-* csrf MW проверяет токен **до этого не надо его проверять?**
-* views.py **набор проверок** добавить при запросе к api
-* CSRF_TRUSTED_ORIGINS¶
-  + trusted origins for unsafe requests (e.g. POST)
-  + Default: []
-  + a request includes the Origin header => CSRF protection requires that header match the origin present in the **Host header**
-  + a secure unsafe request that doesn’t include the Origin header => the request must have a **Referer header** that matches the origin present in the Host header
-  + prevents a POST request from subdomain.example.com from succeeding against api.example.com
-
-
-### ТОКЕНЫ
-* WEBSOCKET TOKEN
-  + для авторизации пользователя при установке ws-соединения
-  + проверка прав доступа и идентификация пользователя
-  + при установке ws-соединений клиент передаёт токен в URL или заголовках `wss://example.com/ws/chat/?token=<your-token>`
-  + могут быть основаны на JWT или другом формате
-  + передача должна быть защищена (через HTTPS/WSS, ...)
-* комбинированные методы  
+#### комбинированные методы  
   + session + CSRF токен, или JWT в куке
-  + часто в современных фреймворках для повышения безопасности
+  + для повышения безопасности
 | токен/ключ    | Назначение                          | Где хранится                         | Особенности | пример |
 |---------------|-------------------------------------|--------------------------------------|-------------|--------|
 | CSRF          | от подделки запросов (CSRF-атак)    | cookie csrftoken                     | проверяется сервером при POST/PUT запросах, передаётся в скрытом поле формы или заголовке            | Защита формы входа; обеспечение легитимности запросов от пользователя; AJAX-запросы|
@@ -276,85 +347,14 @@ database 0.5                  | ---     | +
 | щифров. ключи | шифрование сообщений                | На сервере в хранилище               | не передаётся клиенту; для шифрования | шифрование сообщений чата на стороне сервера|
 | OAuth-токен   | аутентиф и авторизация через Google |  cookie или localStorage             | для OAuth 2.0. | авторизация Google OAuth API; доступ к данным польз. через API (email, ...)|
 
-* js обращается к rest api (post) endpoints /history, /users/, /send
-  + login pages.js - запрос post к бэку
-  + в заголовке запроса каждый раз CSRF токен, чтобы знать, что это не юзер с третьего сайта
-  + F12 network выбрать сокет: accept-encoding:
-    - cookie: csrftoken=KRaxdt052lYdhYUoahiFkhwGgB00H4jg
-    - sec-websocket-key: BNMxSoHDbO66J+298LsweQ==
-* cookies sessionId 
-  + идентификатор сессии
-  + отслеживание состояния пользователя на сервере
-    - например, для аутентификации или сохранения данных между запросами
-* **Stateful/Stateless**
-* где backend хранит сессии?
-  + настройки бекенда
-* хранятся SESSION_ENGINE
-  + База данных в таблице django_session (по умолчанию)
-    - `session_key`: Уникальный идентификатор сессии.
-    - `session_data`: Зашифрованные данные сессии.
-    - `expire_date`: Дата истечения срока действия сессии.
-  + Файловая система (в виде файлов)
-  + в кеше, настроенном в `CACHES`
-  + кеш с fallback на базу данных: сначала пишутся в кеш, а при его недоступности — в базу данных
-  + на стороне клиента в зашифрованных cookie
-* **http2**
-* `SECRET_KEY = 'django-insecure-5equ&8dpiahftu52n^a5aq=52s8a_d8ty6(smkzjpsmvyk8q(#'`
-  + для шифрования сессионных данных (cookies) и других временных данных, создаваемых Django
-  + для генерации подписи токенов CSRF и других значений, требующих криптографической защиты
-  + для генерации случайных токенов, например, в механизмах сброса пароля
-  + Если злоумышленники узнают ваш `SECRET_KEY`, они могут:
-    - Создавать фальшивые cookies, сессии или токены.
-    - Подделывать запросы или манипулировать приложением.
-* можно без Session MiddleWareStack, если JWT токены или др безсессионные методы аутентификации (например, в DRF сессии не нужны, авторизация через токены)
-* можно без Session MiddleWareStack, если данные о сессии хранятся полностью в зашифрованных cookie (без серверного хранилища)
-* DRF: проверка пользователя выполняется при каждом запросе через аутентификационные классы (TokenAuthentication, SessionAuthentication, JWTAuthentication)
-  + каждый запрос должен содержать соответствующий токен или cookie для подтверждения личности пользователя
-  + Контроль доступа Обрабатывается через permissions (например, `IsAuthenticated`)
-* Django Channels: Аутентификация один раз при установлении соединения
-  + Использует middleware (`AuthMiddlewareStack`) для сопоставления пользователя.
-  + Поддерживает передачу аутентификационных данных через Cookie (например, `sessionid`) или токены
-* если хотите объединить аутентификацию для DRF и Django Channels, рекомендуется использовать JWT или SessionAuthentication и настроить  middleware
-* any password stored in your database, if applicable, must be hashed; a strong password hashing algorithm (subject)
-* your website must be protected against **SQL injections/XSS** (subject)
-* if you have a backend or any other features, it is mandatory to enable an HTTPS connection for all aspects (Utilize wss instead of ws...)
-* some form of validation for forms and any user input, either within the base page if no backend is used or on the server side if a backend is employed (subject)
-* the security of your website (subject)
-  + regardless of whether you choose to implement the JWT Security module with 2FA
-  + even if you decide not to use JWT tokensp
-  + for instance, if you opt to create an API, ensure your routes are protected
-* views.py проверяет токен/подпись
-* alexey: Authorization and authorization logic on frontend — almost works
-* Implementing a remote authentication OAuth 2.0 authentication with 42 (subject)
-  + obtain the credentials and permissions from the authority to enable a secure login
-  + user-friendly login and authorization flows that adhere to best practices and security standards
-  + the secure exchange of authentication tokens and user information between the web application and the authentication provider
-* аутентификация реализуется через middleware, через стандартный механизм HTTP-запросов, например, с использованием **JWT или сессий**
-* сессии управляются с помощью cookie-сессионных данных или токенов для аутентификации API
-* из гугл док:
-  + Any password stored in your database, if applicable, must be hashed. (DONE)
-  + Your website must be protected against SQL injections/XSS. If you have a backend or any other features, it is mandatory to enable an HTTPS connection for all aspects (Utilize wss instead of ws...) - (DONE excl livechat)
-  + You must implement some form of validation for forms and any user input, either within the base page if no backend is used or on the server side if a backend is employed. (Validation by Front-end)
-  + Regardless of whether you choose to implement the JWT Security module with 2FA, it’s crucial to prioritize the security of your website. (OK)
-  + For instance, if you opt to create an API, ensure your routes are protected. Remember, even if you decide not to use JWT tokens, securing the site remains essential.
-* **Forbidden (403). CSRF verification failed. Request aborted. когда создала суперпользлвателя и вхожу в джанго.**
-  + Origin checking failed - https://localhost:4443 does not match any trusted origins
-  + a **genuine Cross Site Request Forgery**, or when Django’s CSRF mechanism has not been used correctly
-  + for POST forms, ensure:
-    - your browser is accepting cookies
-    - the view function passes a request to the template’s render method
-    - in the template, there is a {% csrf_token %} template tag inside each POST form that targets an internal URL
-    - the form has a valid CSRF token. After logging in in another browser tab or hitting the back button after a login, you may need to reload the page with the form, because the token is rotated after a login
-
 
 ### COOKIE LOCALSTORAGE SESSIONSTORAGE
-| **Свойство**        | **Cookie**                            | **LocalStorage**      | **SessionStorage**             |
-|---------------------|----------------------------------------|----------------------|-------------------------------|
-| **Хранение данных** | В браузере, отправляются серверу      | Только в браузере     | Только в браузере             |
-| **Срок действия**   | До истечения срока или закрытия браузера | Постоянное         | До закрытия вкладки/окна      |
-| **Объём**           | ~4 KB                                 | 5-10 MB               | 5-10 MB                       |
-| **Доступ к данным** | js и сервер (если `HttpOnly` нет)     | Только js             | Только js             |
-| **Область действия**| Общая для всего домена                | Общая для домена      | Изолирована для вкладки       |
+| Свойство        | **Cookie**                            | **LocalStorage**      | **SessionStorage**             |
+|-----------------|----------------------------------------|----------------------|-------------------------------|
+| Хранение данных | В браузере, отправляются серверу      | Только в браузере     | Только в браузере             |
+| Срок действия   | До истечения срока или закрытия браузера | Постоянное         | До закрытия вкладки/окна      |
+| Доступ к данным | js и сервер (если `HttpOnly` нет)     | Только js             | Только js             |
+| Область действия| Общая для всего домена                | Общая для домена      | Изолирована для вкладки       |
 
 * Cookie
   + автоматически отправляются серверу при каждом HTTP-запросе на соответствующий домен
@@ -394,66 +394,91 @@ database 0.5                  | ---     | +
 
 
 ### ПРОТОКОЛЫ
-* **прикладные** протоколы: как данные кодируются и интерпретируются
-  + HTTP (HyperText Transfer Protocol) для передачи данных между браузером и сервером в открытом виде
-  + HTTPS (Secure), шифрование через протокол SSL/TLS
+* прикладные = как данные кодируются и интерпретируются
+  + HTTP передача данных между браузером и сервером в открытом виде
+  + HTTPS шифрование через протокол SSL/TLS
   + Redis
   + PostgreSQL
-* **транспортные**
-  + TCP (Transmission Control Protocol)
+* транспортные
+  + TCP Transmission Control Protocol
     - сетевой протокол для передачи данных на порту
     - надежность соединения
     - без потерь, в нужном порядке, без дублирования
     - управление потоком: отправка данных регулируется, чтобы не перегружать получателя
     - контроль ошибок: если пакет теряется или повреждается, он будет переотправлен
     - HTTP, HTTPS, подключение к PostgreSQL, redis  используют TCP
-  + UDP (User Datagram Protocol)
+  + UDP User Datagram Protocol
     - менее надежен, но быстрее
-  * SSL/TLS 
-    + 1. шифровать соединение между браузером и nginx
-      - браузер шифрует данные перед их отправкой на сервер
-      - nginx отправляет ответ, зашифрованный для клиента
-      - браузер расшифровывает с использованием **сессионного ключа**
-    + 2. аутентификация сервера (подключаетесь к правильному серверу)
-      - nginx подтвердает подлинность **сервера** (**браузер** проверяет, подписан ли сертификат доверенным центром)
-    + 3. защита от **подделки данных**
-    + браузер запрашивает установление защищённого **соединения** (HTTPS)
-    + используется публичный ключ сервера (SSL-сертификат)
-    + **сессионный ключ** согласуется в процессе установки соединения
-    + nginx установливет **канал связи** SSL/TLS между сервером и браузером, чтобы шифровать трафик, использует сертификат и приватный ключ
-    + nginx расшифровывает данные с использованием приватного ключа, связанного с SSL-сертификатом, использует сертификат и приватный ключ
-    + `ssl_protocols TLSv1.2 TLSv1.3;` версии, TLS 1.1, SSLv3, ... не поддерживаются из соображений безопасности  
-    + `ssl_ciphers 'HIGH:!aNULL:!MD5';` использовать надежные шифры, `!aNULL` и `!MD5` исключают небезопасные варианты  
-    + `ssl_prefer_server_ciphers on;` браузер отдаёт предпочтение **списку шифров** сервера, а не клиента
-    + генерируете `.csr` запрос на подпись сертификата (Certificate Signing Request) с приватным ключом локально, отправляете `.csr` в удостоверяющий центр (Let’s Encrypt, ...), получаете `.crt`  
-    + `.key` приватный ключ для расшифровки соединения и подтверждения подлинности, хранится на **сервере**
-    + `.crt` сертификат, выданный CA (Certificate Authority) или сгенерированный самостоятельно (self-signed)  
-    + настраивается на стороне Nginx
-    + SSL-сертификат (TLS-сертификат) для обеспечения защищённого соединения между клиентом и сервером
-      - не является токенои или ключои в традиционном понимании
-      - Шифрование данных, предотвращает перехват данных (паролей, сообщений) при их передаче
-      - аутентификация сервера: подтверждает, что клиент общается с доверенным сервером
-      - защита от MITM (Man-in-the-Middle): Исключает вмешательство третьих лиц в соединение
-      - защиты HTTPS-запросов
-      - шифрование WebSocket-соединений (wss://)
-      - защищают транспортный уровень
-      - не связаны с аутентификацией или авторизацией пользователя
-  + **certBox** сгенерировать свой сертификат, который браузер будет принимать локально без ошибок
-  + SSL-сертификат решает другие задачи, связанные с безопасностью
-    - SSL-сертификаты шифруют соединение, защищая передаваемые токены (CSRF, авторизации, WebSocket)
-    - токены (JWT, sessionid) передаются внутри защищённого соединения, чтобы их не могли перехватить злоумышленники
+* SSL/TLS 
+  + 1. шифровать соединение между браузером и nginx
+    - браузер шифрует данные перед их отправкой на сервер
+    - nginx отправляет ответ, зашифрованный для клиента
+    - браузер расшифровывает с использованием **сессионного ключа**
+  + 2. аутентификация сервера (подключаетесь к правильному серверу)
+    - nginx подтвердает подлинность **сервера** (**браузер** проверяет, подписан ли сертификат доверенным центром)
+  + 3. защита от **подделки данных**
+  + браузер запрашивает установление защищённого **соединения** (HTTPS)
+  + используется публичный ключ сервера (SSL-сертификат)
+  + **сессионный ключ** согласуется в процессе установки соединения
+  + nginx установливет **канал связи** SSL/TLS между сервером и браузером, чтобы шифровать трафик, использует сертификат и приватный ключ
+  + nginx расшифровывает данные с использованием приватного ключа, связанного с SSL-сертификатом, использует сертификат и приватный ключ
+  + `ssl_protocols TLSv1.2 TLSv1.3;` версии, TLS 1.1, SSLv3, ... не поддерживаются из соображений безопасности  
+  + `ssl_ciphers 'HIGH:!aNULL:!MD5';` использовать надежные шифры, `!aNULL` и `!MD5` исключают небезопасные варианты  
+  + `ssl_prefer_server_ciphers on;` браузер отдаёт предпочтение **списку шифров** сервера, а не клиента
+  + генерируете `.csr` запрос на подпись сертификата (Certificate Signing Request) с приватным ключом локально, отправляете `.csr` в удостоверяющий центр (Let’s Encrypt, ...), получаете `.crt`  
+  + `.key` приватный ключ для расшифровки соединения и подтверждения подлинности, хранится на **сервере**
+  + `.crt` сертификат, выданный CA (Certificate Authority) или сгенерированный самостоятельно (self-signed)  
+  + настраивается на стороне Nginx
+  + SSL-сертификат (TLS-сертификат) для обеспечения защищённого соединения между клиентом и сервером
+    - не является токенои или ключои в традиционном понимании
+    - Шифрование данных, предотвращает перехват данных (паролей, сообщений) при их передаче
+    - аутентификация сервера: подтверждает, что клиент общается с доверенным сервером
+    - защита от MITM (Man-in-the-Middle): Исключает вмешательство третьих лиц в соединение
+    - защиты HTTPS-запросов
+    - шифрование WebSocket-соединений (wss://)
+    - защищают транспортный уровень
+    - не связаны с аутентификацией или авторизацией пользователя
+  + SSL-сертификаты шифруют соединение, защищая передаваемые токены (CSRF, авторизации, WebSocket)
+  + токены (JWT, sessionid) передаются внутри защищённого соединения, чтобы их не могли перехватить злоумышленники
   + SSL session ID
     - низкоуровневая часть протокола SSL/TLS
     - для ускорения установления безопасного соединения
     - сохраняется на сервере
     - может быть сохранена в cookie, но не обязательно
+  + **certBox** сгенерировать свой сертификат, который браузер будет принимать локально без ошибок
+
+
+### modules
+0.5 Django 
+0.5 bootstrap
+1.0 database
+1.0 User management
+1.0 OAuth
+1.0 Remote players
+1.0 LiveChat
+1.0 AI Opponent 
+
+module                        | front   | back 
+------------------------------|---------|------   
+user management 1             | L       | L  
+live chat 1                   | Ann     | B
+registration                  | +       | L       
+matchmaking system Tournament | L       | L      
+------------------------------|---------|------   
+live pong game on website     | L       | Amine
+rules of Pong                 | Amine   | Amine     
+remote players 1              | ---     | Amine  
+AI Opponent 1                 | ---     | Amine  
+------------------------------|---------|------   
+security                      |         | 
+basic front-end               | +       | ---
+OAuth 1                       | ---     | +
+django 1                      | ---     | +
+bootstrap 0.5                 | L       | ---
+database 0.5                  | ---     | +
 
 
 ### TEST
-* `docker-compose logs frontend`: `172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189  "https://localhost:4443/static/chat.html" "Chrome"`
-  + 172.21.0.1 IP-адрес клиента в контейнерной сети, внутренний адрес Docker
-  + `-` идентификация (RFC 1413), по умолчанию отсутствует
-  + `-` **имя пользователя (Basic Auth)**, по умолчанию отсутствует
   + https://localhost:4443/` откуда пользователь перешёл
 * endpoints
   + `views.py`: какие представления и какие URL ассоциированы с функциями или классами в разных частях проекта
@@ -1584,11 +1609,10 @@ database 0.5                  | ---     | +
 
 ### USER MANAGEMENT
 * user management, authentication, users across tournaments (subject)
-  + Users can subscribe to the website in a secure way
-  + **Registered** users can log in in a secure way
+  + users can subscribe to the website in a secure way
+  + registered users can log in in a secure way
   + users can select a **unique display name to play the tournaments**
-  + users can update their information
-  + users can upload an avatar, with a default option if none is provided
+  + users can **update their information**
   + users can add others as friends and view their online status
     - **"is_active": true** в http://localhost:8000/users/
     - через библиотеку channels - по вебсокетам следим пользователь онлайн или нет - НАМ ЭТОТ СПОСОБ (?)
@@ -1597,6 +1621,7 @@ database 0.5                  | ---     | +
   + user profiles display stats, such as wins and losses
   + user has a Match History including **1v1** games, dates, relevant details, accessible to logged-in users
   + the management of duplicate usernames/emails is at your discretion, you must provide a solution that makes sense
+  + users can upload an avatar, with a default option if none is provided
 * myapp: логика пользовательских профилей, турниров, историй игр
 • a registration system
   + at the start of a tournament, each player must input their alias name
