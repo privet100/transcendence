@@ -1,81 +1,3 @@
-### see
-* не может играть сам с собой
-* ### **Как ограничить доступ к страницам в Transcendence?**  
-Поскольку в проекте используется **Django**, лучший способ — использовать **`LoginRequiredMixin`** для CBV (Class-Based Views) и **`@login_required`** для FBV (Function-Based Views).  
-
----
-
-### **1. Ограничение доступа к страницам**
-#### **1.1. Для Class-Based Views (CBV)**
-Используем **`LoginRequiredMixin`** в `views.py`:  
-```python
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView
-
-class ProtectedPageView(LoginRequiredMixin, TemplateView):
-    template_name = "protected_page.html"
-    login_url = "/login/"  # Куда редиректить незалогиненных пользователей
-```
-✅ Теперь незалогиненные пользователи будут **автоматически перенаправляться** на `/login/`.
-
----
-
-#### **1.2. Для Function-Based Views (FBV)**
-Если используете FBV, добавьте декоратор **`@login_required`**:  
-```python
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-
-@login_required(login_url="/login/")
-def protected_page(request):
-    return render(request, "protected_page.html")
-```
-✅ Работает аналогично **CBV**, только используется для функций.
-
----
-
-### **2. Разрешить доступ к главной странице**
-В `views.py` главная страница (`index`) остается открытой:  
-```python
-from django.shortcuts import render
-
-def index(request):
-    return render(request, "index.html")
-```
-
----
-
-### **3. Настроить `urls.py`**
-```python
-from django.urls import path
-from .views import index, protected_page, ProtectedPageView
-
-urlpatterns = [
-    path("", index, name="index"),  # Главная страница (открытая)
-    path("protected/", protected_page, name="protected"),  # Доступ только залогиненным
-    path("protected-cbv/", ProtectedPageView.as_view(), name="protected_cbv"),  # CBV-версия
-]
-```
-
----
-
-### **4. Опционально: Глобальная настройка `LOGIN_URL`**
-В `settings.py`:
-```python
-LOGIN_URL = "/login/"
-```
-Это избавит от необходимости передавать `login_url` в каждом `@login_required` и `LoginRequiredMixin`.
-
----
-
-### **Вывод**  
-✅ **Главная страница (`/`) доступна всем**  
-✅ **Все остальные страницы доступны только залогиненным пользователям**  
-✅ **Незалогиненные пользователи перенаправляются на `/login/`**  
-
-Такой подход — **простой, эффективный и соответствующий стандартам Django**. 🚀
-
-
 ### modules
 module                        | front   | back 
 ------------------------------|---------|------   
@@ -1200,6 +1122,7 @@ database 0.5                  | ---     | +
 
 
 ### GAME LOGIC
+* **не может играть сам с собой**
 * a player should also be possible to propose a tournament (subject)
   + a tournament displaies who is playing against whom and the order of the players (subject)
 • a matchmaking system: the tournament system organize the matchmaking of the participants, and announce the next fight
@@ -1462,6 +1385,21 @@ database 0.5                  | ---     | +
 | OAuth           | пользователь логинится через 42, получает токен    | Сторонний OAuth-сервер выдаёт токен           | не нужно хранить пароли |
 | Сессионный ключ | сервер создаёт файл, выдаёт клиенту  `session_id`  | хранится в куках, проверяется на сервере      | авто управление сессиями, неудобно для API|
 | API-ключ        | выдаётся уник. ключ (как токен), передаётся в загол| клиент хранит ключ, сервер проверяет его в бд | удобно для сервисов, API, можно украсть ключ|
+* ограничить доступ к страницам в Transcendence  
+  + `LoginRequiredMixin` для CBV
+  + @login_required(login_url="/login/") для FBV  
+    - используется для функций
+  + `index` остается открытой:
+    def index(request):
+        return render(request, "index.html")
+  + urls.py
+    path("", index, name="index"),  # Главная страница (открытая)
+    path("protected/", protected_page, name="protected"),  # Доступ только залогиненным
+    path("protected-cbv/", ProtectedPageView.as_view(), name="protected_cbv"),  # CBV-версия
+  + LOGIN_URL = "/login/"
+    - избавит от необходимости передавать `login_url` в каждом `@login_required` и `LoginRequiredMixin`
+* db        | initdb: warning: enabling "trust" authentication for local connections
+  db        | initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
 
 
 ### AUTORISATION = что вам разрешено делать?
