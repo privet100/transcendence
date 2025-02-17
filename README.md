@@ -1,5 +1,79 @@
 ### see
 * не может играть сам с собой
+* ### **Как ограничить доступ к страницам в Transcendence?**  
+Поскольку в проекте используется **Django**, лучший способ — использовать **`LoginRequiredMixin`** для CBV (Class-Based Views) и **`@login_required`** для FBV (Function-Based Views).  
+
+---
+
+### **1. Ограничение доступа к страницам**
+#### **1.1. Для Class-Based Views (CBV)**
+Используем **`LoginRequiredMixin`** в `views.py`:  
+```python
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
+
+class ProtectedPageView(LoginRequiredMixin, TemplateView):
+    template_name = "protected_page.html"
+    login_url = "/login/"  # Куда редиректить незалогиненных пользователей
+```
+✅ Теперь незалогиненные пользователи будут **автоматически перенаправляться** на `/login/`.
+
+---
+
+#### **1.2. Для Function-Based Views (FBV)**
+Если используете FBV, добавьте декоратор **`@login_required`**:  
+```python
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+
+@login_required(login_url="/login/")
+def protected_page(request):
+    return render(request, "protected_page.html")
+```
+✅ Работает аналогично **CBV**, только используется для функций.
+
+---
+
+### **2. Разрешить доступ к главной странице**
+В `views.py` главная страница (`index`) остается открытой:  
+```python
+from django.shortcuts import render
+
+def index(request):
+    return render(request, "index.html")
+```
+
+---
+
+### **3. Настроить `urls.py`**
+```python
+from django.urls import path
+from .views import index, protected_page, ProtectedPageView
+
+urlpatterns = [
+    path("", index, name="index"),  # Главная страница (открытая)
+    path("protected/", protected_page, name="protected"),  # Доступ только залогиненным
+    path("protected-cbv/", ProtectedPageView.as_view(), name="protected_cbv"),  # CBV-версия
+]
+```
+
+---
+
+### **4. Опционально: Глобальная настройка `LOGIN_URL`**
+В `settings.py`:
+```python
+LOGIN_URL = "/login/"
+```
+Это избавит от необходимости передавать `login_url` в каждом `@login_required` и `LoginRequiredMixin`.
+
+---
+
+### **Вывод**  
+✅ **Главная страница (`/`) доступна всем**  
+✅ **Все остальные страницы доступны только залогиненным пользователям**  
+✅ **Незалогиненные пользователи перенаправляются на `/login/`**  
+
+Такой подход — **простой, эффективный и соответствующий стандартам Django**. 🚀
 
 
 ### modules
@@ -183,12 +257,12 @@ database 0.5                  | ---     | +
   proxy_set_header X-Forwarded-Proto $scheme; Показывает, что изначальный протокол был https (или http).
   proxy_read_timeout 3600s; proxy_send_timeout 3600s; Увеличиваем таймауты для WebSocket: чтобы не обрывать длинные соединения.
 * location /
-  proxy_http_version 1.1; позволяет использовать некоторые современные фичи: chunked transfer encoding, keep‐alive соединения, ..., рекомендуют, не мешает простым запросам, может улучшить поведение прокси (поддержка chunked‐ответов от бэкенда, ...)
+  proxy_http_version 1.1; позволяет использовать некоторые фичи: chunked transfer encoding, keep‐alive соединения, ..., рекомендуют, не мешает простым запросам, может улучшить поведение прокси (поддержка chunked‐ответов от бэкенда, ...)
   proxy_set_header Host $host; Сохраняем оригинальный хост в заголовке Host
   proxy_set_header X-Real-IP $remote_addr;
   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; 
   proxy_set_header X-Forwarded-Proto $scheme; 
-  В блоках proxy_set_header X-... и Host нужно, чтобы Django видел правильные заголовки (и знал, что мы за SSL/TLS, реальный IP и т.д.).
+  В proxy_set_header X-... и Host нужно, чтобы Django видел правильные заголовки и знал, что мы за SSL/TLS, реальный IP, ...
 * Amine: game front using js
 * alexey: Layout on the pages – working on it
   + расположение и структура элементов пользовательского интерфейса на веб-страницах
@@ -241,23 +315,6 @@ database 0.5                  | ---     | +
     - например нужен username - делаем запрос к бэку fetchuserprofile
   + событие DomContactLoaded = html полностью загрузился (у нас только 1 раз)
   + % body % уберем, т.к. у нас SPA
-* class Navigation extends Component
-  + компонент навигации, навигационного меню (navbar), управляет переходами между страницами
-  + навигация внутри `<nav>`
-  + `.querySelectorAll('.nav-link')` находит все ссылки
-  + `addEventListener('click', (e) => {...})` предотвращает стандартный переход (`e.preventDefault()`).  
-  + пользователь кликает на ссылку в `Navigation.js` "Profile" -> "/profile"`  
-    - `Navigation.js` перехватывает клик
-    -  `Navigation.js` вызывает `this.router.navigate("/profile")`  
-    - this.router.navigate(e.target.getAttribute('href')); для изменения страницы без перезагрузки, без запроса к серверу
-    - `Router.js` берет `"/profile"`
-    - `Router.js` находит в `ROUTES` `"/profile": () => new ProfilePage().render()`
-    - `Router.js` загружает `ProfilePage` в `document.getElementById("app")`
-  + `this.element.innerHTML` создаётся `<nav>` с ссылками на главную страницу (`/`) и профиль (`/profile`)
-  + добавление новых страниц = добавить ссылки `<a href="/stats" class="nav-link">Stats</a>`
-  + `Router.js`: какую страницу загрузить при переходе по URL, использует `ROUTES` 
-  + `Navigation.js`: отвечает за клики по меню и ссылки, вызывает `this.router.navigate()`
-  + в шапке
 * open chat
   + на странице login, profile, регистрация нету
   + во время игры - статистика, другой user
@@ -342,7 +399,6 @@ database 0.5                  | ---     | +
   + myproject.settings обращается к `backend/myproject/settings.py`
   + `if __name__ == '__main__':` если файл запущен напрямую (не импортирован как модуль), выполняется `main()`
   + python manage.py runserver запуск сервера разработки, daphne обращается к проекту напрямую или через `mysite.asgi`
-  + python manage.py createsuperuser
   + остальные команды: migrate, [auth]: changepassword, [contenttypes] remove_stale_contenttypes, [django] check compilemessages createcachetable dbshell diffsettings dumpdata flush inspectdb loaddata makemessages makemigrations optimizemigration sendtestemail shell showmigrations sqlflush sqlmigrate sqlsequencereset squashmigrations startapp startproject test testserverт, [rest_framework] generateschema, [sessions] clearsessions, [staticfiles] collectstatic findstatic, можно создавать собственные команды
 * вcтроенные модульные приложения
   + 'django.contrib.messages'
