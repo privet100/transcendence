@@ -1590,6 +1590,10 @@ database 0.5                  | ---     | +
   + users can update their information
   + users can upload an avatar, with a default option if none is provided
   + users can add others as friends and view their online status
+    - **"is_active": true** в http://localhost:8000/users/
+    - через библиотеку channels - по вебсокетам следим пользователь онлайн или нет - НАМ ЭТОТ СПОСОБ (?)
+    - через Django sessions - когда юзер делает действие, Джанго сохраняет в бд дату
+    - через redis - не понял как работает
   + user profiles display stats, such as wins and losses
   + user has a Match History including **1v1** games, dates, relevant details, accessible to logged-in users
   + the management of duplicate usernames/emails is at your discretion, you must provide a solution that makes sense
@@ -1598,15 +1602,6 @@ database 0.5                  | ---     | +
   + at the start of a tournament, each player must input their alias name
   + the aliases will be reset when a new tournament begins
   + this requirement can be modified using the Standard User Management module
-* трекинг **когда пользователь был онлайн**
-  + models.py: last online для индикатива
-  + **"is_active": true** в http://localhost:8000/users/
-  + три решения 
-    - через библиотеку channels - по вебсокетам следим пользователь онлайн или нет - НАМ ЭТОТ СПОСОБ
-    - через Django sessions - когда юзер делает действие, Джанго сохраняет в бд дату
-    - через redis - не понял как работает
-* pass reset будет ли?
-* change username, email будет ли?
 
 
 ### СТАТИЧЕСКИЕ ФАЙЛЫ html js CSS изображения шрифты
