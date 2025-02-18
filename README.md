@@ -1,24 +1,24 @@
 ### ЗАЩИТА 
-* аутентификация без сохранения состояния (stateless authentication)
-  + сервер не хранит сессию, а проверяет подпись токена от OAuth-провайдера
-  + например: JWT, OAuth 42 API
-* Stateful authentication
-  + сервер хранит информацию о каждом пользователе в памяти или базе данных
-  + не подходит для масштабируемых приложений, где лучше использовать JWT
-  + например: сессии Django
-* `docker-compose logs frontend`: `172.21.0.1 "GET /static/css/chat.css HTTP/1.1" 200 3189  "https://localhost:4443/static/chat.html" "Chrome"`
-  + 172.21.0.1 IP-адрес клиента в контейнерной сети, внутренний адрес Docker
-  + `-` идентификация (RFC 1413), по умолчанию отсутствует
-  + `-` **имя пользователя (Basic Auth)**, по умолчанию отсутствует
-* **http2**
 * identification = кто вы
   + определение личности пользователя (предоставление username, email)  
   + без проверки пароля
   + не вход в систему  
-* DFR использует сессии или JWT для аутентификации пользователей
+* authentification = докажите, что это вы
+  + проверка личности, логин, система требует пароль, одноразовый код из SMS, отпечаток пальца, лицо, вход через соцсети, ...
+* **checkAuthState()**
+* аутентификация без сохранения состояния (stateless authentication)
+  + сервер не хранит сессию
+  + сервер проверяет подпись токена от OAuth-провайдера
+  + подходит для масштабируемых приложений
+  + JWT, OAuth 42 API, ...
+* stateful authentication
+  + сервер хранит информацию о каждом пользователе в памяти или базе данных
+  + не подходит для масштабируемых приложений
+  + сессии Django, ...
+* **http2**
+* DFR использует сессии или JWT для аутентификации
   + эти данные доступны в middleware или обработчиках запросов
   + Session storage: Если включён SessionMiddleware, то пользовательские данные сохраняюися в сессиях и доступны в обработчиках
-  + JWT токен передаётся в заголовке авторизации (Authorization: Bearer <token>) и обрабатывается специальным классом аутентификации
 * асимметричный алгоритм (например **RSA**)
 * какой у нас тип - посмотреть auth, authentication, REST_FRAMEWORK, oauth, session, cookies, bearer, authorization, csrf, middleware, authentication classes   
     - F12 - network - headers, выполните login, посмотрите, что отправляется с клиентской стороны
@@ -82,14 +82,20 @@
     - the form has a valid CSRF token. After logging in in another browser tab or hitting the back button after a login, you may need to reload the page with the form, because the token is rotated after a login
 
 
-
-#### authentification = докажите, что это вы
-* **checkAuthState()**
-* проверка личности, логин, система требует пароль, одноразовый код OTP из SMS, отпечаток пальца, лицо, вход через соцсети, ...
-* базовая аутентификация (Basic Auth)  
+#### базовая аутентификация (Basic Auth)  
   + логин/пароль передаются в заголовке при каждом запросе
   + простой
   + слабо защищён
+  + в логах контенера видно "https://localhost:4443/static/chat.html" "Chrome"`
+
+
+####  идентификация (RFC 1413)
+  + устаревший сетевой протокол
+  + определение имени владельца запущенного на клиентской машине процесса
+  + в логах контенера видно
+
+
+  + `-` имя пользователя, если клиент авторизовался через Basic Auth.
 
 
 #### СЕССИИОННЫЙ КЛЮЧ = СЕССИОННЫЙ ИДЕНТИФИКАТОР = ФАЙЛ СЕССИИ
@@ -142,6 +148,8 @@
   + https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html
   + https://dzone.com/articles/using-jwt-in-a-microservice-architecture
   + https://openclassrooms.com/fr/courses/7192416-mise-en-place-une-api-avec-django-rest-framework/7424720-give-access-with-the-tokens
+  + передаётся в заголовке авторизации (Authorization: Bearer <token>)
+  + обрабатывается специальным классом аутентификации
 
 
 #### 42 oauth
