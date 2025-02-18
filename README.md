@@ -243,9 +243,10 @@
 * пример: авторизация чата, потоковой системы `wss://example.com/ws/chat/?token=<...>`
 
 #### 2) any password stored in your database, if applicable, must be hashed
-* a **strong password hashing algorithm** (subject)
-* асимметричный алгоритм (например **RSA**)
+* a strong password hashing algorithm (subject)
+  + асимметричный алгоритм (**RSA**, ...) - ?
 * пароли пользователей  автоматически хешируются, если вы используете стандартную модель пользователя или наследуетесь от AbstractUser
+* console: {id: 5, password: 'qsqsqsqs' **пользователь добавлен через админ**
 
 #### базовая аутентификация (Basic Auth) - у нас нету
 * user вводит логин/пароль, сервер создаёт сессию, логин/пароль передаются в заголовке при каждом запросе, слабо защищён
