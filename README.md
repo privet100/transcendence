@@ -1,3 +1,14 @@
+### ***
+* API routes protected
+  + для доступа к защищенным маршрутам нужно передавать валидный токен (например, JWT), который подтверждает, что пользователь авторизован
+  + проверяется, что пользователь имеет право доступа к этим данным или ресурсам (администратор, сам пользователь, ...)
+  + в Django это обычно делается с помощью middleware или декораторов
+    - @login_required
+    - или через настройку JWT для API с использованием таких пакетов, как djangorestframework-simplejwt
+
+чат все-таки будет отдельным компонентом, но не страницей, думаю чат должен быть на каждой странице, либо на странице с игрой. Еще будет страница профиля юзера, помимо своего профиля
+
+
 ### ЗАЩИТА 
 * identification = кто вы
   + определение личности пользователя (предоставление username, email)  
@@ -566,6 +577,14 @@ const socket = new WebSocket("ws://localhost:8000/ws/chat/?token=your_jwt_token"
 
 
 #### ограничить доступ к страницам в Transcendence  
+* Alexey:
+  + You could use auth.js to check whether the user is authenticated
+  + You can add it to your component and add data-auth-required tag to the html elements that require authentication
+  + That’s how I do
+* Alexey:
+  * На беке чтобы ограничить доступ нужно просто использовать декоратор login_required
+  * На фронте я добавляю в html элемент тэг data-auth-required, потом проверяем на фронте с помощью AuthSevice залогинены мы или нет и зависимости от этого рендерим или нет
+  * Еще сейчас понял что если мы захотим перейти не по ссылке, а через адрес вручную, то нужно добавить проверку на авторизованность в конструктор компонента
 + `LoginRequiredMixin` для CBV
 + @login_required(login_url="/login/") для FBV  
   - используется для функций
@@ -767,7 +786,6 @@ database 0.5                  | ---     | +
 
 
 ### LIVE CHAT
-* **чат сделать компонентом**
 * зачем общий чат
 * the user sends direct messages to other users (subject)
 * the user blocks other users, they see no more messages from the account they blocked (subject)
