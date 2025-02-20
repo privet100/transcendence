@@ -1,10 +1,5 @@
-### ***
-* API routes protected
-  + для доступа к защищенным маршрутам нужно передавать валидный токен (например, JWT), который подтверждает, что пользователь авторизован
-  + проверяется, что пользователь имеет право доступа к этим данным или ресурсам (администратор, сам пользователь, ...)
-  + в Django это обычно делается с помощью middleware или декораторов
-    - @login_required
-    - или через настройку JWT для API с использованием таких пакетов, как djangorestframework-simplejwt
+### сделать если будет время
+* объединить поля avatar_url и avatar
 
 
 ### ЗАЩИТА 
@@ -330,7 +325,6 @@
   + Сессии Django** — если используете `channels`, можно проверять сессию пользователя в `consumers.py`
 * передавать токен через параметры URL или при инициализации WebSocket-соединения
 
-
 #### 2) any password stored in your database, if applicable, must be hashed
 * a strong password hashing algorithm (subject)
   + асимметричный алгоритм (**RSA**, ...) - ?
@@ -473,6 +467,12 @@ const socket = new WebSocket("ws://localhost:8000/ws/chat/?token=your_jwt_token"
   + На беке чтобы ограничить доступ нужно просто использовать декоратор login_required
   ° На фронте я добавляю в html элемент тэг data-auth-required, потом проверяем на фронте с помощью AuthSevice залогинены мы или нет и зависимости от этого рендерим или нет
   + Еще сейчас понял что если мы захотим перейти не по ссылке, а через адрес вручную, то нужно добавить проверку на авторизованность в конструктор компонента
+* API routes protected
+  + проверяется, что пользователь имеет право доступа к этим данным или ресурсам (администратор, сам пользователь, ...)
+  + для доступа к защищенным маршрутам нужно передавать валидный токен (например, JWT), который подтверждает, что пользователь авторизован
+  + в Django - с помощью middleware или декораторов
+    - @login_required
+    - или через настройку JWT для API с использованием таких пакетов, как djangorestframework-simplejwt
 * `LoginRequiredMixin` для CBV
 * LOGIN_URL = "/login/" # eliminates the need to pass login_url in every @login_required and LoginRequiredMixin
 * @login_required(login_url="/login/") для FBV  
