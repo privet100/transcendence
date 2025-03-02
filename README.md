@@ -70,7 +70,7 @@
 ### сделать если будет время
 * объединить поля avatar_url и avatar
 * getCSRFTokenFromCookie() сделать две одинаковыми
-
+* ${this.formatDate(game.date)} на ${new Date(game.date).toLocaleString()}
 
 ### ЗАЩИТА 
 * identification = кто вы
