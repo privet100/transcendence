@@ -1,5 +1,58 @@
 ### tour
-*  В вашем коде в методе `invite_players()` используется `time.sleep(300)`, что блокирует выполнение программы на 5 минут. Это не является хорошей практикой в асинхронных приложениях, так как блокировка потока может повлиять на производительность. Лучше использовать асинхронные задержки или задачи, которые выполняются через Celery или аналогичные решения.
+* `time.sleep(300)` блокирует выполнение программы на 5 минут
+  + не является хорошей практикой в асинхронных приложениях
+  + блокировка потока может повлиять на производительность
+  + лучше асинхронные задержки или Celery
+* asyncio.sleep(300) в момент создания турнира
+  + 
+  ```
+  redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+  async def wait_and_start_tournament(tournament_id):
+      await asyncio.sleep(300)  # Ждём 5 минут
+      tournament = Tournament.objects.filter(id=tournament_id, has_started=False).first()
+      if tournament:
+          tournament.has_started = True
+          tournament.save()
+          redis_client.delete(f"tournament:{tournament_id}")
+  ```
+  + 
+  ```
+  def create_tournament(name):
+      from asgiref.sync import async_to_sync
+      start_time = now() + timedelta(minutes=5)
+      tournament = Tournament.objects.create(name=name, start_time=start_time)
+      redis_key = f"tournament:{tournament.id}"
+      redis_client.setex(redis_key, 300, "waiting")  # Запись с TTL 5 минут
+      async_to_sync(wait_and_start_tournament)(tournament.id)  # Запускаем процесс ожидания
+      return tournament
+  ```
+  + Redis = дополнительная проверка
+  + если убрать рэдис, то: если Django перезапустится (сервер перезагрузится, приложение перезапущено, ...), то все sleep() пропадут и турниры не начнутся
+* проверять в каждом запросе, не пора ли запустить турнир
+  + без Celery
+  + без Redis
+  +
+  ```
+  class Tournament(models.Model):
+      name = models.CharField(max_length=255)
+      start_time = models.DateTimeField()
+      has_started = models.BooleanField(default=False)
+  def create_tournament(name):
+      start_time = now() + timedelta(minutes=5)
+      return Tournament.objects.create(name=name, start_time=start_time)
+  def check_and_start_tournaments():
+      tournaments = Tournament.objects.filter(has_started=False, start_time__lte=now())
+      for tournament in tournaments:
+          tournament.has_started = True
+          tournament.save()
+  ```
+  + check_and_start_tournaments()  в API — если есть эндпоинт для получения списка турниров
+    - check_and_start_tournaments() перед отправкой списка
+  + fetch('/check-tournaments/') при загрузке страницы в js, перед запросом списка турниров
+  + fetch('/check-tournaments/') при любом действии пользователя (при открытии вкладки с турнирами, ...)
+  + турнир стартует даже если Django был перезапущен
+  + Нет фоновых процессов
+  + бурнир стартует не мгновенно, а при первом же взаимодействии пользователя с сервером
 
 ### сделать в конце
 * фото из папки backend/avatar переместить на фронтенд
