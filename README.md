@@ -55,6 +55,76 @@
   + можно добавить: setTimeout в JS раз в минуту делает fetch('/check-tournaments/') => турниры стартуют даже если никто не кликает по странице
   + можно добавить: кто-то обращается к Tournament.objects.all() -> check_and_start_tournaments() вызываается в Django через @property модели
 
+### отправлять сообщения в общий чат или конкретному пользователю прямо из Django-бэкенда через channel_layer.group_send
+🔹сообщение в общий чат (general) (во все WebSocket-подключения, которые слушают chat_general)
+  ```
+  def send_message_to_general_chat(user, message):
+      channel_layer = get_channel_layer()
+      async_to_sync(channel_layer.group_send)(
+          "chat_general",  # Название группы
+          {
+              "type": "chat_message",
+              "message": message,
+              "user_id": user.id,
+              "username": user.username,
+              "first_name": user.first_name,
+              "avatar_url": user.avatar.url if user.avatar else None,
+              "message_id": None,  # Можно не указывать, если не сохраняем в БД
+              "created": None,
+          }
+      )
+  ```
+🔹 личное сообщение (private) в ws/chat/{chatroom_name}/
+  ```
+  def send_private_message(user, recipient, message):
+      channel_layer = get_channel_layer()
+      chatroom_name = f"private_{min(user.id, recipient.id)}_{max(user.id, recipient.id)}"
+      async_to_sync(channel_layer.group_send)(
+          f"chat_{chatroom_name}",
+          {
+              "type": "chat_message",
+              "message": message,
+              "user_id": user.id,
+              "username": user.username,
+              "first_name": user.first_name,
+              "avatar_url": user.avatar.url if user.avatar else None,
+              "message_id": None,
+              "created": None,
+          }
+      )
+  ```
+🔹 Сохранение сообщения в БД перед отправкой (если нужно):
+  ```
+  def send_message_with_db(user, chatroom_name, message):
+      chat_group = ChatGroup.objects.get(group_name=chatroom_name)
+      saved_message = GroupMessage.objects.create(
+          group=chat_group,
+          author=user,
+          body=message
+      )
+      channel_layer = get_channel_layer()
+      async_to_sync(channel_layer.group_send)(
+          f"chat_{chatroom_name}",
+          {
+              "type": "chat_message",
+              "message": message,
+              "user_id": user.id,
+              "username": user.username,
+              "first_name": user.first_name,
+              "avatar_url": user.avatar.url if user.avatar else None,
+              "message_id": saved_message.id,
+              "created": saved_message.created.isoformat(),
+          }
+      )
+  ```
+🔹send_message_to_general_chat() или send_private_message() из любого Django-вью или фонового процесса
+  + например, при старте турнира можно разослать уведомления в чат
+    ```
+    def notify_tournament_start(tournament):
+        message = f"Турнир '{tournament.name}' начинается! Подключайтесь!"
+        send_message_to_general_chat(UserProfile.objects.get(username="System"), message)
+    ```
+
 ### сделать в конце
 * фото из папки backend/avatar переместить на фронтенд
 * убрать async для функций, которые используются только с wait
