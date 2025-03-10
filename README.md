@@ -129,6 +129,7 @@
 * фото из папки backend/avatar переместить на фронтенд
 * убрать async для функций, которые используются только с wait
 * /game/vreate /game/create2
+* права на avatars_folder
 
 #### во вторую очередь
 * объединить поля avatar_url и avatar
