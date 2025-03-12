@@ -131,6 +131,7 @@
 * /game/vreate /game/create2
 * чтобы от root ничего не создавалось (meke fclean должен роабоатть без sudo)
 * валидация пароля
+* bootstrap
 
 #### во вторую очередь
 * объединить поля avatar_url и avatar
