@@ -136,7 +136,8 @@
 * объединить поля avatar_url и avatar
 * getCSRFTokenFromCookie() сделать одинаковыми
 * docker builder prune -a -f # DEPRECATED
-  
+* we have game.id (default), do we need game_id ?
+
 ### БЕЗОПАСНОСТЬ
 * identification = кто вы
   + определение личности пользователя (предоставление username, email)  
