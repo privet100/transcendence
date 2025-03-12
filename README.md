@@ -132,6 +132,8 @@
 * чтобы от root ничего не создавалось (meke fclean должен роабоатть без sudo)
 * валидация пароля
 * bootstrap
+* Think about network issues, like unexpected disconnection or lag. You have to offer the best user experience possible.
+* The user should be able to block other users.
 
 #### во вторую очередь
 * объединить поля avatar_url и avatar
