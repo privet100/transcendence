@@ -134,7 +134,8 @@
 * bootstrap
 * Think about network issues, like unexpected disconnection or lag. You have to offer the best user experience possible.
 * The user should be able to block other users.
-
+* REDIRECT_URI_42=http://127.0.0.1:8000/auth/callback
+  
 #### во вторую очередь
 * объединить поля avatar_url и avatar
 * getCSRFTokenFromCookie() сделать одинаковыми
