@@ -135,7 +135,13 @@
 * Think about network issues, like unexpected disconnection or lag. You have to offer the best user experience possible.
 * The user should be able to block other users.
 * REDIRECT_URI_42=http://127.0.0.1:8000/auth/callback
-  
+* удалённый игрок = подключение к проекту с другого компьютера или через интернет => нужен IP-адрес/домен сервера, не `127.0.0.1` 
+  + URL сервера в переменную окружения
+    - const serverUrl = process.env.SERVER_URL || 'https://127.0.0.1:4443';
+    - const text = `<button class="blue-button" onclick="window.location.href='${serverUrl}/tour?id=${this.state.selectedTourJson}'">Join the tour</button>`;
+  + реальный https://192.168.0.100:4443 или https://mygame.server.com:4443
+  + автоматически локальный адрес для локальных запусков и реальный адрес для удалённых игроков
+
 #### во вторую очередь
 * объединить поля avatar_url и avatar
 * getCSRFTokenFromCookie() сделать одинаковыми
@@ -143,7 +149,9 @@
 * we have game.id (default), do we need game_id ?
 
 ### БЕЗОПАСНОСТЬ
-* identification = кто вы
+*  use auth.js to check whether the user is authenticated
+  + You can add it to your component and add data-auth-required tag to the html elements that require authentication. That’s how I do.
+*  identification = кто вы
   + определение личности пользователя (предоставление username, email)  
   + без проверки пароля
   + не вход в систему  
@@ -1903,7 +1911,6 @@ database 0.5                  | ---     | +
 
 
 ### ЗАПУСК
-* ASGI_APPLICATION = "myproject.asgi.application" есть, зачем CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "**myproject.asgi:application**"]
 * For Ecole42 computers, I've updated settings of docker file in DEV branch 
   + порт, который нужен для django, занят
   + поменять номера портов в docker и в nginx
