@@ -137,8 +137,10 @@
 * REDIRECT_URI_42=http://127.0.0.1:8000/auth/callback
 * удалённый игрок = подключение к проекту с другого компьютера или через интернет => нужен IP-адрес/домен сервера, не `127.0.0.1` 
   + URL сервера в переменную окружения
-    - const serverUrl = process.env.SERVER_URL || 'https://127.0.0.1:4443';
-    - const text = `<button class="blue-button" onclick="window.location.href='${serverUrl}/tour?id=${this.state.selectedTourJson}'">Join the tour</button>`;
+    - ipconfig
+    - serverUrl = process.env.SERVER_URL || 'https://127.0.0.1:4443';
+    - text = `<button class="blue-button" onclick="window.location.href='http://<IP-адр-школьн-компа>:4443/tour?id=${this.state.selectedTourJson}'">Join </button>`;
+    - text = `<button class="blue-button" onclick="window.location.href='${serverUrl}/tour?id=${this.state.selectedTourJson}'">Join</button>`;
   + реальный https://192.168.0.100:4443 или https://mygame.server.com:4443
   + автоматически локальный адрес для локальных запусков и реальный адрес для удалённых игроков
 
