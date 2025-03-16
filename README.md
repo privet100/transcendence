@@ -1,49 +1,12 @@
-### tour
+### запуск турнира по времени
 * `time.sleep(300)` блокирует выполнение на 5 минут
   + не является хорошей практикой в асинхронных приложениях
 * асинхронные задержки
 * Celery
 * asyncio.sleep(300) в момент создания турнира
-  + 
-  ```
-  redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
-  async def wait_and_start_tournament(tournament_id):
-      await asyncio.sleep(300)  # Ждём 5 минут
-      tournament = Tournament.objects.filter(id=tournament_id, has_started=False).first()
-      if tournament:
-          tournament.has_started = True
-          tournament.save()
-          redis_client.delete(f"tournament:{tournament_id}")
-  ```
-  + 
-  ```
-  def create_tournament(name):
-      from asgiref.sync import async_to_sync
-      start_time = now() + timedelta(minutes=5)
-      tournament = Tournament.objects.create(name=name, start_time=start_time)
-      redis_key = f"tournament:{tournament.id}"
-      redis_client.setex(redis_key, 300, "waiting")  # Запись с TTL 5 минут
-      async_to_sync(wait_and_start_tournament)(tournament.id)  # Запускаем процесс ожидания
-      return tournament
-  ```
   + Redis = дополнительная проверка
   + если убрать рэдис, то при пурузщапуске Django  все sleep() пропадут, турниры не начнутся
 * проверять в каждом запросе, не пора ли запустить турнир
-  +
-  ```
-  class Tournament(models.Model):
-      name = models.CharField(max_length=255)
-      start_time = models.DateTimeField()
-      has_started = models.BooleanField(default=False)
-  def create_tournament(name):
-      start_time = now() + timedelta(minutes=5)
-      return Tournament.objects.create(name=name, start_time=start_time)
-  def check_and_start_tournaments():
-      tournaments = Tournament.objects.filter(has_started=False, start_time__lte=now())
-      for tournament in tournaments:
-          tournament.has_started = True
-          tournament.save()
-  ```
   + django: check_and_start_tournaments() перед отправкой списка ткрниров в django
   + js: fetch('/check-tournaments/') при любом действии пользователя: открытие вкладки с турнирами, загрузка страницы, запрос списка турниров, ...
   + турнир стартует даже если Django перезапущен
@@ -55,77 +18,26 @@
   + можно добавить: setTimeout в JS раз в минуту делает fetch('/check-tournaments/') => турниры стартуют даже если никто не кликает по странице
   + можно добавить: кто-то обращается к Tournament.objects.all() -> check_and_start_tournaments() вызываается в Django через @property модели
 
-### отправлять сообщения из Django-бэкенда через channel_layer.group_send
-🔹сообщение в общий чат (general) (во все WebSocket-подключения, которые слушают chat_general)
-  ```
-  def send_message_to_general_chat(user, message):
-      channel_layer = get_channel_layer()
-      async_to_sync(channel_layer.group_send)(
-          "chat_general",  # Название группы
-          {
-              "type": "chat_message",
-              "message": message,
-              "user_id": user.id,
-              "username": user.username,
-              "first_name": user.first_name,
-              "avatar_url": user.avatar.url if user.avatar else None,
-              "message_id": None,  # Можно не указывать, если не сохраняем в БД
-              "created": None,
-          }
-      )
-  ```
-🔹 личное сообщение (private) в ws/chat/{chatroom_name}/
-  ```
-  def send_private_message(user, recipient, message):
-      channel_layer = get_channel_layer()
-      chatroom_name = f"private_{min(user.id, recipient.id)}_{max(user.id, recipient.id)}"
-      async_to_sync(channel_layer.group_send)(
-          f"chat_{chatroom_name}",
-          {
-              "type": "chat_message",
-              "message": message,
-              "user_id": user.id,
-              "username": user.username,
-              "first_name": user.first_name,
-              "avatar_url": user.avatar.url if user.avatar else None,
-              "message_id": None,
-              "created": None,
-          }
-      )
-  ```
-🔹 Сохранение сообщения в БД перед отправкой
-  ```
-  def send_message_with_db(user, chatroom_name, message):
-      chat_group = ChatGroup.objects.get(group_name=chatroom_name)
-      saved_message = GroupMessage.objects.create(
-          group=chat_group,
-          author=user,
-          body=message
-      )
-      channel_layer = get_channel_layer()
-      async_to_sync(channel_layer.group_send)(
-          f"chat_{chatroom_name}",
-          {
-              "type": "chat_message",
-              "message": message,
-              "user_id": user.id,
-              "username": user.username,
-              "first_name": user.first_name,
-              "avatar_url": user.avatar.url if user.avatar else None,
-              "message_id": saved_message.id,
-              "created": saved_message.created.isoformat(),
-          }
-      )
-  ```
-🔹send_message_to_general_chat() или send_private_message() из любого Django-вью или фонового процесса
-  + например, при старте турнира можно разослать уведомления в чат
-    ```
-    def notify_tournament_start(tournament):
-        message = f"Турнир '{tournament.name}' начинается! Подключайтесь!"
-        send_message_to_general_chat(UserProfile.objects.get(username="System"), message)
-    ```
-
 ### сделать в конце
+*
+  ```
+  fetch('/api/join_tour/1/', {
+      method: 'POST',
+      headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+          'Content-Type': 'application/json'
+      }
+  })
+  .then(response => {
+      if (response.status === 401 || response.status === 403) {
+          window.location.href = '/login'; // Перенаправить на страницу входа
+      } else {
+          return response.json();
+      }
+  })
+  ```
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));
 * фото из папки backend/avatar переместить на фронтенд
 * убрать async для функций, которые используются только с wait
 * /game/vreate /game/create2
