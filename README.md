@@ -61,6 +61,7 @@
 * getCSRFTokenFromCookie() сделать одинаковыми
 * docker builder prune -a -f # DEPRECATED
 * we have game.id (default), do we need game_id ?
+* admin перестал работать
 
 ### БЕЗОПАСНОСТЬ
 *  use auth.js to check whether the user is authenticated
