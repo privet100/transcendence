@@ -55,6 +55,8 @@
     - text = `<button class="blue-button" onclick="window.location.href='${serverUrl}/tour?id=${this.state.selectedTourJson}'">Join</button>`;
   + реальный https://192.168.0.100:4443 или https://mygame.server.com:4443
   + автоматически локальный адрес для локальных запусков и реальный адрес для удалённых игроков
+* COPY . /usr/share/nginx/html/frontend/ копирует содержимое директории ./frontend на хосте в директорию /usr/share/nginx/html/frontend/ внутри контейнера
+  + монтируете локальную директорию ./frontend в контейнер по пути /usr/share/nginx/html/static_frontend_folder/
 
 #### во вторую очередь
 * объединить поля avatar_url и avatar
