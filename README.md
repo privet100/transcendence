@@ -35,8 +35,8 @@ TO DO IN THE END
 * django отправляет `403 Forbidden: CSRF verification failed`
   + при условии `SessionAuthentication`
   + при условии CSRF-защита включена
-  + POST-запрос: передаёвать CSRF-токен в заголовке `X-CSRFToken`
-  + запрос с фронтенда: куки с `credentials: "include"
+  + надо: POST-запрос передаёт CSRF-токен в заголовке `X-CSRFToken`
+  + надо: запрос с фронтенда имеет куки с `credentials: "include"
   + @csrf_exempt отключить CSRF для отладки
   + лог:
     - Forbidden (CSRF cookie not set.): /your-endpoint/
@@ -48,54 +48,23 @@ TO DO IN THE END
 * django отправляет `403 Forbidden: Authentication credentials were not provided.`)
   + при условии: `SessionAuthentication` в DRF или др. механизмы
   + 1) Нет `sessionid` в куках  
-  + 2) Пользователь не залогинен, но запрашивает защищённый ресурс  
-  + 3) Сессия истекла или удалена  
+  + 2) Пользователь не залогинен, запрашивает ресурс  
+  + 3) используешь `@login_required`**, а юзер не авторизован
+  + 4) Сессия истекла или удалена  
   + логи:  
-       ```
-       Forbidden: /your-endpoint/
-       Authentication credentials were not provided.
-       ```
-2. **Если используешь `@login_required`**, а юзер не авторизован, Django автоматически отправит 403.  
-
-### **Как исправить?**
-- Проверь, что `sessionid` передаётся в куки.  
-- Убедись, что пользователь **авторизован перед вызовом запроса**.  
-- Если в `views.py` есть `@login_required` или `IsAuthenticated`, попробуй убрать их для теста.  
-
----
-
-## **🔍 3. `PermissionDenied` в коде (`raise PermissionDenied`)**
-Django может автоматически вернуть **403**, если где-то в коде вызывается:  
-```python
-from django.core.exceptions import PermissionDenied
-
-raise PermissionDenied("You are not allowed to do this.")
-```
-или  
-```python
-from rest_framework.exceptions import PermissionDenied
-
-raise PermissionDenied("Access denied")
-```
-или если у тебя **`permission_classes = [IsAuthenticated]`** в DRF.
-
-### **Как это проверить?**
-- В логах Django будет **"PermissionDenied"**.  
-- В **API-ответе** будет JSON с `"detail": "You do not have permission to perform this action."`  
-
----
-
-## **🎯 Вывод**
-**Django автоматически отправляет 403 в случаях:**  
-1. **CSRF-токен не передан или неверный.**  
-2. **Сессионная аутентификация (`sessionid`) не установлена, пользователь не залогинен.**  
-3. **PermissionDenied вызывается в коде (или `@login_required`).**  
-
-### **✅ Что делать?**
-1. **Проверь логи Django** — там будет точная причина (CSRF, аутентификация, `PermissionDenied`).  
-2. **Проверь, передаётся ли `sessionid` и CSRF-токен в запросах.**  
-3. **Если используешь `@login_required` или `IsAuthenticated`, попробуй временно убрать и посмотреть, изменится ли статус.**  
-
+     ```
+     Forbidden: /your-endpoint/
+     Authentication credentials were not provided
+     ```
+  + Проверь, что `sessionid` передаётся в куки.  
+  + Убедись, что пользователь авторизован перед вызовом запроса
+  + убери тих для теста `@login_required` или `IsAuthenticated
+* django отправляет 403
+  + если в коде raise PermissionDenied("You are not allowed to do this.")
+  + или в коде raise PermissionDenied("Access denied")
+  + или `permission_classes = [IsAuthenticated]`
+  + логи: "PermissionDenied"  
+  + API-ответ: JSON с "detail": "You do not have permission to perform this action"
 
 ### БЕЗОПАСНОСТЬ
 *  use auth.js to check whether the user is authenticated
