@@ -1,3 +1,35 @@
+TO DO - IMPORTANT
+* game saves its score to the db (Anna)
+* close 8000 and 6380
+* WebSocket connections require authentication (e.g., via TokenAuthMiddleware)
+* Router.js : FIXME: Change sessionStorage to a safer option later
+* favicon
+* serve backend/avatar from frontend (Anna)
+* we have 2 folders with frontend code in the container (Anna)
+* sign up -> sign in with this user -> password error 
+* do we use cache ?
+* delete unused files and settings:
+backend/templates
+backend/pong_game
+LOGIN_URL
+
+
+TO DO (2)
+* place all the endpoints to myproject/urls.py   OR   place all the endpoints to its own urls.py
+* css (a narrow page is broken)
+* css for admin
+* we have two functions getCSRFTokenFromCookie
+* REST_FRAMEWORK.DEFAULT_PERMISSION_CLASSES
+* game.id vs game_id? do we need both?
+* docker builder prune -a -f # DEPRECATED
+* make fclean works without sudo
+
+
+TO DO IN THE END
+* ./backend:/app      # to remove in production
+* set DEBUG = False
+
+
 Да, **Django сам может отправлять 403**, даже если ты явно не указываешь `return Response(status=403)` в `views.py`.  
 
 Django автоматически отвечает **403 Forbidden** в нескольких случаях:  
