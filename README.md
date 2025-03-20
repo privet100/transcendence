@@ -30,53 +30,31 @@ TO DO IN THE END
 * set DEBUG = False
 
 
-Да, **Django сам может отправлять 403**, даже если ты явно не указываешь `return Response(status=403)` в `views.py`.  
-
-Django автоматически отвечает **403 Forbidden** в нескольких случаях:  
-
----
-
-## **🔍 1. CSRF-защита (`403 Forbidden: CSRF verification failed`)**
-Django **автоматически блокирует POST-запросы без корректного CSRF-токена**, если используется `SessionAuthentication` и CSRF-защита включена.  
-
-### **Как это проверить?**
-🔹 Если ошибка **связана с CSRF**, в логах будет:  
-```
-Forbidden (CSRF cookie not set.): /your-endpoint/
-```
-или  
-```
-Forbidden (CSRF verification failed. Request aborted.)
-```
-
-### **Как исправить?**
-- Убедись, что передаёшь **CSRF-токен** в заголовке `X-CSRFToken` при POST-запросах.  
-- Если запрос идёт с фронтенда, **передавай куки с `credentials: "include"`** (иначе CSRF не сработает).  
-
-**Если хочешь временно отключить CSRF (для отладки):**  
-```python
-from django.views.decorators.csrf import csrf_exempt
-
-@csrf_exempt
-def my_view(request):
-    return JsonResponse({"message": "No CSRF check here"})
-```
-Но **лучше не отключать CSRF на продакшене!**  
-
----
-
-## **🔍 2. Аутентификация (`403 Forbidden: Authentication credentials were not provided.`)**
-Если у тебя **используется сессионная аутентификация** (`SessionAuthentication` в DRF) или другие механизмы, Django может **автоматически** отправлять 403, если:  
-- **Нет `sessionid` в куках**.  
-- **Пользователь не залогинен**, но запрашивает защищённый ресурс.  
-- **Сессия истекла или удалена**.  
-
-### **Как это проверить?**
-1. **В логах Django** будет что-то вроде:  
-   ```
-   Forbidden: /your-endpoint/
-   Authentication credentials were not provided.
-   ```
+### 403
+* наш view отправляет 403
+* django отправляет `403 Forbidden: CSRF verification failed`
+  + при условии `SessionAuthentication`
+  + при условии CSRF-защита включена
+  + POST-запрос: передаёвать CSRF-токен в заголовке `X-CSRFToken`
+  + запрос с фронтенда: куки с `credentials: "include"
+  + @csrf_exempt отключить CSRF для отладки
+  + лог:
+    - Forbidden (CSRF cookie not set.): /your-endpoint/
+    - Forbidden (CSRF verification failed. Request aborted.)
+  + у меня:
+    - Forbidden (CSRF token from the 'X-Csrftoken' HTTP header has incorrect length.): /chat/ensure_private_group/
+    - 068 WARNING  Forbidden (CSRF token from the 'X-Csrftoken' HTTP header has incorrect length.): /chat/ensure_private_group/
+    - 172.18.0.5:40996 - - [20/Mar/2025:21:42:20] "POST /chat/ensure_private_group/" 403 2549
+* django отправляет `403 Forbidden: Authentication credentials were not provided.`)
+  + при условии: `SessionAuthentication` в DRF или др. механизмы
+  + 1) Нет `sessionid` в куках  
+  + 2) Пользователь не залогинен, но запрашивает защищённый ресурс  
+  + 3) Сессия истекла или удалена  
+  + логи:  
+       ```
+       Forbidden: /your-endpoint/
+       Authentication credentials were not provided.
+       ```
 2. **Если используешь `@login_required`**, а юзер не авторизован, Django автоматически отправит 403.  
 
 ### **Как исправить?**
