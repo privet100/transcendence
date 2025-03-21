@@ -13,7 +13,6 @@ backend/templates
 backend/pong_game
 LOGIN_URL
 
-
 TO DO (2)
 * place all the endpoints to myproject/urls.py   OR   place all the endpoints to its own urls.py
 * css (a narrow page is broken)
@@ -24,11 +23,9 @@ TO DO (2)
 * docker builder prune -a -f # DEPRECATED
 * make fclean works without sudo
 
-
 TO DO IN THE END
 * ./backend:/app      # to remove in production
 * set DEBUG = False
-
 
 ### 403
 * наш view отправляет 403
@@ -56,9 +53,9 @@ TO DO IN THE END
      Forbidden: /your-endpoint/
      Authentication credentials were not provided
      ```
-  + Проверь, что `sessionid` передаётся в куки.  
-  + Убедись, что пользователь авторизован перед вызовом запроса
-  + убери тих для теста `@login_required` или `IsAuthenticated
+  + надо: `sessionid` передаётся в куки
+  + надо: пользователь авторизован перед вызовом запроса
+  + убери для теста `@login_required` или `IsAuthenticated
 * django отправляет 403
   + если в коде raise PermissionDenied("You are not allowed to do this.")
   + или в коде raise PermissionDenied("Access denied")
