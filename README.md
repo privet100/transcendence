@@ -2,11 +2,10 @@
 |---------|-----------|--------------|
 | **Запрос профиля** | Нет | `fetchUserProfile()` загружает данные профиля из `/api/profile/` |
 | **Обновление профиля** | Нет | `handleFormSubmit()` обновляет имя пользователя |
-| **История игр** | `fetchGameHistory()` (есть, но не реализована) | `fetchGameHistory()` (тоже пустая) |
-| **Список друзей** | `getFriends()` (формирует массив друзей) | `renderFriendsList()` (рендерит их) |
+| **История игр** |  |  |
+| **Список друзей** | `getFriends()` | `renderFriendsList()` |
 | **Работа с изображениями** | Нет | `handleAvatarUpload()` загружает аватар |
-| **Навигация** | Использует `router.navigate()` для перехода к профилю | Тоже использует, но ещё добавляет клики на `.router-link` |
-| **Формат данных игроков** | `gamesHtml()` проверяет ID игроков и присваивает имена | `renderGamesList()` (не показан, но, вероятно, делает что-то подобное) |
+| **Формат данных игроков** | `gamesHtml()` проверяет ID игроков и присваивает имена | `renderGamesList()` |
 
 ### sanitization 
 two times into login page, profile page, chats and tournaments name. 
