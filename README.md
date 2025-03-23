@@ -1726,8 +1726,34 @@ database 0.5                  | ---     | +
   + `AVATAR_UPLOAD_PATH` может быть использован если требуется какая-то специфическая обработка (например, для загрузки в облако или на внешний сервер)
 
 ### DOCKER
-* Чтобы файлы нового приложения, созданные внутри контейнера, появились на хосте
-  + директория проекта внутри контейнера и на хосте связаны с помощью volumes (точек монтирования) `./backend:/app `
+* Чтобы Docker не загружал образ Python 3.10 с Docker Hub при каждом запуске  
+  + Использовать кэш Docker при сборке
+    - Когда ты выполняешь `docker-compose up --build`, Docker кэширует слои сборки. Но если изменяешь `requirements.txt`, кэш ломается
+    - Сначала скопировать только `requirements.txt`, установить зависимости, а потом копировать весь код:  
+      ```dockerfile
+      FROM python:3.10
+      ENV PYTHONUNBUFFERED=1
+      ENV DJANGO_SETTINGS_MODULE=myproject.settings
+      
+      WORKDIR /app
+      
+      COPY requirements.txt /app/requirements.txt
+      RUN pip install -r requirements.txt && rm requirements.txt
+      
+      COPY . /app
+      
+      COPY entrypoint.sh /entrypoint.sh
+      RUN chmod +x /entrypoint.sh
+      
+      ENTRYPOINT ["/entrypoint.sh"]
+      CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "myproject.asgi:application"]
+      ```
+  + локальный образ   
+    - docker pull python:3.10
+  + не перезапускать контейнеры при изменении кода  
+    - `./backend:/app` позволяет обновлять код без пересборки образа  
+    - `docker-compose restart backend
+    - пересобрать без удаления кэша: `docker-compose build backend`, `docker-compose up -d backend`
 * `context ./backend`
   + файлы в `./backend` доступны для процесса сборки
   + только файлы COPY, ADD, ... скопируются в контейнер
