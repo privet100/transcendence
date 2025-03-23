@@ -1,31 +1,12 @@
-TO DO - IMPORTANT
-* game saves its score to the db (Anna)
-* close 8000 and 6380
-* WebSocket connections require authentication (e.g., via TokenAuthMiddleware)
-* Router.js : FIXME: Change sessionStorage to a safer option later
-* favicon
-* serve backend/avatar from frontend (Anna)
-* we have 2 folders with frontend code in the container (Anna)
-* sign up -> sign in with this user -> password error 
-* do we use cache ?
-* delete unused files and settings:
-backend/templates
-backend/pong_game
-LOGIN_URL
+### sanitization 
+two times into login page, profile page, chats and tournaments name. 
+1. on backend - html_sanitizer library 
+username = sanitizer.sanitize(raw_username)
+password = sanitizer.sanitize(raw_password)
 
-TO DO (2)
-* place all the endpoints to myproject/urls.py   OR   place all the endpoints to its own urls.py
-* css (a narrow page is broken)
-* css for admin
-* we have two functions getCSRFTokenFromCookie
-* REST_FRAMEWORK.DEFAULT_PERMISSION_CLASSES
-* game.id vs game_id? do we need both?
-* docker builder prune -a -f # DEPRECATED
-* make fclean works without sudo
+2. on the frontend - DOMPurify 
 
-TO DO IN THE END
-* ./backend:/app      # to remove in production
-* set DEBUG = False
+When we enter XSS attack script into field, we could see "showtoast" with green success warning that data was saved but actually it was not saved because it was empty or had another text (not script)
 
 ### 403
 * наш view отправляет 403
