@@ -1,48 +1,32 @@
+| Функция | `UserPage` | `ProfilePage` |
+|---------|-----------|--------------|
+| **Запрос профиля** | Нет | `fetchUserProfile()` загружает данные профиля из `/api/profile/` |
+| **Обновление профиля** | Нет | `handleFormSubmit()` обновляет имя пользователя |
+| **История игр** | `fetchGameHistory()` (есть, но не реализована) | `fetchGameHistory()` (тоже пустая) |
+| **Список друзей** | `getFriends()` (формирует массив друзей) | `renderFriendsList()` (рендерит их) |
+| **Работа с изображениями** | Нет | `handleAvatarUpload()` загружает аватар |
+| **Навигация** | Использует `router.navigate()` для перехода к профилю | Тоже использует, но ещё добавляет клики на `.router-link` |
+| **Формат данных игроков** | `gamesHtml()` проверяет ID игроков и присваивает имена | `renderGamesList()` (не показан, но, вероятно, делает что-то подобное) |
+
 ### sanitization 
 two times into login page, profile page, chats and tournaments name. 
 1. on backend - html_sanitizer library 
 username = sanitizer.sanitize(raw_username)
 password = sanitizer.sanitize(raw_password)
-
 2. on the frontend - DOMPurify 
-
 When we enter XSS attack script into field, we could see "showtoast" with green success warning that data was saved but actually it was not saved because it was empty or had another text (not script)
 
 ### 403
-* наш view отправляет 403
-* django отправляет `403 Forbidden: CSRF verification failed`
-  + при условии `SessionAuthentication`
-  + при условии CSRF-защита включена
-  + надо: POST-запрос передаёт CSRF-токен в заголовке `X-CSRFToken`
-  + надо: запрос с фронтенда имеет куки с `credentials: "include"
-  + @csrf_exempt отключить CSRF для отладки
-  + лог:
-    - Forbidden (CSRF cookie not set.): /your-endpoint/
-    - Forbidden (CSRF verification failed. Request aborted.)
-  + у меня:
-    - Forbidden (CSRF token from the 'X-Csrftoken' HTTP header has incorrect length.): /chat/ensure_private_group/
-    - 068 WARNING  Forbidden (CSRF token from the 'X-Csrftoken' HTTP header has incorrect length.): /chat/ensure_private_group/
-    - 172.18.0.5:40996 - - [20/Mar/2025:21:42:20] "POST /chat/ensure_private_group/" 403 2549
-* django отправляет `403 Forbidden: Authentication credentials were not provided.`)
-  + при условии: `SessionAuthentication` в DRF или др. механизмы
-  + 1) Нет `sessionid` в куках  
-  + 2) Пользователь не залогинен, запрашивает ресурс  
-  + 3) используешь `@login_required`**, а юзер не авторизован
-  + 4) Сессия истекла или удалена  
-  + логи:  
-     ```
-     Forbidden: /your-endpoint/
-     Authentication credentials were not provided
-     ```
-  + надо: `sessionid` передаётся в куки
-  + надо: пользователь авторизован перед вызовом запроса
-  + убери для теста `@login_required` или `IsAuthenticated
+* view отправляет 403
+* django отправляет `403 Forbidden: CSRF verification failed`, при условии `SessionAuthentication`, CSRF-защита включена
+* django отправляет `403 Forbidden: Authentication credentials were not provided`, при условии: `SessionAuthentication` в DRF или др
+  + Нет `sessionid` в куках  
+  + Пользователь не залогинен, запрашивает ресурс  
+  + используешь `@login_required`, а юзер не авторизован
+  + Сессия истекла или удалена  
 * django отправляет 403
-  + если в коде raise PermissionDenied("You are not allowed to do this.")
-  + или в коде raise PermissionDenied("Access denied")
-  + или `permission_classes = [IsAuthenticated]`
-  + логи: "PermissionDenied"  
-  + API-ответ: JSON с "detail": "You do not have permission to perform this action"
+  + в коде raise PermissionDenied
+  + `permission_classes = [IsAuthenticated]`
 
 ### БЕЗОПАСНОСТЬ
 *  use auth.js to check whether the user is authenticated
