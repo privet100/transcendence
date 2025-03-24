@@ -177,24 +177,6 @@
     - Test the functionality of any additional minor modules, such as User and Game Stats Dashboards, by navigating to the relevant sections and checking for expected behavior.
     - Ensure dashboards display accurate and relevant st
 
-
-| Функция | `UserPage` | `ProfilePage` |
-|---------|-----------|--------------|
-| **Запрос профиля** | Нет | `fetchUserProfile()` загружает данные профиля из `/api/profile/` |
-| **Обновление профиля** | Нет | `handleFormSubmit()` обновляет имя пользователя |
-| **История игр** |  |  |
-| **Список друзей** | `getFriends()` | `renderFriendsList()` |
-| **Работа с изображениями** | Нет | `handleAvatarUpload()` загружает аватар |
-| **Формат данных игроков** | `gamesHtml()` проверяет ID игроков и присваивает имена | `renderGamesList()` |
-
-### sanitization 
-two times into login page, profile page, chats and tournaments name. 
-1. on backend - html_sanitizer library 
-username = sanitizer.sanitize(raw_username)
-password = sanitizer.sanitize(raw_password)
-2. on the frontend - DOMPurify 
-When we enter XSS attack script into field, we could see "showtoast" with green success warning that data was saved but actually it was not saved because it was empty or had another text (not script)
-
 ### 403
 * view отправляет 403
 * django отправляет `403 Forbidden: CSRF verification failed`, при условии `SessionAuthentication`, CSRF-защита включена
