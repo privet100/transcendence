@@ -1718,23 +1718,28 @@ database 0.5                  | ---     | +
 * `docker exec -it db psql -U myuser -d mydatabase`
   + then `\db`, `\dt`
     ```
-    Schema |                Name                | Type  | Owner  
-    --------+------------------------------------+-------+--------
-    public | auth_group                         | table | myuser
-    public | auth_group_permissions             | table | myuser
-    public | auth_permission                    | table | myuser
-    public | django_admin_log                   | table | myuser
-    public | django_content_type                | table | myuser
-    public | django_migrations                  | table | myuser
-    public | django_session                     | table | myuser
-    public | myapp_game                         | table | myuser
-    public | myapp_tournament                   | table | myuser
-    public | myapp_tournament_players           | table | myuser
-    public | myapp_userprofile                  | table | myuser
-    public | myapp_userprofile_friends          | table | myuser
-    public | myapp_userprofile_groups           | table | myuser
-    public | myapp_userprofile_user_permissions | table | myuser
-    ```
+                      List of relations
+ Schema |                Name                | Type  | Owner  
+--------+------------------------------------+-------+--------
+ public | auth_group                         | table | myuser
+ public | auth_group_permissions             | table | myuser
+ public | auth_permission                    | table | myuser
+ public | chat_chatgroup                     | table | myuser
+ public | chat_groupmessage                  | table | myuser
+ public | django_admin_log                   | table | myuser
+ public | django_content_type                | table | myuser
+ public | django_migrations                  | table | myuser
+ public | django_session                     | table | myuser
+ public | myapp_userprofile                  | table | myuser
+ public | myapp_userprofile_blocked_users    | table | myuser
+ public | myapp_userprofile_friends          | table | myuser
+ public | myapp_userprofile_groups           | table | myuser
+ public | myapp_userprofile_user_permissions | table | myuser
+ public | pong_game                          | table | myuser
+ public | tour_round                         | table | myuser
+ public | tour_round_players                 | table | myuser
+ public | tour_tour                          | table | myuser
+ public | tour_tour_players                  | table | myuser    ```
 * лучший вариант для Django – оставить `id`
   + django добавляет `id = AutoField(primary_key=True)`, если явный первичный ключ не указан
   + Минусы `game_id`:
