@@ -190,9 +190,8 @@
   + `permission_classes = [IsAuthenticated]`
 
 ### БЕЗОПАСНОСТЬ
-*  use auth.js to check whether the user is authenticated
-  + You can add it to your component and add data-auth-required tag to the html elements that require authentication. That’s how I do.
-*  identification = кто вы
+* use auth.js to check whether the user is authenticated. You can add it to your component and add data-auth-required tag to the html elements that require authentication. That’s how I do.
+* identification = кто вы
   + определение личности пользователя (предоставление username, email)  
   + без проверки пароля
   + не вход в систему  
