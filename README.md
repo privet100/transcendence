@@ -10,6 +10,17 @@
 * push мои изменнеия
   + git add . && git commit -m "comment" && git push origin anna
 
+### claude
+* Claude Team
+  + чат-бот через веб-интерфейс
+* Claude API
+  + подключить код из редактора (Cursor, VSCode, ...) к API claude, и clude будет видеть весь мой код как контекст
+  + доступ к модели на более низком уровне
+  + позволяет отправлять большие запросы
+  + требует API Key
+  + цена зависит от количества токенов, которые ты отправляешь и получаешь
+    - у OpenAI API стоимость тоже по токенам, если ты работаешь с кодом и загружаешь большие файлы в контекст, это дорого
+
 ### Перевод бэкенда турниров с Django + PostgreSQL на Node.js + Fastify + Prisma + SQLite  
 1. Перенос моделей данных (Django ORM → Prisma ORM)
    - Django использует классы моделей (`models.Model`), а Prisma — схему в `schema.prisma`  
