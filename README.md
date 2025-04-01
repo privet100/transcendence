@@ -13,12 +13,32 @@
   + git fetch --all --prune
 * pull чужие ветки, моя не меняется
   + git fetch --all --prune
-  + 
 * pull мою ветку
   + git pull origin anna --rebase
 * push мои изменнеия
   + git add . && git commit -m "comment" && git push origin anna
-
+* https://danielkummer.github.io/git-flow-cheatsheet/index.ru_RU.html
+  + main ( стабильные релизы)
+  + develop (основная ветка разработки)
+  + feature (для новых фич)
+  + release (подготовка к релизу)
+  + hotfix (исправление багов в проде)
+* мне написали:
+  + git flow init
+  + git flow start feature [name of feature]
+* je viens de creer le git flow
+* tu peux push le container sur la branch developp
+  + C'est l"équivalent de la master pour créer votre perso
+  + faites un git flow feature start MYFEATURE
+  + ça va vous faire une branch feature/[myfeature] depuis la branch developp
+  + puis deplacez vous dessus en faisant un git checkout feature/[myfeature]
+* tu vas pas avoir le git flow qui est init
+  + puisque je peux rien push vu que j'ai pas de files a push
+  + si t'as pas de branch developp fait git flow init
+  + tu fais entré pour laisser les valeurs a default sur tout les prompt
+* visualiser le repo
+  + https://gitkraken.dev/api/exchange/2uaJY3MwK2hnEAHh2xJXLJf2Rfu?success=users%3Fsource%3Dgitkraken
+ 
 ### claude
 * Claude Team без API
   + чат-бот через веб-интерфейс
