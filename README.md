@@ -1,6 +1,18 @@
+### git
+* создаст репозиторий со всеми ветками
+  + git clone --origin origin git@github.com:IOKXOI/ft_transcendence.git
+  + cd ft_transcendence
+  + git fetch --all --prune
+* pull чужие ветки, моя не меняется
+  + git fetch --all --prune
+* pull мою ветку
+  + git pull origin anna --rebase
+* push мои изменнеия
+  + git add . && git commit -m "comment" && git push origin anna
+
 ### Перевод бэкенда турниров с Django + PostgreSQL на Node.js + Fastify + Prisma + SQLite  
-1. **Перенос моделей данных (Django ORM → Prisma ORM)**  
-   - Django использует **классы моделей** (`models.Model`), а Prisma — **схему в `schema.prisma`**.  
+1. Перенос моделей данных (Django ORM → Prisma ORM)
+   - Django использует классы моделей (`models.Model`), а Prisma — схему в `schema.prisma`  
    - переписать модели под Prisma
    - перенести миграции  
    - PostgreSQL поддерживает много мощных функций (JSONB, транзакции, индексы), а SQLite — намного проще
