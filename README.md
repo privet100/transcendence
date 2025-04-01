@@ -1,3 +1,27 @@
+### Перевод бэкенда турниров с Django + PostgreSQL на Node.js + Fastify + Prisma + SQLite  
+1. **Перенос моделей данных (Django ORM → Prisma ORM)**  
+   - Django использует **классы моделей** (`models.Model`), а Prisma — **схему в `schema.prisma`**.  
+   - переписать модели под Prisma
+   - перенести миграции  
+   - PostgreSQL поддерживает много мощных функций (JSONB, транзакции, индексы), а SQLite — намного проще
+2. Переписывание бизнес-логики  
+   - Django имеет готовую админку, аутентификацию, работу с пользователями
+   - Fastify более минималистичный  
+   - вручную писать обработку запросов, middlewares, валидацию
+3. Переписывание API (Django REST Framework → Fastify)  
+   - Django REST Framework (DRF) даёт много "из коробки", например, сериализацию данных, пагинацию.  
+   - В Fastify нужно будет использовать Zod или TypeBox для схем API
+4. Аутентификация  
+   - Django использует Django Auth + JWT или сессии  
+   - В Fastify можно использовать `fastify-jwt` или OAuth2  
+5. Миграция базы данных  
+   - PostgreSQL → SQLite может быть проблемой, если есть сложные связи, триггеры, JSONB-поля  
+* изменится  
+  - Fastify быстрее Django (меньше overhead)
+  - Гибкость** → Prisma удобен для работы с БД, можно легко переключаться между SQLite и PostgreSQL
+  - Придётся вручную писать логику**, которую Django делает автоматически
+  - Fastify требует больше конфигурации**, чем Django (middleware, плагины, сериализация)
+
 ### checklist
 // website with login, 2fa and 42 login where we can play local pong against ai or guest players. Frontend in vannila js, html, css and bootstrap. Backend django, database postgresql. used docker for deployment.
 
