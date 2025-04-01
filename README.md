@@ -5,6 +5,7 @@
   + git fetch --all --prune
 * pull чужие ветки, моя не меняется
   + git fetch --all --prune
+  + 
 * pull мою ветку
   + git pull origin anna --rebase
 * push мои изменнеия
