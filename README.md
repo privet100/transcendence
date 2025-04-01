@@ -38,6 +38,7 @@
   + tu fais entré pour laisser les valeurs a default sur tout les prompt
 * visualiser le repo
   + https://gitkraken.dev/api/exchange/2uaJY3MwK2hnEAHh2xJXLJf2Rfu?success=users%3Fsource%3Dgitkraken
+  + lazygit c'est gratuit
  
 ### claude
 * Claude Team без API
