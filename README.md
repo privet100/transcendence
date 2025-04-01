@@ -1,3 +1,11 @@
+* notre front est servi par nginx (port 8080)
+* notre back entièrement typescript est servi par node (port 3000)
+* pas besoin d'un troisième docker pour la db
+  + SQLite tient en un seul fichier
+  + **on pourra le mettre dans le docker backend** (je m'en occuperai)
+  + il faut aussi faire un volume pour
+* il vaut mieux pas toucher la config nginx c'était hyper chiant à faire
+
 ### git
 * создаст репозиторий со всеми ветками
   + git clone --origin origin git@github.com:IOKXOI/ft_transcendence.git
