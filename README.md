@@ -73,6 +73,7 @@
     - если работаешь с кодом, это дорого
 * GitHub Copilot
   + анализ репозитория
+* repo prompt
 
 ### Перевод бэкенда турниров с Django + PostgreSQL на Node.js + Fastify + Prisma + SQLite  
 1. Перенос моделей данных (Django ORM → Prisma ORM)
