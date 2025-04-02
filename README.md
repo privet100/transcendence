@@ -5,6 +5,7 @@
   + **on pourra le mettre dans le docker backend** (je m'en occuperai)
   + il faut aussi faire un volume pour
 * il vaut mieux pas toucher la config nginx c'était hyper chiant à faire
+* xdg-open ./index.html
 
 ### git
 * создаст репозиторий со всеми ветками
@@ -59,8 +60,18 @@
   + tu devrais etre sur la branch develop (tu vois ça facilement sur zsh entre parenthese)
   + git flow start feature [nom de ta feature]
   + git chekout sur /feature/[nom de ta feature]
+* второй вариант
+  + https://discord.com/channels/1350153624411439214/1351952720390520843/1352723216916807854
+  + git flow start feature [nom de ta feature]
+* третий вариант
+  + быть на ветке develop
+  + git flow init
+  + ouvre .git/config sur un editeur
+  + la config git flow reste en local, elle est pas versionné
+  + quand on clone le repo, il faudra a chaque fois faire git flow init -d
 * et à moins que vous bossiez sur les memes trucs avec ketzon, ça sera ta branch perso
 * si vous partagez la branch, pensez bien a git push quand vous arretez de travailler, et git pull avant de reprendre
+* git flow finish nomdebranch - когда работа окончена
 * git@github.com:IOKXOI/ft_transcendance.git 
   + git checkout develop
   + git flow feature start [nom de la feature]
