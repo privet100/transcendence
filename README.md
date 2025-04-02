@@ -59,6 +59,8 @@
   + tu devrais etre sur la branch develop (tu vois ça facilement sur zsh entre parenthese)
   + git flow start feature [nom de ta feature]
   + git chekout sur /feature/[nom de ta feature]
+* et à moins que vous bossiez sur les memes trucs avec ketzon, ça sera ta branch perso
+* si vous partagez la branch, pensez bien a git push quand vous arretez de travailler, et git pull avant de reprendre
 * git@github.com:IOKXOI/ft_transcendance.git 
   + git checkout develop
   + git flow feature start [nom de la feature]
