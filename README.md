@@ -6,6 +6,12 @@
   + il faut aussi faire un volume pour
 * il vaut mieux pas toucher la config nginx c'était hyper chiant à faire
 * xdg-open ./index.html
+* il m’a dit de faire les JWT
+  + pratique
+  + utilisé dans tout les sites actuels
+  + on va faire le module 2FA
+  + j’ai déjà implémenté le jwt
+  + on va se déguster avec le mail en plus
 
 ### git
 * создаст репозиторий со всеми ветками
