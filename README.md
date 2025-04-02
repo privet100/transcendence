@@ -23,61 +23,40 @@
   + feature (для новых фич)
   + release (подготовка к релизу)
   + hotfix (исправление багов в проде)
+* git checkout [nom_branch_ou_tu_veux_aller] pour te deplacer
 * мне написали:
   + git flow init
   + git flow start feature [name of feature]
-* je viens de creer le git flow
+* il faut que tu branchs depuis develop
+  + pas depuis la branch /feature/routes
+* tu dois etre directement sur la branch feature/routes quand tu clones
+  + meme avec un checkout ou un git branch
 * tu peux push le container sur la branch developp
-  + C'est l"équivalent de la master pour créer votre perso
-  + faites un git flow feature start MYFEATURE
-  + ça va vous faire une branch feature/[myfeature] depuis la branch developp
-  + puis deplacez vous dessus en faisant un git checkout feature/[myfeature]
+  + c'est l"équivalent de la master pour créer votre perso
+  + git flow feature start MYFEATURE => une branch feature/[myfeature] depuis la branch developp
+* il va pas etre possible de deplacer ton travail de ta branch existante (si tu a bien branch depuis la mienne) a la nouvelle branch
+  + sinon tu vas deplacer aussi l'historique de ma branch dans ta branch, et on veut bien garder nos branch propre et distincte pour chaque module
 * tu vas pas avoir le git flow qui est init
-  + puisque je peux rien push vu que j'ai pas de files a push
   + si t'as pas de branch developp fait git flow init
-  + tu fais entré pour laisser les valeurs a default sur tout les prompt
-  + an, [01.04.25 12:47]
-tu as branch depuis la branch /feature/routes. Il faut que tu branchs depuis develop
-
-git checkout [nom_branch_ou_tu_veux_aller] pour te deplacer
-git branch -d [nombranchà_delete] pour supprimer
-
-il va pas etre possible de deplacer ton travail de ta branch existante (si tu a bien branch depuis la mienne) a la nouvelle branch, sinon tu vas deplacer aussi l'historique de ma branch dans ta branch, et on veut bien garder nos branch propre et distincte pour chaque module
-
-an, [01.04.25 12:47]
-tu dois etre directement sur la branch feature/routes quand tu clones
-meme avec un checkout ou un git branch
-
-an, [01.04.25 12:49]
-j'ai clone le repo
-ensuite j'ai fais le git flow
-et si je veux avoir une vue plus global je fais git branch ou je le regarde sur vs code
-
-an, [01.04.25 14:39]
-t'as bien dl git flow avant de pull?
-
-an, [01.04.25 14:41]
-est ce que vous avez récupéré la branch /feature/routes? 
-si non et que vous voulez la recupéré, git branch track /origin/[nomdelabranch] 
-pour se deplacer sur une branch sans risquer de la modifier, on passe en mode detach avec git checkout --detach [nomdelabranch]
-
-si vous avez pas develop faite un 
-git branch track  /origin/develop
-git checkout develop
-git flow feature [nom de votre feature]
-
-an, [01.04.25 14:43]
-'ai fais une config pour qu'on puisse push et sur github et sur l'intra avec un git push all
-
-an, [01.04.25 14:44]
-vous pouvez utiliser ce github git@github.com:IOKXOI/ft_transcendance.git 
-pensez bien a 
-git checkout develop
-avant de 
-git flow feature start [nom de la feature]
-
-an, [01.04.25 14:51]
-mais faudra vraiment juste push et jamais travailler depuis votre repo au risque d'avoir des galères. En tout cas au debut voir un peu le comportement de git avec la synchronisation des branchs
+  + "entré" = laisser les valeurs a default sur tout les prompt
+* j'ai clone le repo
+  + ensuite git flow
+* dl git flow avant de pull ?
+* récupérer la branch /feature/routes 
+  + git branch track /origin/[nomdelabranch] 
+* se deplacer sur une branch sans risquer de la modifier
+  + on passe en mode detach avec git checkout --detach [nomdelabranch]
+* si vous avez pas develop faite 
+  + git branch track  /origin/develop
+  + git checkout develop
+  + git flow feature [nom de votre feature]
+* git@github.com:IOKXOI/ft_transcendance.git 
+  + git checkout develop
+  + git flow feature start [nom de la feature]
+* une vue plus global
+  + je fais git branch
+  + ou je le regarde sur vs code
+* une config pour qu'on puisse push et sur github et sur l'intra avec un git push all
 * visualiser le repo
   + https://gitkraken.dev/api/exchange/2uaJY3MwK2hnEAHh2xJXLJf2Rfu?success=users%3Fsource%3Dgitkraken
   + lazygit c'est gratuit
