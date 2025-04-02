@@ -54,6 +54,11 @@
   + /intra/feature/[votre_nom_de_feature] c'est la branch en distant
   + ça peut créer des conflits bien relou si vous travaillez dessus
   + il faut checkout sur /feature/[votre_nom_de_feature]
+* первый код запушить
+  + git clone
+  + tu devrais etre sur la branch develop (tu vois ça facilement sur zsh entre parenthese)
+  + git flow start feature [nom de ta feature]
+  + git chekout sur /feature/[nom de ta feature]
 * git@github.com:IOKXOI/ft_transcendance.git 
   + git checkout develop
   + git flow feature start [nom de la feature]
