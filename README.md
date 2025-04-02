@@ -47,9 +47,13 @@
 * se deplacer sur une branch sans risquer de la modifier
   + on passe en mode detach avec git checkout --detach [nomdelabranch]
 * si vous avez pas develop faite 
-  + git branch track  /origin/develop
+  + git branch track /origin/develop
   + git checkout develop
   + git flow feature [nom de votre feature]
+* faites attention quand vous faite un checkout de branch si vous utilisez tab
+  + /intra/feature/[votre_nom_de_feature] c'est la branch en distant
+  + ça peut créer des conflits bien relou si vous travaillez dessus
+  + il faut checkout sur /feature/[votre_nom_de_feature]
 * git@github.com:IOKXOI/ft_transcendance.git 
   + git checkout develop
   + git flow feature start [nom de la feature]
