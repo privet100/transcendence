@@ -20,121 +20,15 @@
   + работает в браузере, не требует установки (в отличие от Photoshop или Sketch)
   + позволяет создавать интерактивные прототипы (кликабельные версии сайта или приложения для тестирования)
 
-### git
-* создаст репозиторий со всеми ветками
-  + git clone --origin origin git@github.com:IOKXOI/ft_transcendence.git
-  + cd ft_transcendence
-  + git fetch --all --prune
-* pull чужие ветки, моя не меняется
-  + git fetch --all --prune
-* pull мою ветку
-  + git pull origin anna --rebase
-* push мои изменнеия
-  + git add . && git commit -m "comment" && git push origin anna
-* https://danielkummer.github.io/git-flow-cheatsheet/index.ru_RU.html
-  + main ( стабильные релизы)
-  + develop (основная ветка разработки)
-  + feature (для новых фич)
-  + release (подготовка к релизу)
-  + hotfix (исправление багов в проде)
-* git checkout [nom_branch_ou_tu_veux_aller] pour te deplacer
-* мне написали:
-  + git flow init
-  + git flow start feature [name of feature]
-* il faut que tu branchs depuis develop
-  + pas depuis la branch /feature/routes
-* tu dois etre directement sur la branch feature/routes quand tu clones
-  + meme avec un checkout ou un git branch
-* tu peux push le container sur la branch developp
-  + c'est l"équivalent de la master pour créer votre perso
-  + git flow feature start MYFEATURE => une branch feature/[myfeature] depuis la branch developp
-* il va pas etre possible de deplacer ton travail de ta branch existante (si tu a bien branch depuis la mienne) a la nouvelle branch
-  + sinon tu vas deplacer aussi l'historique de ma branch dans ta branch, et on veut bien garder nos branch propre et distincte pour chaque module
-* tu vas pas avoir le git flow qui est init
-  + si t'as pas de branch developp fait git flow init
-  + "entré" = laisser les valeurs a default sur tout les prompt
-* j'ai clone le repo
-  + ensuite git flow
-* dl git flow avant de pull ?
-* récupérer la branch /feature/routes 
-  + git branch track /origin/[nomdelabranch] 
-* se deplacer sur une branch sans risquer de la modifier
-  + on passe en mode detach avec git checkout --detach [nomdelabranch]
-* si vous avez pas develop faite 
-  + git branch track /origin/develop
-  + git checkout develop
-  + git flow feature [nom de votre feature]
-* faites attention quand vous faite un checkout de branch si vous utilisez tab
-  + /intra/feature/[votre_nom_de_feature] c'est la branch en distant
-  + ça peut créer des conflits bien relou si vous travaillez dessus
-  + il faut checkout sur /feature/[votre_nom_de_feature]
-* первый код запушить
-  + git clone
-  + tu devrais etre sur la branch develop (tu vois ça facilement sur zsh entre parenthese)
-  + git flow start feature [nom de ta feature]
-  + git chekout sur /feature/[nom de ta feature]
-* второй вариант
-  + https://discord.com/channels/1350153624411439214/1351952720390520843/1352723216916807854
-  + git flow start feature [nom de ta feature]
-* третий вариант
-  + быть на ветке develop
-  + git flow init
-  + ouvre .git/config sur un editeur
-  + la config git flow reste en local, elle est pas versionné
-  + quand on clone le repo, il faudra a chaque fois faire git flow init -d
-* et à moins que vous bossiez sur les memes trucs avec ketzon, ça sera ta branch perso
-* si vous partagez la branch, pensez bien a git push quand vous arretez de travailler, et git pull avant de reprendre
-* git flow finish nomdebranch - когда работа окончена
-* git@github.com:IOKXOI/ft_transcendance.git 
-  + git checkout develop
-  + git flow feature start [nom de la feature]
-* une vue plus global
-  + je fais git branch
-  + ou je le regarde sur vs code
-* une config pour qu'on puisse push et sur github et sur l'intra avec un git push all
-* visualiser le repo
-  + https://gitkraken.dev/api/exchange/2uaJY3MwK2hnEAHh2xJXLJf2Rfu?success=users%3Fsource%3Dgitkraken
-  + lazygit c'est gratuit
-* даты извенение во всех ветках
-  ```for branch in $(git for-each-ref --format='%(refname:short)' refs/heads/); do 
-    echo "$branch — $(git log -1 --format="%cd" "$branch")"
-  done```
- 
-### claude
-* Claude Team без API
-  + чат-бот через веб-интерфейс
-  + можно: загружать файлы в чат (код, ...) и он будет использовать их как контекст
-    - отправлять в чат `.zip` весь репозиторий и загружать его в чат  
-    - отправлять в чат ключевые файлы `main.py`, `index.js` и т. д.  
-    - Claude понимает структуру проекта, если передать `package.json`, `requirements.txt`, `.gitignore`, ...
-  + можно: сторонние плагины: некоторые редакторы позволяют использовать AI без API-ключа
-  + можно: использовать GitHub Gist  
-    - Загрузи важные файлы в [GitHub Gist](https://gist.github.com/), скинь ссылку в чат
-    - Claude сможет анализировать содержимое Gist (если оно публичное) 
-  + можно: сгенерировать Markdown-обзор кода  
-   - `tree -I "node_modules|venv|.git" > structure.txt` отправить, чтобы Claude понял архитектуру проекта
-  + можно: Python-скрипт, который извлечёт важные файлы и их содержимое в один `.txt` или `.md`  
-  + нельзя: автоматического подключения папки 
-  + нельзя: дать ссылку на GitHub-репозиторий и заставить Claude его парсить
-* Claude API
-  + анализ репозитория
-  + подключить код из редактора (Cursor, VSCode, ...) к API claude => clude видит весь код как контекст
-  + в Cursor ИИ не видит сразу всю папку
-    - работает только с открытым файлом.
-    - если файлов мало, он может учитывать их, особенно если они связаны; если открыт один файл, а во втором есть важные зависимости, он может подтянуть его в контекст
-    - открыть оба файла => увеличит шанс, что он учтёт оба
-    - включить Agent => он может заглянуть в другие файлы, если это необходимо для правки
-    - явно указать, что файлы связаны (Вот два файла, первый использует второй. Посмотри на оба и скажи, что исправить.)
-  + доступ к модели на более низком уровне
-  + позволяет отправлять большие запросы
-  + в cursor встроен OpenAI GPT-4
-  + требует API Key
-  + цена зависит от количества токенов, которые отправляешь и получаешь
-    - у OpenAI API стоимость тоже по токенам
-    - если работаешь с кодом, это дорого
-* GitHub Copilot
-  + анализ репозитория
-* repo prompt
+### node.js + fastity
+* Node.js — основа, среда выполнения
+  + написать сервер с нуля (например, через http.createServer(...))
+* Fastify — фреймворк
+  + работает поверх Node.js
+  + быстрый лёгкий современный
+  + удобный плагинный подход
+  + поддерживает JSON Schema валидацию.
+  + альтернатива Express (самый популярный, но менее современный), Koa, NestJS (крупный фреймворк, ближе к Angular по философии)
 
 ### Перевод бэкенда турниров с Django + PostgreSQL на Node.js + Fastify + Prisma + SQLite  
 1. Перенос моделей данных (Django ORM → Prisma ORM)
@@ -338,6 +232,122 @@
 18. **Verify additional minor modules:**
     - Test the functionality of any additional minor modules, such as User and Game Stats Dashboards, by navigating to the relevant sections and checking for expected behavior.
     - Ensure dashboards display accurate and relevant st
+
+### git
+* создаст репозиторий со всеми ветками
+  + git clone --origin origin git@github.com:IOKXOI/ft_transcendence.git
+  + cd ft_transcendence
+  + git fetch --all --prune
+* pull чужие ветки, моя не меняется
+  + git fetch --all --prune
+* pull мою ветку
+  + git pull origin anna --rebase
+* push мои изменнеия
+  + git add . && git commit -m "comment" && git push origin anna
+* https://danielkummer.github.io/git-flow-cheatsheet/index.ru_RU.html
+  + main ( стабильные релизы)
+  + develop (основная ветка разработки)
+  + feature (для новых фич)
+  + release (подготовка к релизу)
+  + hotfix (исправление багов в проде)
+* git checkout [nom_branch_ou_tu_veux_aller] pour te deplacer
+* мне написали:
+  + git flow init
+  + git flow start feature [name of feature]
+* il faut que tu branchs depuis develop
+  + pas depuis la branch /feature/routes
+* tu dois etre directement sur la branch feature/routes quand tu clones
+  + meme avec un checkout ou un git branch
+* tu peux push le container sur la branch developp
+  + c'est l"équivalent de la master pour créer votre perso
+  + git flow feature start MYFEATURE => une branch feature/[myfeature] depuis la branch developp
+* il va pas etre possible de deplacer ton travail de ta branch existante (si tu a bien branch depuis la mienne) a la nouvelle branch
+  + sinon tu vas deplacer aussi l'historique de ma branch dans ta branch, et on veut bien garder nos branch propre et distincte pour chaque module
+* tu vas pas avoir le git flow qui est init
+  + si t'as pas de branch developp fait git flow init
+  + "entré" = laisser les valeurs a default sur tout les prompt
+* j'ai clone le repo
+  + ensuite git flow
+* dl git flow avant de pull ?
+* récupérer la branch /feature/routes 
+  + git branch track /origin/[nomdelabranch] 
+* se deplacer sur une branch sans risquer de la modifier
+  + on passe en mode detach avec git checkout --detach [nomdelabranch]
+* si vous avez pas develop faite 
+  + git branch track /origin/develop
+  + git checkout develop
+  + git flow feature [nom de votre feature]
+* faites attention quand vous faite un checkout de branch si vous utilisez tab
+  + /intra/feature/[votre_nom_de_feature] c'est la branch en distant
+  + ça peut créer des conflits bien relou si vous travaillez dessus
+  + il faut checkout sur /feature/[votre_nom_de_feature]
+* первый код запушить
+  + git clone
+  + tu devrais etre sur la branch develop (tu vois ça facilement sur zsh entre parenthese)
+  + git flow start feature [nom de ta feature]
+  + git chekout sur /feature/[nom de ta feature]
+* второй вариант
+  + https://discord.com/channels/1350153624411439214/1351952720390520843/1352723216916807854
+  + git flow start feature [nom de ta feature]
+* третий вариант
+  + быть на ветке develop
+  + git flow init
+  + ouvre .git/config sur un editeur
+  + la config git flow reste en local, elle est pas versionné
+  + quand on clone le repo, il faudra a chaque fois faire git flow init -d
+* et à moins que vous bossiez sur les memes trucs avec ketzon, ça sera ta branch perso
+* si vous partagez la branch, pensez bien a git push quand vous arretez de travailler, et git pull avant de reprendre
+* git flow finish nomdebranch - когда работа окончена
+* git@github.com:IOKXOI/ft_transcendance.git 
+  + git checkout develop
+  + git flow feature start [nom de la feature]
+* une vue plus global
+  + je fais git branch
+  + ou je le regarde sur vs code
+* une config pour qu'on puisse push et sur github et sur l'intra avec un git push all
+* visualiser le repo
+  + https://gitkraken.dev/api/exchange/2uaJY3MwK2hnEAHh2xJXLJf2Rfu?success=users%3Fsource%3Dgitkraken
+  + lazygit c'est gratuit
+* даты извенение во всех ветках
+  ```for branch in $(git for-each-ref --format='%(refname:short)' refs/heads/); do 
+    echo "$branch — $(git log -1 --format="%cd" "$branch")"
+  done```
+ 
+### claude
+* Claude Team без API
+  + чат-бот через веб-интерфейс
+  + можно: загружать файлы в чат (код, ...) и он будет использовать их как контекст
+    - отправлять в чат `.zip` весь репозиторий и загружать его в чат  
+    - отправлять в чат ключевые файлы `main.py`, `index.js` и т. д.  
+    - Claude понимает структуру проекта, если передать `package.json`, `requirements.txt`, `.gitignore`, ...
+  + можно: сторонние плагины: некоторые редакторы позволяют использовать AI без API-ключа
+  + можно: использовать GitHub Gist  
+    - Загрузи важные файлы в [GitHub Gist](https://gist.github.com/), скинь ссылку в чат
+    - Claude сможет анализировать содержимое Gist (если оно публичное) 
+  + можно: сгенерировать Markdown-обзор кода  
+   - `tree -I "node_modules|venv|.git" > structure.txt` отправить, чтобы Claude понял архитектуру проекта
+  + можно: Python-скрипт, который извлечёт важные файлы и их содержимое в один `.txt` или `.md`  
+  + нельзя: автоматического подключения папки 
+  + нельзя: дать ссылку на GitHub-репозиторий и заставить Claude его парсить
+* Claude API
+  + анализ репозитория
+  + подключить код из редактора (Cursor, VSCode, ...) к API claude => clude видит весь код как контекст
+  + в Cursor ИИ не видит сразу всю папку
+    - работает только с открытым файлом.
+    - если файлов мало, он может учитывать их, особенно если они связаны; если открыт один файл, а во втором есть важные зависимости, он может подтянуть его в контекст
+    - открыть оба файла => увеличит шанс, что он учтёт оба
+    - включить Agent => он может заглянуть в другие файлы, если это необходимо для правки
+    - явно указать, что файлы связаны (Вот два файла, первый использует второй. Посмотри на оба и скажи, что исправить.)
+  + доступ к модели на более низком уровне
+  + позволяет отправлять большие запросы
+  + в cursor встроен OpenAI GPT-4
+  + требует API Key
+  + цена зависит от количества токенов, которые отправляешь и получаешь
+    - у OpenAI API стоимость тоже по токенам
+    - если работаешь с кодом, это дорого
+* GitHub Copilot
+  + анализ репозитория
+* repo prompt
 
 ### 403
 * view отправляет 403
