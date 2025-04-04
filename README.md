@@ -95,6 +95,10 @@
 * visualiser le repo
   + https://gitkraken.dev/api/exchange/2uaJY3MwK2hnEAHh2xJXLJf2Rfu?success=users%3Fsource%3Dgitkraken
   + lazygit c'est gratuit
+* даты извенение во всех ветках
+  ```for branch in $(git for-each-ref --format='%(refname:short)' refs/heads/); do 
+    echo "$branch — $(git log -1 --format="%cd" "$branch")"
+  done```
  
 ### claude
 * Claude Team без API
